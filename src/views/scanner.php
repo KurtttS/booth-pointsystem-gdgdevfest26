@@ -9,7 +9,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 
-    <title>Live Camera Scanner | DevFest Bacolod 2026</title>
+    <title>DevFest Bacolod 2026</title>
 
     <!-- Browser tab icon -->
     <link rel="icon" type="image/png" href="IMG/GDGTOP.png">

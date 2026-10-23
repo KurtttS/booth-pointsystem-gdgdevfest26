@@ -49,7 +49,7 @@
 
                     <p class="subtitle">LOGIN FOR BOOTH ORGANIZERS</p>
 
-                    <form id="loginForm" action="" method="post">
+                    <form id="loginForm" action="EventChoices.php" method="post">
 
                         <!-- Booth Username -->
                         <div class="field">
@@ -125,7 +125,7 @@
 
                             </div>
                         </div>
-
+                        
                         <button class="login-button" type="submit">
                             LOGIN BOOTH
                         </button>
