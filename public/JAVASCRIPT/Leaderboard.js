@@ -1,4 +1,4 @@
-// Expand or collapse ranks 8 to 12 with smooth slide animation
+// Expand or collapse ranks 8+ with smooth slide animation
 const fullStandingsBtn = document.getElementById("fullStandingsBtn");
 const moreRankings = document.getElementById("moreRankings");
 
@@ -24,3 +24,35 @@ if (fullStandingsBtn && moreRankings) {
         }
     });
 }
+
+// Live polling to refresh scores automatically when booths scan attendees
+(function initLiveLeaderboardSync() {
+    const banner = document.getElementById('lockedEventBanner');
+    const eventId = banner ? banner.getAttribute('data-event-id') : null;
+    if (!eventId) return;
+
+    let lastSnapshot = null;
+
+    async function checkScores() {
+        try {
+            const res = await fetch(`/api/leaderboard?event_id=${encodeURIComponent(eventId)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data || !data.success || !Array.isArray(data.standings)) return;
+
+            const currentSnapshot = JSON.stringify(data.standings.map(s => ({ id: s.id, pts: s.points })));
+            if (lastSnapshot !== null && lastSnapshot !== currentSnapshot) {
+                // Points changed; reload to display live updated podium & standings
+                window.location.reload();
+            } else {
+                lastSnapshot = currentSnapshot;
+            }
+        } catch (_) {
+            // Transient network ignore
+        }
+    }
+
+    // Initialize snapshot then check every 10 seconds
+    checkScores();
+    setInterval(checkScores, 10000);
+})();
