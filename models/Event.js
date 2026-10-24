@@ -4,7 +4,7 @@ import { supabase, isSupabaseConfigured } from '../config/supabase.js';
 export class Event {
   static async getAll() {
     if (!isSupabaseConfigured() || !supabase) return [];
-    const { data, error } = await supabase.from('events').select('*');
+    const { data, error } = await supabase.from('events').select('*').order('id', { ascending: true });
     if (error) {
       console.error('[Supabase] Event.getAll error:', error.message);
       return [];

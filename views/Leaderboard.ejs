@@ -34,12 +34,34 @@
 
             <div class="subtitle">
                 <span></span>
-                <p>TOP ATTENDEES PERFORMERS</p>
+                <p>TOP ATTENDEES PERFORMERS · <%= (typeof trackName !== 'undefined' && trackName) ? trackName.toUpperCase() : 'EVENT STANDINGS' %></p>
                 <span></span>
             </div>
+
+            <!-- LOCKED EVENT / TRACK BADGE (ONLY SHOWS THE CURRENT BOOTH EVENT) -->
+            <% if (typeof currentEvent !== 'undefined' && currentEvent) { %>
+            <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEventId %>">
+                <div class="locked-event-chip">
+                    <span class="locked-event-dot"></span>
+                    <span class="locked-event-name"><%= currentEvent.event_name %></span>
+                    <span class="locked-event-tag">Current Event</span>
+                </div>
+                <% if (currentEvent.venue || currentEvent.event_date) { %>
+                <div class="locked-event-meta">
+                    <% if (currentEvent.venue) { %>
+                        <span class="meta-tag meta-venue">📍 <%= currentEvent.venue %></span>
+                    <% } %>
+                    <% if (currentEvent.event_date) { %>
+                        <span class="meta-tag meta-date">📅 <%= currentEvent.event_date %></span>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
         </section>
 
-        <!-- TOP THREE -->
+        <% if (typeof top1 !== 'undefined' && top1) { %>
+        <!-- TOP THREE PODIUM -->
         <section class="podium">
 
             <!-- SECOND PLACE -->
@@ -51,9 +73,12 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2><%= (typeof top2 !== 'undefined' && top2.id) ? top2.id : 'ID 003' %></h2>
+                    <h2><%= (top2 && top2.name) ? top2.name : (top2 ? top2.id : 'No Attendee') %></h2>
+                    <% if (top2 && top2.name && top2.id) { %>
+                        <span class="podium-subid"><%= top2.id %></span>
+                    <% } %>
                     <p class="rank-label">TOP 2</p>
-                    <span class="points"><%= (typeof top2 !== 'undefined') ? top2.points : 90 %> PTS</span>
+                    <span class="points"><%= top2 ? top2.points : 0 %> PTS</span>
                 </div>
 
             </article>
@@ -69,9 +94,12 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2><%= (typeof top1 !== 'undefined' && top1.id) ? top1.id : 'ID 002' %></h2>
+                    <h2><%= top1.name || top1.id %></h2>
+                    <% if (top1.name && top1.id) { %>
+                        <span class="podium-subid"><%= top1.id %></span>
+                    <% } %>
                     <p class="rank-label">TOP 1</p>
-                    <span class="points"><%= (typeof top1 !== 'undefined') ? top1.points : 120 %> PTS</span>
+                    <span class="points"><%= top1.points %> PTS</span>
                 </div>
 
             </article>
@@ -85,100 +113,65 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2><%= (typeof top3 !== 'undefined' && top3.id) ? top3.id : 'ID 009' %></h2>
+                    <h2><%= (top3 && top3.name) ? top3.name : (top3 ? top3.id : 'No Attendee') %></h2>
+                    <% if (top3 && top3.name && top3.id) { %>
+                        <span class="podium-subid"><%= top3.id %></span>
+                    <% } %>
                     <p class="rank-label">TOP 3</p>
-                    <span class="points"><%= (typeof top3 !== 'undefined') ? top3.points : 75 %> PTS</span>
+                    <span class="points"><%= top3 ? top3.points : 0 %> PTS</span>
                 </div>
 
             </article>
 
         </section>
+        <% } else { %>
+        <div class="no-scans-notice">
+            <div class="no-scans-icon">🏆</div>
+            <h3>No Attendee Points Recorded Yet</h3>
+            <p>Scans recorded at booth terminals for <strong><%= typeof trackName !== 'undefined' ? trackName : 'this event' %></strong> will appear on this leaderboard in real time.</p>
+        </div>
+        <% } %>
 
         <!-- RANKINGS LIST (TOP 4 - 7) -->
+        <% if (typeof ranks4to7 !== 'undefined' && ranks4to7.length > 0) { %>
         <section class="rank-list">
 
-            <% if (typeof ranks4to7 !== 'undefined' && ranks4to7.length > 0) { %>
-                <% ranks4to7.forEach(function(item) { %>
+            <% ranks4to7.forEach(function(item) { %>
+            <article class="rank-row">
+                <span class="rank-number"><%= item.rank %></span>
+                <div class="rank-user-info">
+                    <strong><%= item.name || item.id %></strong>
+                    <% if (item.name && item.id) { %>
+                        <span class="rank-sub-id"><%= item.id %></span>
+                    <% } %>
+                </div>
+                <span class="row-points"><%= item.points %> PTS</span>
+            </article>
+            <% }); %>
+
+            <!-- CONTINUATION (RANKS 8+) HIDDEN BY DEFAULT -->
+            <% if (typeof ranks8to12 !== 'undefined' && ranks8to12.length > 0) { %>
+            <div class="more-rankings" id="moreRankings">
+                <% ranks8to12.forEach(function(item) { %>
                 <article class="rank-row">
                     <span class="rank-number"><%= item.rank %></span>
-                    <strong><%= item.id %></strong>
+                    <div class="rank-user-info">
+                        <strong><%= item.name || item.id %></strong>
+                        <% if (item.name && item.id) { %>
+                            <span class="rank-sub-id"><%= item.id %></span>
+                        <% } %>
+                    </div>
                     <span class="row-points"><%= item.points %> PTS</span>
                 </article>
                 <% }); %>
-            <% } else { %>
-                <article class="rank-row">
-                    <span class="rank-number">4</span>
-                    <strong>ID 025</strong>
-                    <span class="row-points">55 PTS</span>
-                </article>
-
-                <article class="rank-row">
-                    <span class="rank-number">5</span>
-                    <strong>ID 011</strong>
-                    <span class="row-points">45 PTS</span>
-                </article>
-
-                <article class="rank-row">
-                    <span class="rank-number">6</span>
-                    <strong>ID 067</strong>
-                    <span class="row-points">35 PTS</span>
-                </article>
-
-                <article class="rank-row">
-                    <span class="rank-number">7</span>
-                    <strong>ID 001</strong>
-                    <span class="row-points">15 PTS</span>
-                </article>
+            </div>
             <% } %>
 
-            <!-- CONTINUATION (RANKS 8 - 12) HIDDEN BY DEFAULT -->
-            <div class="more-rankings" id="moreRankings">
-
-                <% if (typeof ranks8to12 !== 'undefined' && ranks8to12.length > 0) { %>
-                    <% ranks8to12.forEach(function(item) { %>
-                    <article class="rank-row">
-                        <span class="rank-number"><%= item.rank %></span>
-                        <strong><%= item.id %></strong>
-                        <span class="row-points"><%= item.points %> PTS</span>
-                    </article>
-                    <% }); %>
-                <% } else { %>
-                    <article class="rank-row">
-                        <span class="rank-number">8</span>
-                        <strong>ID 014</strong>
-                        <span class="row-points">12 PTS</span>
-                    </article>
-
-                    <article class="rank-row">
-                        <span class="rank-number">9</span>
-                        <strong>ID 033</strong>
-                        <span class="row-points">10 PTS</span>
-                    </article>
-
-                    <article class="rank-row">
-                        <span class="rank-number">10</span>
-                        <strong>ID 042</strong>
-                        <span class="row-points">8 PTS</span>
-                    </article>
-
-                    <article class="rank-row">
-                        <span class="rank-number">11</span>
-                        <strong>ID 019</strong>
-                        <span class="row-points">5 PTS</span>
-                    </article>
-
-                    <article class="rank-row">
-                        <span class="rank-number">12</span>
-                        <strong>ID 055</strong>
-                        <span class="row-points">3 PTS</span>
-                    </article>
-                <% } %>
-
-            </div>
-
         </section>
+        <% } %>
 
         <!-- VIEW MORE / SHOW LESS BUTTON -->
+        <% if (typeof ranks8to12 !== 'undefined' && ranks8to12.length > 0) { %>
         <button
             class="full-standings-btn"
             id="fullStandingsBtn"
@@ -186,8 +179,9 @@
             aria-expanded="false"
             aria-controls="moreRankings"
         >
-            View More Rankings <span>↓</span>
+            View More Rankings (<%= ranks8to12.length %> more) <span>↓</span>
         </button>
+        <% } %>
 
         <!-- FOOTER -->
         <footer>

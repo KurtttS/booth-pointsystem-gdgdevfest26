@@ -257,52 +257,99 @@ export class ScanLog {
   }
 
   /**
-   * Aggregate total points across all booths directly from Supabase for the leaderboard.
+   * Aggregate total points across all booths directly from Supabase for the leaderboard,
+   * scoped strictly to the specified event. Only includes attendees registered for this event
+   * or scanned in this event, with points earned in this event only.
    */
   static async getLeaderboard(eventId = null) {
     if (!isSupabaseConfigured() || !supabase) return [];
-    let query = supabase.from('scan_logs').select('*');
-    if (eventId) {
-      query = query.eq('eventId', parseInt(eventId, 10));
-    }
+    const eId = eventId ? parseInt(eventId, 10) : 1;
 
-    const { data: logs, error } = await query;
-    if (error) {
-      console.error('[Supabase] getLeaderboard error:', error.message);
-    }
+    try {
+      // 1. Fetch registered attendees for this specific event from event_attendees
+      const { data: regRows, error: regErr } = await supabase
+        .from('event_attendees')
+        .select('attendee_id, ticket_number, ticket_title')
+        .eq('event_id', eId);
 
-    const totals = new Map();
-    (logs || []).forEach(log => {
-      const aId = log.attendeeId || log.attendeeid;
-      const current = totals.get(aId) || 0;
-      totals.set(aId, current + log.points);
-    });
-
-    const allAttendees = await Attendee.getAll();
-    allAttendees.forEach(att => {
-      if (!totals.has(att.id)) {
-        totals.set(att.id, 0);
+      if (regErr) {
+        console.error('[Supabase] getLeaderboard event_attendees error:', regErr.message);
       }
-    });
 
-    const list = await Promise.all(
-      Array.from(totals.entries()).map(async ([attId, points]) => {
-        const attendee = await Attendee.findById(attId);
+      const regAttendeeIds = new Set((regRows || []).map(r => r.attendee_id));
+      const ticketMap = new Map((regRows || []).map(r => [r.attendee_id, r.ticket_number]));
+
+      // 2. Fetch scan logs strictly for this eventId
+      let query = supabase.from('scan_logs').select('*').eq('eventId', eId);
+      let { data: logs, error } = await query;
+      if (error || !logs) {
+        // Fallback for unquoted lowercase column identifiers
+        const retry = await supabase.from('scan_logs').select('*').eq('eventid', eId);
+        logs = retry.data || [];
+      }
+
+      // 3. Aggregate points earned strictly in this event
+      const totals = new Map();
+      (logs || []).forEach(log => {
+        const aId = parseInt(log.attendeeId ?? log.attendeeid, 10);
+        if (!Number.isNaN(aId)) {
+          totals.set(aId, (totals.get(aId) || 0) + (log.points || 0));
+        }
+      });
+
+      // 4. Eligible attendees: attendees registered for this event in event_attendees
+      // (Fallback to scan log attendees only if event_attendees has no records for this event)
+      const targetAttendeeIds = regAttendeeIds.size > 0
+        ? Array.from(regAttendeeIds)
+        : Array.from(totals.keys());
+
+      if (targetAttendeeIds.length === 0) {
+        return [];
+      }
+
+      // 5. Fetch attendee profile info from attendees table in Supabase
+      const { data: attendees, error: attErr } = await supabase
+        .from('attendees')
+        .select('*')
+        .in('id', targetAttendeeIds);
+
+      if (attErr) {
+        console.error('[Supabase] getLeaderboard attendees error:', attErr.message);
+      }
+
+      const attendeeMap = new Map((attendees || []).map(a => [a.id, a]));
+
+      const list = targetAttendeeIds.map(attId => {
+        const attendee = attendeeMap.get(attId);
+        const points = totals.get(attId) || 0;
+        const displayId = attendee
+          ? (attendee.qr_code_token || ticketMap.get(attId) || `ID ${String(attId).padStart(3, '0')}`)
+          : (ticketMap.get(attId) || `ID ${attId}`);
+        const fullName = attendee ? Attendee.getFullName(attendee) : `Attendee ${attId}`;
+        const role = attendee?.role || (ticketMap.get(attId) ? 'Registered' : 'Attendee');
+
         return {
-          id: attendee ? attendee.qr_code_token || `ID ${String(attId).padStart(3, '0')}` : `ID ${attId}`,
+          id: displayId,
           rawId: attId,
-          name: attendee ? Attendee.getFullName(attendee) : `Attendee ${attId}`,
+          name: fullName,
           points,
-          role: attendee ? attendee.role : 'Attendee'
+          role
         };
-      })
-    );
+      });
 
-    list.sort((a, b) => b.points - a.points);
+      // Sort by points descending, tie-breaking by ID
+      list.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        return a.rawId - b.rawId;
+      });
 
-    return list.map((item, index) => ({
-      ...item,
-      rank: index + 1
-    }));
+      return list.map((item, index) => ({
+        ...item,
+        rank: index + 1
+      }));
+    } catch (e) {
+      console.error('[Supabase] ScanLog.getLeaderboard unexpected error:', e.message);
+      return [];
+    }
   }
 }

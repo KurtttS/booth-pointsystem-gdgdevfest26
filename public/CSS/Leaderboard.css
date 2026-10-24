@@ -742,6 +742,134 @@ footer,
 }
 
 /* =========================================
+   LOCKED EVENT / TRACK BANNER (NO SWITCHING)
+========================================= */
+
+.locked-event-banner {
+    margin: 18px auto 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.locked-event-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 22px;
+    background: #ffffff;
+    border: 1.5px solid #dbe2fc;
+    border-radius: 40px;
+    box-shadow: 0 4px 14px rgba(17, 27, 123, 0.08);
+}
+
+.locked-event-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #34a853;
+    box-shadow: 0 0 8px #34a853;
+}
+
+.locked-event-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: 0.02em;
+}
+
+.locked-event-tag {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: #e6f4ea;
+    color: #137333;
+    padding: 3px 9px;
+    border-radius: 12px;
+    border: 1px solid #ceead6;
+}
+
+.locked-event-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.meta-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #eef2ff;
+    color: var(--navy);
+    border: 1px solid #dbe2fc;
+}
+
+/* Podium Sub ID */
+.podium-subid {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    color: #7b88b2;
+    margin-top: 2px;
+}
+
+.first-place .podium-subid {
+    color: #ffd54f;
+}
+
+/* Rank User Info layout */
+.rank-user-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+}
+
+.rank-sub-id {
+    font-size: 11px;
+    font-weight: 600;
+    color: #7b88b2;
+}
+
+/* Empty State Notice */
+.no-scans-notice {
+    width: min(600px, 92%);
+    margin: 40px auto;
+    padding: 40px 24px;
+    text-align: center;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    box-shadow: 0 6px 18px rgba(16, 26, 112, 0.06);
+}
+
+.no-scans-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.no-scans-notice h3 {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--navy);
+    margin-bottom: 8px;
+}
+
+.no-scans-notice p {
+    font-size: 13px;
+    color: #5c6691;
+    line-height: 1.5;
+}
+
+/* =========================================
    ACCESSIBILITY (REDUCED MOTION)
 ========================================= */
 
