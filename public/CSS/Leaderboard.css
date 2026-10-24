@@ -869,6 +869,30 @@ footer,
     line-height: 1.5;
 }
 
+/* Hidden Utility Class */
+.is-hidden {
+    display: none !important;
+}
+
+/* Real-Time Live Points Animation */
+@keyframes livePointsPulse {
+    0% {
+        transform: scale(1);
+    }
+    40% {
+        transform: scale(1.15);
+        background: #107c33;
+        box-shadow: 0 0 12px rgba(52, 168, 83, 0.6);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pts-pulse {
+    animation: livePointsPulse 0.75s ease-out;
+}
+
 /* =========================================
    ACCESSIBILITY (REDUCED MOTION)
 ========================================= */

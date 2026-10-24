@@ -17,10 +17,24 @@
 
 <body>
 
+<%
+    // Safe initialization to prevent undefined variable errors in IDE linters
+    const currentTop1 = (typeof top1 !== 'undefined') ? top1 : null;
+    const currentTop2 = (typeof top2 !== 'undefined') ? top2 : null;
+    const currentTop3 = (typeof top3 !== 'undefined') ? top3 : null;
+    const currentRanks4to7 = (typeof ranks4to7 !== 'undefined' && Array.isArray(ranks4to7)) ? ranks4to7 : [];
+    const currentRanks8plus = (typeof ranks8to12 !== 'undefined' && Array.isArray(ranks8to12)) ? ranks8to12 : [];
+    const currentTrackName = (typeof trackName !== 'undefined' && trackName) ? trackName : 'EVENT STANDINGS';
+    const currentEv = (typeof currentEvent !== 'undefined') ? currentEvent : null;
+    const selectedEvId = (typeof selectedEventId !== 'undefined') ? selectedEventId : 1;
+    const userIsLoggedIn = (typeof isLoggedIn !== 'undefined') ? !!isLoggedIn : false;
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+%>
+
 <div class="page-shell">
 
     <!-- Shared navbar -->
-    <%- include('partials/nav', { currentPage: 'Leaderboard.php', isLoggedIn: (typeof isLoggedIn !== 'undefined' ? isLoggedIn : false), sid: (typeof sid !== 'undefined' ? sid : '') }) %>
+    <%- include('partials/nav', { currentPage: 'Leaderboard.php', isLoggedIn: userIsLoggedIn, sid: sessionSid }) %>
 
     <!-- LEADERBOARD CONTENT -->
     <main class="leaderboard">
@@ -34,25 +48,25 @@
 
             <div class="subtitle">
                 <span></span>
-                <p>TOP ATTENDEES PERFORMERS · <%= (typeof trackName !== 'undefined' && trackName) ? trackName.toUpperCase() : 'EVENT STANDINGS' %></p>
+                <p>TOP ATTENDEES PERFORMERS &middot; <%= currentTrackName.toUpperCase() %></p>
                 <span></span>
             </div>
 
             <!-- LOCKED EVENT / TRACK BADGE (ONLY SHOWS THE CURRENT BOOTH EVENT) -->
-            <% if (typeof currentEvent !== 'undefined' && currentEvent) { %>
-            <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEventId %>">
+            <% if (currentEv) { %>
+            <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEvId %>">
                 <div class="locked-event-chip">
                     <span class="locked-event-dot"></span>
-                    <span class="locked-event-name"><%= currentEvent.event_name %></span>
+                    <span class="locked-event-name"><%= currentEv.event_name %></span>
                     <span class="locked-event-tag">Current Event</span>
                 </div>
-                <% if (currentEvent.venue || currentEvent.event_date) { %>
+                <% if (currentEv.venue || currentEv.event_date) { %>
                 <div class="locked-event-meta">
-                    <% if (currentEvent.venue) { %>
-                        <span class="meta-tag meta-venue">📍 <%= currentEvent.venue %></span>
+                    <% if (currentEv.venue) { %>
+                        <span class="meta-tag meta-venue">📍 <%= currentEv.venue %></span>
                     <% } %>
-                    <% if (currentEvent.event_date) { %>
-                        <span class="meta-tag meta-date">📅 <%= currentEvent.event_date %></span>
+                    <% if (currentEv.event_date) { %>
+                        <span class="meta-tag meta-date">📅 <%= currentEv.event_date %></span>
                     <% } %>
                 </div>
                 <% } %>
@@ -60,9 +74,8 @@
             <% } %>
         </section>
 
-        <% if (typeof top1 !== 'undefined' && top1) { %>
         <!-- TOP THREE PODIUM -->
-        <section class="podium">
+        <section class="podium<%= (!currentTop1) ? ' is-hidden' : '' %>" id="podiumSection">
 
             <!-- SECOND PLACE -->
             <article class="podium-card second-place">
@@ -73,12 +86,10 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2><%= (top2 && top2.name) ? top2.name : (top2 ? top2.id : 'No Attendee') %></h2>
-                    <% if (top2 && top2.name && top2.id) { %>
-                        <span class="podium-subid"><%= top2.id %></span>
-                    <% } %>
+                    <h2 id="top2Name"><%= (currentTop2 && currentTop2.name) ? currentTop2.name : (currentTop2 ? currentTop2.id : 'No Attendee') %></h2>
+                    <span class="podium-subid" id="top2Subid"><%= (currentTop2 && currentTop2.name && currentTop2.id) ? currentTop2.id : '' %></span>
                     <p class="rank-label">TOP 2</p>
-                    <span class="points"><%= top2 ? top2.points : 0 %> PTS</span>
+                    <span class="points" id="top2Points"><%= currentTop2 ? currentTop2.points : 0 %> PTS</span>
                 </div>
 
             </article>
@@ -86,7 +97,7 @@
             <!-- FIRST PLACE -->
             <article class="podium-card first-place">
 
-                <div class="crown">♛</div>
+                <div class="crown">&#9819;</div>
 
                 <div class="avatar avatar-first">
                     <span class="avatar-head"></span>
@@ -94,12 +105,10 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2><%= top1.name || top1.id %></h2>
-                    <% if (top1.name && top1.id) { %>
-                        <span class="podium-subid"><%= top1.id %></span>
-                    <% } %>
+                    <h2 id="top1Name"><%= currentTop1 ? (currentTop1.name || currentTop1.id) : 'No Attendee' %></h2>
+                    <span class="podium-subid" id="top1Subid"><%= (currentTop1 && currentTop1.name && currentTop1.id) ? currentTop1.id : '' %></span>
                     <p class="rank-label">TOP 1</p>
-                    <span class="points"><%= top1.points %> PTS</span>
+                    <span class="points" id="top1Points"><%= currentTop1 ? currentTop1.points : 0 %> PTS</span>
                 </div>
 
             </article>
@@ -113,79 +122,77 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2><%= (top3 && top3.name) ? top3.name : (top3 ? top3.id : 'No Attendee') %></h2>
-                    <% if (top3 && top3.name && top3.id) { %>
-                        <span class="podium-subid"><%= top3.id %></span>
-                    <% } %>
+                    <h2 id="top3Name"><%= (currentTop3 && currentTop3.name) ? currentTop3.name : (currentTop3 ? currentTop3.id : 'No Attendee') %></h2>
+                    <span class="podium-subid" id="top3Subid"><%= (currentTop3 && currentTop3.name && currentTop3.id) ? currentTop3.id : '' %></span>
                     <p class="rank-label">TOP 3</p>
-                    <span class="points"><%= top3 ? top3.points : 0 %> PTS</span>
+                    <span class="points" id="top3Points"><%= currentTop3 ? currentTop3.points : 0 %> PTS</span>
                 </div>
 
             </article>
 
         </section>
-        <% } else { %>
-        <div class="no-scans-notice">
+
+        <!-- EMPTY STATE NOTICE -->
+        <div class="no-scans-notice<%= (currentTop1) ? ' is-hidden' : '' %>" id="noScansNotice">
             <div class="no-scans-icon">🏆</div>
             <h3>No Attendee Points Recorded Yet</h3>
-            <p>Scans recorded at booth terminals for <strong><%= typeof trackName !== 'undefined' ? trackName : 'this event' %></strong> will appear on this leaderboard in real time.</p>
+            <p>Scans recorded at booth terminals for <strong><%= currentTrackName %></strong> will appear on this leaderboard in real time.</p>
         </div>
-        <% } %>
 
-        <!-- RANKINGS LIST (TOP 4 - 7) -->
-        <% if (typeof ranks4to7 !== 'undefined' && ranks4to7.length > 0) { %>
-        <section class="rank-list">
+        <!-- RANKINGS LIST (TOP 4+) -->
+        <section class="rank-list<%= (currentRanks4to7.length === 0) ? ' is-hidden' : '' %>" id="rankListSection">
 
-            <% ranks4to7.forEach(function(item) { %>
-            <article class="rank-row">
-                <span class="rank-number"><%= item.rank %></span>
-                <div class="rank-user-info">
-                    <strong><%= item.name || item.id %></strong>
-                    <% if (item.name && item.id) { %>
-                        <span class="rank-sub-id"><%= item.id %></span>
-                    <% } %>
-                </div>
-                <span class="row-points"><%= item.points %> PTS</span>
-            </article>
-            <% }); %>
+            <div id="ranks4to7List">
+                <% if (currentRanks4to7.length > 0) { %>
+                    <% currentRanks4to7.forEach(function(item) { %>
+                    <article class="rank-row" data-rank-id="<%= item.id %>">
+                        <span class="rank-number"><%= item.rank %></span>
+                        <div class="rank-user-info">
+                            <strong><%= item.name || item.id %></strong>
+                            <% if (item.name && item.id) { %>
+                                <span class="rank-sub-id"><%= item.id %></span>
+                            <% } %>
+                        </div>
+                        <span class="row-points"><%= item.points %> PTS</span>
+                    </article>
+                    <% }); %>
+                <% } %>
+            </div>
 
             <!-- CONTINUATION (RANKS 8+) HIDDEN BY DEFAULT -->
-            <% if (typeof ranks8to12 !== 'undefined' && ranks8to12.length > 0) { %>
             <div class="more-rankings" id="moreRankings">
-                <% ranks8to12.forEach(function(item) { %>
-                <article class="rank-row">
-                    <span class="rank-number"><%= item.rank %></span>
-                    <div class="rank-user-info">
-                        <strong><%= item.name || item.id %></strong>
-                        <% if (item.name && item.id) { %>
-                            <span class="rank-sub-id"><%= item.id %></span>
-                        <% } %>
-                    </div>
-                    <span class="row-points"><%= item.points %> PTS</span>
-                </article>
-                <% }); %>
+                <% if (currentRanks8plus.length > 0) { %>
+                    <% currentRanks8plus.forEach(function(item) { %>
+                    <article class="rank-row" data-rank-id="<%= item.id %>">
+                        <span class="rank-number"><%= item.rank %></span>
+                        <div class="rank-user-info">
+                            <strong><%= item.name || item.id %></strong>
+                            <% if (item.name && item.id) { %>
+                                <span class="rank-sub-id"><%= item.id %></span>
+                            <% } %>
+                        </div>
+                        <span class="row-points"><%= item.points %> PTS</span>
+                    </article>
+                    <% }); %>
+                <% } %>
             </div>
-            <% } %>
 
         </section>
-        <% } %>
 
         <!-- VIEW MORE / SHOW LESS BUTTON -->
-        <% if (typeof ranks8to12 !== 'undefined' && ranks8to12.length > 0) { %>
         <button
-            class="full-standings-btn"
+            class="full-standings-btn<%= (currentRanks8plus.length === 0) ? ' is-hidden' : '' %>"
             id="fullStandingsBtn"
             type="button"
             aria-expanded="false"
             aria-controls="moreRankings"
         >
-            View More Rankings (<%= ranks8to12.length %> more) <span>↓</span>
+            View More Rankings (<%= currentRanks8plus.length %> more) <span>&darr;</span>
         </button>
-        <% } %>
 
         <!-- FOOTER -->
         <footer>
-            © 2026 GDG BACOLOD - AI Innovations Team. All Rights Reserved
+            &copy; 2026 GDG BACOLOD - AI Innovations Team. All Rights Reserved
         </footer>
 
     </main>

@@ -280,28 +280,42 @@ export class ScanLog {
       const ticketMap = new Map((regRows || []).map(r => [r.attendee_id, r.ticket_number]));
 
       // 2. Fetch scan logs strictly for this eventId
-      let query = supabase.from('scan_logs').select('*').eq('eventId', eId);
+      let query = supabase.from('scan_logs').select('*').eq('eventId', eId).limit(5000);
       let { data: logs, error } = await query;
       if (error || !logs) {
         // Fallback for unquoted lowercase column identifiers
-        const retry = await supabase.from('scan_logs').select('*').eq('eventid', eId);
+        const retry = await supabase.from('scan_logs').select('*').eq('eventid', eId).limit(5000);
         logs = retry.data || [];
       }
 
-      // 3. Aggregate points earned strictly in this event
+      // 3. Aggregate points earned strictly in this event (total from each booth scanned)
+      // and track the timestamp when each attendee reached their latest score for tiebreaking
       const totals = new Map();
+      const latestScanTimestamps = new Map();
+
       (logs || []).forEach(log => {
-        const aId = parseInt(log.attendeeId ?? log.attendeeid, 10);
-        if (!Number.isNaN(aId)) {
-          totals.set(aId, (totals.get(aId) || 0) + (log.points || 0));
+        const aId = parseInt(log.attendeeId ?? log.attendeeid ?? log.attendee_id, 10);
+        const pts = parseInt(log.points ?? log.point ?? 0, 10);
+        const rawTime = log.timestamp || log.created_at;
+        const parsedTime = rawTime ? new Date(rawTime).getTime() : 0;
+
+        if (!Number.isNaN(aId) && aId > 0) {
+          totals.set(aId, (totals.get(aId) || 0) + pts);
+          if (parsedTime > 0) {
+            const currentLatest = latestScanTimestamps.get(aId) || 0;
+            if (parsedTime > currentLatest) {
+              latestScanTimestamps.set(aId, parsedTime);
+            }
+          }
         }
       });
 
-      // 4. Eligible attendees: attendees registered for this event in event_attendees
-      // (Fallback to scan log attendees only if event_attendees has no records for this event)
-      const targetAttendeeIds = regAttendeeIds.size > 0
-        ? Array.from(regAttendeeIds)
-        : Array.from(totals.keys());
+      // 4. Eligible attendees: ALL attendees who have scanned in any booth for this event
+      // GUARANTEED to be included, plus all registered attendees for this event
+      const targetAttendeeIds = Array.from(new Set([
+        ...totals.keys(),
+        ...regAttendeeIds
+      ]));
 
       if (targetAttendeeIds.length === 0) {
         return [];
@@ -317,6 +331,21 @@ export class ScanLog {
         console.error('[Supabase] getLeaderboard attendees error:', attErr.message);
       }
 
+      // 6. Fill in missing tickets for attendees who scanned
+      const missingTicketAttendeeIds = targetAttendeeIds.filter(id => !ticketMap.has(id));
+      if (missingTicketAttendeeIds.length > 0) {
+        const { data: extraTickets } = await supabase
+          .from('event_attendees')
+          .select('attendee_id, ticket_number')
+          .in('attendee_id', missingTicketAttendeeIds);
+
+        (extraTickets || []).forEach(t => {
+          if (t.ticket_number && !ticketMap.has(t.attendee_id)) {
+            ticketMap.set(t.attendee_id, t.ticket_number);
+          }
+        });
+      }
+
       const attendeeMap = new Map((attendees || []).map(a => [a.id, a]));
 
       const list = targetAttendeeIds.map(attId => {
@@ -327,19 +356,34 @@ export class ScanLog {
           : (ticketMap.get(attId) || `ID ${attId}`);
         const fullName = attendee ? Attendee.getFullName(attendee) : `Attendee ${attId}`;
         const role = attendee?.role || (ticketMap.get(attId) ? 'Registered' : 'Attendee');
+        const latestTime = latestScanTimestamps.get(attId) || null;
 
         return {
           id: displayId,
           rawId: attId,
           name: fullName,
           points,
-          role
+          role,
+          latestScanTimestamp: latestTime,
+          latestScanTime: latestTime ? new Date(latestTime).toISOString() : null
         };
       });
 
-      // Sort by points descending, tie-breaking by ID
+      // Sort by points descending.
+      // Tiebreaker 1: Who achieved their points earlier (earlier timestamp = ranked higher)
+      // Tiebreaker 2: Fallback to ID ascending if timestamps are identical or both have 0 points
       list.sort((a, b) => {
-        if (b.points !== a.points) return b.points - a.points;
+        if (b.points !== a.points) {
+          return b.points - a.points;
+        }
+
+        const timeA = a.latestScanTimestamp || Infinity;
+        const timeB = b.latestScanTimestamp || Infinity;
+
+        if (timeA !== timeB) {
+          return timeA - timeB; // smaller timestamp = earlier time = higher rank
+        }
+
         return a.rawId - b.rawId;
       });
 
