@@ -1,6 +1,17 @@
+<%
+    const cur = (typeof currentPage !== 'undefined' && currentPage) ? currentPage : '';
+    const isLogin = (cur === 'LoginBooth.php' || cur === 'LoginBooth');
+    const isTrackChoice = (cur === 'EventChoices.php' || cur === 'EventChoices');
+    const isScanner = (cur === 'scanner.php' || cur === 'scanner');
+    const isLeaderboard = (cur === 'Leaderboard.php' || cur === 'Leaderboard');
+    const isSuperAdmin = (cur === 'SuperAdmin.php' || cur === 'SuperAdmin');
+    const loggedIn = (typeof isLoggedIn !== 'undefined' && isLoggedIn);
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+%>
 <header class="topbar">
 
-    <a class="brand" href="<%= (typeof isLoggedIn !== 'undefined' && isLoggedIn) ? ('/EventChoices.php' + ((typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '')) : '/LoginBooth.php' %>"
+    <a class="brand" href="<%= loggedIn ? ('/EventChoices.php' + sidParam) : '/LoginBooth.php' %>"
        aria-label="DevFest Bacolod 2026 home">
 
         <img src="/IMG/GDG_LOGO.png"
@@ -26,40 +37,48 @@
 
     <nav class="nav-links" id="navLinks" aria-label="Main navigation">
 
-        <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
-            <a href="/EventChoices.php<%= (typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '' %>"
-               class="<%= (typeof currentPage !== 'undefined' && (currentPage === 'EventChoices.php' || currentPage === 'EventChoices')) ? 'active' : '' %>"
-               <%= (typeof currentPage !== 'undefined' && (currentPage === 'EventChoices.php' || currentPage === 'EventChoices')) ? 'aria-current="page"' : '' %>>
-                Track Selection
-            </a>
-
-            <a href="/scanner.php<%= (typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '' %>"
-               class="<%= (typeof currentPage !== 'undefined' && (currentPage === 'scanner.php' || currentPage === 'scanner')) ? 'active' : '' %>"
-               <%= (typeof currentPage !== 'undefined' && (currentPage === 'scanner.php' || currentPage === 'scanner')) ? 'aria-current="page"' : '' %>>
-                Scanner
-            </a>
-        <% } else { %>
-            <a href="/LoginBooth.php<%= (typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '' %>"
-               class="<%= (typeof currentPage !== 'undefined' && (currentPage === 'LoginBooth.php' || currentPage === 'LoginBooth')) ? 'active' : '' %>"
-               <%= (typeof currentPage !== 'undefined' && (currentPage === 'LoginBooth.php' || currentPage === 'LoginBooth')) ? 'aria-current="page"' : '' %>>
+        <% if (isLogin || !loggedIn) { %>
+            <!-- 1. LOGIN / UNAUTHENTICATED: Cannot access Scanner and Leaderboard -->
+            <a href="/LoginBooth.php<%= sidParam %>"
+               class="<%= isLogin ? 'active' : '' %>">
                 Booth Portal
             </a>
 
-            <a href="/SuperAdmin.php<%= (typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '' %>"
-               class="<%= (typeof currentPage !== 'undefined' && (currentPage === 'SuperAdmin.php' || currentPage === 'SuperAdmin')) ? 'active' : '' %>"
-               <%= (typeof currentPage !== 'undefined' && (currentPage === 'SuperAdmin.php' || currentPage === 'SuperAdmin')) ? 'aria-current="page"' : '' %>>
+            <a href="/SuperAdmin.php<%= sidParam %>"
+               class="<%= isSuperAdmin ? 'active' : '' %>">
                 SuperAdmin
             </a>
-        <% } %>
 
-        <a href="/Leaderboard.php<%= (typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '' %>"
-           class="<%= (typeof currentPage !== 'undefined' && (currentPage === 'Leaderboard.php' || currentPage === 'Leaderboard')) ? 'active' : '' %>"
-           <%= (typeof currentPage !== 'undefined' && (currentPage === 'Leaderboard.php' || currentPage === 'Leaderboard')) ? 'aria-current="page"' : '' %>>
-            Leaderboard
-        </a>
+        <% } else if (isTrackChoice) { %>
+            <!-- 2. TRACK SELECTION: Cannot access Scanner and Leaderboard -->
+            <a href="/EventChoices.php<%= sidParam %>"
+               class="active">
+                Track Selection
+            </a>
 
-        <% if (typeof isLoggedIn !== 'undefined' && isLoggedIn) { %>
-            <a href="/logout.php<%= (typeof sid !== 'undefined' && sid) ? ('?sid=' + encodeURIComponent(sid)) : '' %>"
+            <a href="/logout.php<%= sidParam %>"
+               class="logout-link"
+               style="color: #ea4335;">
+                Logout
+            </a>
+
+        <% } else { %>
+            <!-- 3. SCANNER & LEADERBOARD: Can access each other and Track Selection -->
+            <a href="/EventChoices.php<%= sidParam %>">
+                Track Selection
+            </a>
+
+            <a href="/scanner.php<%= sidParam %>"
+               class="<%= isScanner ? 'active' : '' %>">
+                Scanner
+            </a>
+
+            <a href="/Leaderboard.php<%= sidParam %>"
+               class="<%= isLeaderboard ? 'active' : '' %>">
+                Leaderboard
+            </a>
+
+            <a href="/logout.php<%= sidParam %>"
                class="logout-link"
                style="color: #ea4335;">
                 Logout

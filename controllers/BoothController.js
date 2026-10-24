@@ -3,6 +3,7 @@ import { Booth } from '../models/Booth.js';
 import { Admin } from '../models/Admin.js';
 import { Event } from '../models/Event.js';
 import { ScanLog } from '../models/ScanLog.js';
+import { isSupabaseConfigured } from '../config/supabase.js';
 
 export class BoothController {
   /**
@@ -47,6 +48,15 @@ export class BoothController {
       return res.render('LoginBooth', {
         currentPage: 'LoginBooth.php',
         error: 'Please enter both username and password.',
+        message: null,
+        username
+      });
+    }
+
+    if (!isSupabaseConfigured()) {
+      return res.render('LoginBooth', {
+        currentPage: 'LoginBooth.php',
+        error: 'Supabase is not configured. Ensure your .env file (not .env.txt or .env.example) contains SUPABASE_URL and SUPABASE_ANON_KEY, then restart Node.',
         message: null,
         username
       });
@@ -108,9 +118,10 @@ export class BoothController {
       });
     } catch (err) {
       console.error('[BoothController.processLogin] error:', err);
+      const errMsg = err && err.message ? err.message : 'An internal error occurred during authentication. Please try again.';
       return res.render('LoginBooth', {
         currentPage: 'LoginBooth.php',
-        error: 'An internal error occurred during authentication. Please try again.',
+        error: errMsg,
         message: null,
         username
       });
@@ -190,7 +201,7 @@ export class BoothController {
     const sidQuery = sid ? '?sid=' + encodeURIComponent(sid) : '';
 
     // If event has not been selected yet, route to EventChoices
-    if (!req.session.event_id && !req.session.eventId && !req.query.event_id) {
+    if (!req.session.event_id && !req.session.eventId) {
       return res.redirect('/EventChoices.php' + sidQuery);
     }
 

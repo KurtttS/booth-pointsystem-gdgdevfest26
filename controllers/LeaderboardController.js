@@ -4,24 +4,30 @@ import { Event } from '../models/Event.js';
 
 export class LeaderboardController {
   static async showLeaderboard(req, res) {
+    const sid = req.sessionID || req.query.sid || '';
+    const sidQuery = sid ? '?sid=' + encodeURIComponent(sid) : '';
+
+    // Guard 1: When on login page (not logged in), cannot go to leaderboard
+    if (!req.session || !req.session.isLoggedIn) {
+      return res.redirect('/LoginBooth.php' + sidQuery);
+    }
+
+    // Guard 2: When on track selection page (event not chosen yet), check session or query
+    const sessionEventId = req.session.event_id || req.session.eventId || req.session.selected_event_id || req.query.event_id;
+    if (!sessionEventId) {
+      return res.redirect('/EventChoices.php' + sidQuery);
+    }
+
+    // Keep session event in sync if passed via query
+    if (!req.session.event_id && sessionEventId) {
+      req.session.event_id = parseInt(sessionEventId, 10);
+    }
+
     try {
-      const events = await Event.getAll();
-      const defaultEventId = events.length > 0 ? events[0].id : 1;
-
-      // Strictly lock to the booth account's event.
-      // Users cannot switch events on the leaderboard unless they change/log in to a different booth account.
-      let eventId;
-      if (req.session && req.session.isLoggedIn && (req.session.event_id || req.session.eventId)) {
-        eventId = parseInt(req.session.event_id || req.session.eventId, 10);
-      } else {
-        const rawEventId = req.query.event_id || defaultEventId;
-        eventId = parseInt(rawEventId, 10) || defaultEventId;
-      }
-
+      const eventId = parseInt(sessionEventId, 10);
       const currentEvent = await Event.findById(eventId);
       const standings = await ScanLog.getLeaderboard(eventId);
-      const sid = req.sessionID || req.query.sid || '';
-      const isLoggedIn = !!(req.session && req.session.isLoggedIn);
+      const isLoggedIn = true;
 
       res.render('Leaderboard', {
         currentPage: 'Leaderboard.php',
@@ -39,8 +45,6 @@ export class LeaderboardController {
       });
     } catch (err) {
       console.error('LeaderboardController error:', err);
-      const sid = req.sessionID || req.query.sid || '';
-      const isLoggedIn = !!(req.session && req.session.isLoggedIn);
       res.render('Leaderboard', {
         currentPage: 'Leaderboard.php',
         selectedEventId: 1,
@@ -52,7 +56,7 @@ export class LeaderboardController {
         ranks4to7: [],
         ranks8to12: [],
         totalAttendees: 0,
-        isLoggedIn,
+        isLoggedIn: true,
         sid
       });
     }
@@ -60,17 +64,9 @@ export class LeaderboardController {
 
   static async getLeaderboardApi(req, res) {
     try {
-      const events = await Event.getAll();
-      const defaultEventId = events.length > 0 ? events[0].id : 1;
-
-      // Strictly lock API to booth account's event if logged in
-      let eventId;
-      if (req.session && req.session.isLoggedIn && (req.session.event_id || req.session.eventId)) {
-        eventId = parseInt(req.session.event_id || req.session.eventId, 10);
-      } else {
-        const rawEventId = req.query.event_id || defaultEventId;
-        eventId = parseInt(rawEventId, 10) || defaultEventId;
-      }
+      // Prioritize active session event
+      const rawEventId = req.session?.event_id || req.session?.eventId || req.query.event_id || 1;
+      const eventId = parseInt(rawEventId, 10) || 1;
 
       const currentEvent = await Event.findById(eventId);
       const standings = await ScanLog.getLeaderboard(eventId);
