@@ -3,7 +3,9 @@ import express from 'express';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
+import multer from 'multer';
 
 import { BoothController } from './controllers/BoothController.js';
 import { ScanController } from './controllers/ScanController.js';
@@ -12,6 +14,23 @@ import { AdminController } from './controllers/AdminController.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+const uploadDir = path.join(__dirname, 'public', 'IMG');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadDir),
+  filename: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
+    cb(null, `booth-banner${ext}`);
+  }
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,6 +42,7 @@ app.set('trust proxy', 1);
 // View engine setup
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
+
 
 // Middleware
 app.use(express.urlencoded({ extended: true }));
@@ -73,9 +93,10 @@ function sanitizeSid(raw) {
 // Fallback session recovery for iframes when third-party cookies are partitioned or restricted
 app.use((req, res, next) => {
   // Never auto-recover sessions on logout or when viewing LoginBooth with a logout message
-  if (req.path === '/logout.php' || req.path === '/logout' || (req.path === '/LoginBooth.php' && (req.query.message || req.query.logged_out))) {
+  if (req.path === '/logout.php' || req.path === '/logout' || req.path === '/LogOutBooth.php' || req.path === '/logoutbooth' || (req.path === '/LoginBooth.php' && (req.query.message || req.query.logged_out))) {
     return next();
   }
+
 
   let sid = sanitizeSid(req.query.sid || req.body?.sid || req.headers['x-session-id'] || req.cookies?.devfest_sid);
 
@@ -208,7 +229,25 @@ app.get('/SuperAdmin.php', AdminController.showAdmin);
 app.post('/SuperAdmin.php', AdminController.processLogin);
 app.get('/superadmin', (req, res) => res.redirect('/SuperAdmin.php'));
 
+// Dashboard (Controller: BoothController)
+app.get('/Dashboard.php', BoothController.showDashboard);
+app.get('/dashboard', (req, res) => res.redirect('/Dashboard.php'));
+
+// Station Profile (Controller: BoothController)
+app.get('/StationProfile.php', BoothController.showStationProfile);
+app.post('/StationProfile.php', upload.single('dashboard_bg'), BoothController.updateStationProfileBg);
+app.get('/stationprofile', (req, res) => res.redirect('/StationProfile.php'));
+
+// Admin Leaderboard (Controller: LeaderboardController)
+app.get('/AdminLeaderboard.php', LeaderboardController.showAdminLeaderboard);
+app.get('/adminleaderboard', (req, res) => res.redirect('/AdminLeaderboard.php'));
+
+// Logout aliases matching uploaded files
+app.get('/LogOutBooth.php', BoothController.logout);
+app.get('/logoutbooth', BoothController.logout);
+
 // Start Server
 app.listen(PORT, HOST, () => {
   console.log(`[DevFest Bacolod 2026] Server running on http://${HOST}:${PORT}`);
 });
+

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevFest Bacolod 2026 - Station Profile</title>
+
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="/IMG/GDGTOP.png?v=2">
+
+    <!-- Google Font: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- External Stylesheets -->
+    <link rel="stylesheet" href="/CSS/StationProfile.css">
+    <link rel="stylesheet" href="/CSS/Dashboard.css">
+    <link rel="stylesheet" href="/CSS/nav.css">
+</head>
+<body>
+
+<%
+    const currentBoothName         = (typeof booth_name !== 'undefined' && booth_name) ? booth_name : ((typeof boothName !== 'undefined' && boothName) ? boothName : '');
+    const currentBoothSponsor      = (typeof sponsor !== 'undefined' && sponsor) ? sponsor : ((typeof sponsorName !== 'undefined' && sponsorName) ? sponsorName : ((typeof category !== 'undefined' && category) ? category : ''));
+    const currentVenueLocation     = (typeof venue_location !== 'undefined' && venue_location) ? venue_location : ((typeof venueLocation !== 'undefined' && venueLocation) ? venueLocation : '');
+    const currentSelectedEventName = (typeof selected_event !== 'undefined' && selected_event) ? selected_event : ((typeof selectedEventName !== 'undefined' && selectedEventName) ? selectedEventName : ((typeof active_context !== 'undefined' && active_context) ? active_context : ''));
+    const uploadMessage            = (typeof upload_message !== 'undefined' && upload_message) ? upload_message : '';
+    const uploadStatus             = (typeof upload_status !== 'undefined' && upload_status) ? upload_status : 'success';
+    const sessionSid               = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam                 = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+%>
+
+<div class="station-page">
+
+    <!-- Top Navigation Bar -->
+    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+
+    <!-- Main Ambient Backdrop Blooms -->
+    <div class="blur-orb blur-top-right"></div>
+    <div class="blur-orb blur-mid-left"></div>
+    <div class="blur-orb blur-mid-right"></div>
+    <div class="blur-orb blur-bottom-left"></div>
+
+    <!-- Main Stage -->
+    <main class="station-stage">
+
+        <!-- Client-side notification alert for local background actions -->
+        <div id="localToast" class="toast-alert" style="display: none;" role="status"></div>
+
+        <!-- Notification Banner if file upload succeeded or failed -->
+        <% if (uploadMessage) { %>
+            <div class="toast-alert toast-<%= uploadStatus %>">
+                <%= uploadMessage %>
+            </div>
+        <% } %>
+
+        <!-- Station Profile Card -->
+        <section class="station-card" aria-labelledby="stationTitle">
+
+            <!-- Card Header: Building / Terminal Icon + Title & Subtitle -->
+            <div class="station-header-row">
+                <div class="station-icon-wrap" aria-hidden="true">
+                    <svg width="42" height="42" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4 3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5h8V3H4zm14 8c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h4c1.1 0 2-.9 2-2v-6c0-1.1-.9-2-2-2h-4zm2 2h2v4h-2v-4zM6 7h4v2H6V7zm0 4h4v2H6v-2zm0 4h4v2H6v-2z"/>
+                    </svg>
+                </div>
+                <div class="station-title-group">
+                    <h1 id="stationTitle" class="station-title">Station Profile</h1>
+                    <p class="station-subtitle">Active Scanner and Terminal Parameters</p>
+                </div>
+            </div>
+
+            <!-- Inner Light-Mint Parameter Grid Box -->
+            <div class="station-params-box">
+
+                <!-- Row 1: Booth Name -->
+                <div class="param-row">
+                    <span class="param-label">Booth Name</span>
+                    <span class="param-value"><%= currentBoothName || 'N/A' %></span>
+                </div>
+
+                <!-- Row 2: Sponsor -->
+                <div class="param-row">
+                    <span class="param-label">Sponsor</span>
+                    <span class="param-value"><%= currentBoothSponsor || 'N/A' %></span>
+                </div>
+
+                <!-- Row 3: Venue Location -->
+                <div class="param-row">
+                    <span class="param-label">Venue Location</span>
+                    <span class="param-value"><%= currentVenueLocation || 'N/A' %></span>
+                </div>
+
+                <!-- Row 4: Dashboard Background Upload -->
+                <div class="param-row">
+                    <span class="param-label">Dashboard Background</span>
+                    <div class="param-action">
+                        <form id="bgUploadForm" onsubmit="return false;">
+                            <input 
+                                type="file" 
+                                id="dashboard_bg" 
+                                name="dashboard_bg" 
+                                accept="image/jpeg,image/png,image/webp,image/jpg" 
+                                class="hidden-file-input"
+                            >
+                            <label for="dashboard_bg" class="btn-upload" role="button" tabindex="0">
+                                Upload
+                            </label>
+                            <button type="button" id="btnResetBg" class="btn-reset-bg" style="display: none;" title="Reset to default background">
+                                Reset
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Divider line -->
+                <hr class="param-divider">
+
+                <!-- Row 5: Selected Event -->
+                <div class="param-row">
+                    <span class="param-label">Selected Event</span>
+                    <div class="param-event-action-wrap">
+                        <span class="param-value param-value-context"><%= currentSelectedEventName || 'N/A' %></span>
+                        <a href="/EventChoices.php<%= sidParam %>" class="btn-change-event-profile" title="Switch or select a different event without logging out">
+                            Switch Event
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Bottom Navigation Actions -->
+            <div class="station-action-row">
+                <a href="/Dashboard.php<%= sidParam %>" class="btn-dashboard">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                        <polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="/EventChoices.php<%= sidParam %>" class="btn-events-action" title="Return to Event Selection">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                        <line x1="16" y1="2" x2="16" y2="6"/>
+                        <line x1="8" y1="2" x2="8" y2="6"/>
+                        <line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span>Switch Event</span>
+                </a>
+
+                <a href="/logout.php<%= sidParam %>" class="btn-logout" id="profileLogoutBtn">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    <span>Logout</span>
+                </a>
+            </div>
+
+        </section>
+
+        <!-- Page Footer -->
+        <footer class="station-footer">
+            <p class="station-footer-text">
+                &copy; 2026 GDG BACOLOD - AI Innovations Team . All Rights Reserved
+            </p>
+        </footer>
+
+    </main>
+
+</div>
+
+<script src="/JAVASCRIPT/dashboard-bg.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    const fileInput = document.getElementById('dashboard_bg');
+    const uploadLabel = document.querySelector('label[for="dashboard_bg"]');
+    const resetBtn = document.getElementById('btnResetBg');
+    const toast = document.getElementById('localToast');
+
+    function showToast(message, type) {
+        if (!toast) return;
+        toast.className = 'toast-alert ' + (type === 'success' ? 'toast-success' : 'toast-error');
+        toast.textContent = message;
+        toast.style.display = 'block';
+        try {
+            toast.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (e) {}
+    }
+
+    function hideToast() {
+        if (toast) toast.style.display = 'none';
+    }
+
+    // Check if custom background is already saved locally
+    if (window.DashboardBG) {
+        try {
+            const currentBg = await window.DashboardBG.getStoredBg();
+            if (currentBg && resetBtn) {
+                resetBtn.style.display = 'inline-flex';
+            }
+        } catch (e) {}
+    }
+
+    // Keyboard support for upload label
+    if (uploadLabel && fileInput) {
+        uploadLabel.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fileInput.click();
+            }
+        });
+    }
+
+    // Handle local file selection
+    if (fileInput) {
+        fileInput.addEventListener('change', function (e) {
+            hideToast();
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+
+            // Validate format and size
+            if (window.DashboardBG) {
+                const check = window.DashboardBG.validateFile(file);
+                if (!check.valid) {
+                    showToast(check.error, 'error');
+                    fileInput.value = '';
+                    return;
+                }
+            }
+
+            const reader = new FileReader();
+            reader.onload = async function (evt) {
+                try {
+                    const dataUrl = evt.target.result;
+                    if (window.DashboardBG) {
+                        await window.DashboardBG.saveStoredBg(dataUrl);
+                    } else {
+                        localStorage.setItem('devfest_dashboard_custom_bg', dataUrl);
+                    }
+                    showToast('Dashboard background updated successfully! It has been applied to your dashboard.', 'success');
+                    if (resetBtn) resetBtn.style.display = 'inline-flex';
+                } catch (err) {
+                    console.error('[StationProfile] Error saving background locally:', err);
+                    showToast('Could not save image locally. Storage quota may be full.', 'error');
+                }
+            };
+
+            reader.onerror = function () {
+                showToast('Failed to read selected image file. Please try again.', 'error');
+                fileInput.value = '';
+            };
+
+            reader.readAsDataURL(file);
+        });
+    }
+
+    // Handle reset to default background
+    if (resetBtn) {
+        resetBtn.addEventListener('click', async function () {
+            try {
+                if (window.DashboardBG) {
+                    await window.DashboardBG.clearStoredBg();
+                } else {
+                    localStorage.removeItem('devfest_dashboard_custom_bg');
+                }
+                if (fileInput) fileInput.value = '';
+                resetBtn.style.display = 'none';
+                showToast('Dashboard background reset to default.', 'success');
+            } catch (err) {
+                console.error('[StationProfile] Error clearing background:', err);
+                showToast('Failed to reset background.', 'error');
+            }
+        });
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DevFest Bacolod 2026 - Leaderboard</title>
+
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="/IMG/GDGTOP.png">
+
+    <!-- Page stylesheet -->
+    <link rel="stylesheet" href="/CSS/AdminLeaderboard.css">
+    <link rel="stylesheet" href="/CSS/nav.css">
+</head>
+
+<body>
+
+<%
+    const currentTop1 = (typeof top1 !== 'undefined') ? top1 : null;
+    const currentTop2 = (typeof top2 !== 'undefined') ? top2 : null;
+    const currentTop3 = (typeof top3 !== 'undefined') ? top3 : null;
+    const currentRanks4to7 = (typeof ranks4to7 !== 'undefined' && Array.isArray(ranks4to7)) ? ranks4to7 : [];
+    const currentRanks8plus = (typeof ranks8to12 !== 'undefined' && Array.isArray(ranks8to12)) ? ranks8to12 : [];
+    const currentEv = (typeof currentEvent !== 'undefined') ? currentEvent : null;
+    const selectedEvId = (typeof selectedEventId !== 'undefined') ? selectedEventId : 1;
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+%>
+
+<div class="page-shell">
+
+    <!-- Shared navbar (matches Dashboard) -->
+    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+
+    <!-- LEADERBOARD CONTENT -->
+    <main class="leaderboard">
+
+        <div class="ambient ambient-top"></div>
+        <div class="ambient ambient-bottom"></div>
+
+        <!-- TITLE -->
+        <section class="page-heading">
+            <h1>LEADERBOARD</h1>
+
+            <div class="subtitle">
+                <span></span>
+                <p>TOP ATTENDEES PERFORMERS</p>
+                <span></span>
+            </div>
+
+            <!-- Optional locked event metadata for Leaderboard.js real-time live sync -->
+            <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEvId %>" style="display: none;"></div>
+        </section>
+
+        <!-- TOP THREE PODIUM -->
+        <section class="podium" id="podiumSection">
+
+            <!-- SECOND PLACE -->
+            <article class="podium-card second-place">
+
+                <div class="avatar">
+                    <span class="avatar-head"></span>
+                    <span class="avatar-body"></span>
+                </div>
+
+                <div class="podium-info">
+                    <h2 id="top2Name"><%= (currentTop2 && (currentTop2.name || currentTop2.id)) ? (currentTop2.name || currentTop2.id) : 'ID 003' %></h2>
+                    <span class="podium-subid" id="top2Subid" style="display: none;"><%= (currentTop2 && currentTop2.name && currentTop2.id) ? currentTop2.id : '' %></span>
+                    <p class="rank-label">TOP 2</p>
+                    <span class="points" id="top2Points"><%= currentTop2 ? currentTop2.points : 90 %> PTS</span>
+                </div>
+
+            </article>
+
+            <!-- FIRST PLACE -->
+            <article class="podium-card first-place">
+
+                <div class="crown">👑</div>
+
+                <div class="avatar avatar-first">
+                    <span class="avatar-head"></span>
+                    <span class="avatar-body"></span>
+                </div>
+
+                <div class="podium-info">
+                    <h2 id="top1Name"><%= (currentTop1 && (currentTop1.name || currentTop1.id)) ? (currentTop1.name || currentTop1.id) : 'ID 002' %></h2>
+                    <span class="podium-subid" id="top1Subid" style="display: none;"><%= (currentTop1 && currentTop1.name && currentTop1.id) ? currentTop1.id : '' %></span>
+                    <p class="rank-label">TOP 1</p>
+                    <span class="points" id="top1Points"><%= currentTop1 ? currentTop1.points : 120 %> PTS</span>
+                </div>
+
+            </article>
+
+            <!-- THIRD PLACE -->
+            <article class="podium-card third-place">
+
+                <div class="avatar">
+                    <span class="avatar-head"></span>
+                    <span class="avatar-body"></span>
+                </div>
+
+                <div class="podium-info">
+                    <h2 id="top3Name"><%= (currentTop3 && (currentTop3.name || currentTop3.id)) ? (currentTop3.name || currentTop3.id) : 'ID 009' %></h2>
+                    <span class="podium-subid" id="top3Subid" style="display: none;"><%= (currentTop3 && currentTop3.name && currentTop3.id) ? currentTop3.id : '' %></span>
+                    <p class="rank-label">TOP 3</p>
+                    <span class="points" id="top3Points"><%= currentTop3 ? currentTop3.points : 75 %> PTS</span>
+                </div>
+
+            </article>
+
+        </section>
+
+        <!-- RANKINGS LIST (TOP 4 - 7) -->
+        <section class="rank-list" id="rankListSection">
+
+            <div id="ranks4to7List">
+                <% if (currentRanks4to7 && currentRanks4to7.length > 0) { %>
+                    <% currentRanks4to7.forEach((item) => { %>
+                        <article class="rank-row" data-rank-id="<%= item.id %>">
+                            <span class="rank-number"><%= item.rank %></span>
+                            <strong><%= item.name || item.id %></strong>
+                            <span class="row-points"><%= item.points %> PTS</span>
+                        </article>
+                    <% }); %>
+                <% } else { %>
+                    <article class="rank-row">
+                        <span class="rank-number">4</span>
+                        <strong>ID 025</strong>
+                        <span class="row-points">55 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">5</span>
+                        <strong>ID 011</strong>
+                        <span class="row-points">45 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">6</span>
+                        <strong>ID 067</strong>
+                        <span class="row-points">35 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">7</span>
+                        <strong>ID 001</strong>
+                        <span class="row-points">15 PTS</span>
+                    </article>
+                <% } %>
+            </div>
+
+            <!-- CONTINUATION (RANKS 8 - 12) HIDDEN BY DEFAULT -->
+            <div class="more-rankings" id="moreRankings">
+                <% if (currentRanks8plus && currentRanks8plus.length > 0) { %>
+                    <% currentRanks8plus.forEach((item) => { %>
+                        <article class="rank-row" data-rank-id="<%= item.id %>">
+                            <span class="rank-number"><%= item.rank %></span>
+                            <strong><%= item.name || item.id %></strong>
+                            <span class="row-points"><%= item.points %> PTS</span>
+                        </article>
+                    <% }); %>
+                <% } else { %>
+                    <article class="rank-row">
+                        <span class="rank-number">8</span>
+                        <strong>ID 014</strong>
+                        <span class="row-points">12 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">9</span>
+                        <strong>ID 033</strong>
+                        <span class="row-points">10 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">10</span>
+                        <strong>ID 042</strong>
+                        <span class="row-points">8 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">11</span>
+                        <strong>ID 019</strong>
+                        <span class="row-points">5 PTS</span>
+                    </article>
+
+                    <article class="rank-row">
+                        <span class="rank-number">12</span>
+                        <strong>ID 055</strong>
+                        <span class="row-points">3 PTS</span>
+                    </article>
+                <% } %>
+            </div>
+
+        </section>
+
+        <!-- VIEW MORE / SHOW LESS BUTTON -->
+        <button
+            class="full-standings-btn"
+            id="fullStandingsBtn"
+            type="button"
+            aria-expanded="false"
+            aria-controls="moreRankings"
+        >
+            View More Rankings <span>↓</span>
+        </button>
+
+        <!-- FOOTER -->
+        <footer>
+            © 2026 GDG BACOLOD - AI Innovations Team. All Rights Reserved
+        </footer>
+
+    </main>
+
+</div>
+
+<script src="/JAVASCRIPT/Leaderboard.js" defer></script>
+</body>
+</html>

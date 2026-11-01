@@ -22,10 +22,14 @@
 
 <body>
 
+<%
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+%>
 <div class="page-shell">
 
     <!-- DevFest Topbar -->
-    <%- include('partials/navcam', { currentPage: 'scanner.php', sid: (typeof sid !== 'undefined' ? sid : ''), track: (typeof track !== 'undefined' ? track : 'students'), isLoggedIn: true }) %>
+    <%- include('partials/navcam', { currentPage: 'scanner.php', sid: sessionSid, track: (typeof track !== 'undefined' ? track : 'students'), isLoggedIn: true }) %>
 
     <main class="scanner-main">
         <div class="ambient ambient-top"></div>
@@ -54,7 +58,20 @@
                             </div>
                             <div>
                                 <h1 id="scannerHeading">Live Camera Scanner</h1>
-                                <p class="subtitle"><strong style="color: #4285F4;"><%= (typeof boothName !== 'undefined' && boothName) ? boothName : boothId %> (<%= boothId %>)</strong> · Track: <%= (typeof track !== 'undefined' && track === 'professionals') ? 'Professionals Network Day' : 'Students Dev Day' %></p>
+                                <div class="scanner-header-event-row">
+                                    <p class="subtitle">
+                                        <strong style="color: #4285F4;"><%= (typeof boothName !== 'undefined' && boothName) ? boothName : boothId %> (<%= boothId %>)</strong> · <span class="header-event-name"><%= (typeof eventName !== 'undefined' && eventName) ? eventName : ((typeof track !== 'undefined' && track === 'professionals') ? 'Professional Dev Day' : 'Student Dev Day') %></span>
+                                    </p>
+                                    <a href="/EventChoices.php<%= sidParam %>" class="btn-switch-event-header" id="headerSwitchEventBtn" title="Switch or select a different event without logging out">
+                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                                            <polyline points="17 1 21 5 17 9"></polyline>
+                                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                                            <polyline points="7 23 3 19 7 15"></polyline>
+                                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                                        </svg>
+                                        <span>Change Event</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
 
@@ -118,6 +135,17 @@
 
                     <!-- Footer Controls -->
                     <div class="card-footer footer-between">
+                        <!-- Clearly visible Switch Event navigation button -->
+                        <a href="/EventChoices.php<%= sidParam %>" class="btn-switch-event-footer" id="footerSwitchEventBtn" title="Return to Event Selection to choose a different event without logging out">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span>Switch Event</span>
+                        </a>
+
                         <button type="button" id="manualEntryBtn" class="manual-btn">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <rect width="20" height="14" x="2" y="5" rx="2"></rect>
@@ -345,6 +373,10 @@
 </div>
 
 <!-- Page Scripts -->
+<script>
+    window.ACTIVE_EVENT_ID = <%= (typeof eventId !== 'undefined' && eventId) ? eventId : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1) %>;
+    window.ACTIVE_EVENT_NAME = "<%= (typeof eventName !== 'undefined' && eventName ? eventName : '').replace(/"/g, '\\"') %>";
+</script>
 <script src="/JAVASCRIPT/jsQR.js" defer></script>
 <script src="/JAVASCRIPT/Scanner.js" defer></script>
 <script src="/JAVASCRIPT/nav.js" defer></script>

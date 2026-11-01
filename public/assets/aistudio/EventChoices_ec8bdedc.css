@@ -1,0 +1,484 @@
+/* HOWWWW */
+:root {
+  /* Brand Navy */
+  --navy: #0a1164;
+  --navy-deep: #060b47;
+  --navy-text: #0a1164;
+  
+  /* Accent Colors */
+  --green-track: #1b6837;
+  --green-vibrant: #00b06f;
+  --green-btn: #15803d;
+  --green-btn-hover: #166534;
+  --green-glow: rgba(34, 197, 94, 0.35);
+
+  --coral-track: #d93829;
+  --coral-glow: rgba(239, 68, 68, 0.32);
+
+  /* Neutrals & Borders */
+  --card-bg: rgba(255, 255, 255, 0.82);
+  --white: #ffffff;
+  --line: #c6c9e8;
+  --footer-text: #8b95a5;
+  --bg-base: #f8fafc;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'Plus Jakarta Sans', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bg-base);
+  color: #1e293b;
+  overflow-x: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* --------------------------------------------------------------------------
+   FULL PAGE CONTAINER & LAYOUT
+   -------------------------------------------------------------------------- */
+.devfest-page {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --------------------------------------------------------------------------
+   TOP NAVIGATION BAR
+   -------------------------------------------------------------------------- */
+.devfest-header {
+  width: 100%;
+  height: 64px;
+  background-color: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 48px;
+  position: relative;
+  z-index: 40;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.devfest-nav {
+  display: flex;
+  align-items: center;
+  gap: 36px;
+}
+
+.btn-booth-portal {
+  background-color: var(--green-btn);
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 20px;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-booth-portal:hover {
+  background-color: var(--green-btn-hover);
+}
+
+.btn-booth-portal:active {
+  transform: scale(0.97);
+}
+
+.nav-link {
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.nav-link:hover {
+  opacity: 0.8;
+}
+
+/* --------------------------------------------------------------------------
+   STAGE & VIBRANT DEV-FEST BLURRED BACKGROUND MESH
+   -------------------------------------------------------------------------- */
+.devfest-stage {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 32px 16px;
+  overflow: hidden;
+}
+
+.blur-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.blur-top-right-1 {
+  top: -80px;
+  right: -80px;
+  width: 440px;
+  height: 440px;
+  background: radial-gradient(circle at 35% 35%, #ea4335 0%, #dc2626 30%, #1e1b4b 65%, #34d399 90%);
+  filter: blur(80px);
+  opacity: 0.85;
+}
+
+.blur-top-right-2 {
+  top: 40px;
+  right: 0;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #f59e0b 0%, #10b981 50%, #3b82f6 100%);
+  filter: blur(70px);
+  opacity: 0.75;
+}
+
+.blur-bottom-left {
+  bottom: -100px;
+  left: -80px;
+  width: 460px;
+  height: 460px;
+  background: radial-gradient(circle at 50% 50%, #0e1462 0%, #facc15 35%, #10b981 70%, #ef4444 100%);
+  filter: blur(85px);
+  opacity: 0.85;
+}
+
+.blur-mid-left {
+  top: 35%;
+  left: -100px;
+  width: 260px;
+  height: 260px;
+  background: #ef4444;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+
+.blur-mid-right {
+  bottom: 25%;
+  right: -80px;
+  width: 280px;
+  height: 280px;
+  background: #10b981;
+  filter: blur(90px);
+  opacity: 0.55;
+}
+
+/* --------------------------------------------------------------------------
+   CENTRAL FROSTED GLASS CARD
+   -------------------------------------------------------------------------- */
+.frosted-modal {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 820px;
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+  padding: 34px 44px 38px 44px;
+  overflow: hidden;
+}
+
+/* Interior decorative organic blobs in top-right of frosted card */
+.card-interior-blob-1 {
+  position: absolute;
+  top: 10px;
+  right: -24px;
+  width: 210px;
+  height: 210px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(120, 134, 168, 0.55) 0%, rgba(100, 116, 150, 0.4) 100%);
+  filter: blur(1px);
+  pointer-events: none;
+}
+
+.card-interior-blob-2 {
+  position: absolute;
+  top: 55px;
+  right: 55px;
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  background: rgba(110, 226, 175, 0.55);
+  pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   DEVFEST HEADER (Brackets + Text)
+   -------------------------------------------------------------------------- */
+.devfest-logo-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  position: relative;
+  z-index: 10;
+}
+
+.devfest-title-box {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.devfest-main-title {
+  color: var(--navy-text);
+  font-size: 27px;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+}
+
+.devfest-subtitle {
+  color: var(--green-vibrant);
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: -1px;
+}
+
+/* --------------------------------------------------------------------------
+   TRACK CARDS GRID
+   -------------------------------------------------------------------------- */
+.track-selection-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 28px;
+  max-width: 590px;
+  margin: 0 auto 28px auto;
+  position: relative;
+  z-index: 10;
+}
+
+.track-card {
+  position: relative;
+  background: var(--white);
+  border-radius: 26px;
+  padding: 30px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  user-select: none;
+}
+
+/* Students Card Glow */
+.track-card-students {
+  box-shadow: 0 0 35px var(--green-glow);
+}
+
+.track-card-students:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 45px rgba(34, 197, 94, 0.45);
+}
+
+.track-card-students.active {
+  border-color: #10b981;
+  box-shadow: 0 0 45px rgba(16, 185, 129, 0.5);
+}
+
+/* Professionals Card Glow */
+.track-card-professionals {
+  box-shadow: 0 0 35px var(--coral-glow);
+}
+
+.track-card-professionals:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 45px rgba(239, 68, 68, 0.42);
+}
+
+.track-card-professionals.active {
+  border-color: #f43f5e;
+  box-shadow: 0 0 45px rgba(244, 63, 94, 0.48);
+}
+
+.track-icon-wrapper {
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 14px 0;
+  transition: transform 0.2s ease;
+}
+
+.track-card:hover .track-icon-wrapper {
+  transform: scale(1.04);
+}
+
+/* Typography Inside Cards */
+.students-label {
+  color: var(--green-track);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.students-sublabel {
+  color: var(--green-track);
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  margin-top: 4px;
+}
+
+.professionals-label {
+  color: var(--coral-track);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.professionals-sublabel {
+  color: var(--coral-track);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  margin-top: 4px;
+}
+
+/* Radio input hiding */
+.track-radio {
+  display: none;
+}
+
+/* Selection checkmark indicator */
+.selection-check {
+  display: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.track-card-students .selection-check {
+  background-color: #10b981;
+}
+
+.track-card-professionals .selection-check {
+  background-color: #f43f5e;
+}
+
+.track-card.active .selection-check {
+  display: flex;
+}
+
+/* --------------------------------------------------------------------------
+   PROCEED BUTTON
+   -------------------------------------------------------------------------- */
+.proceed-btn-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  z-index: 10;
+}
+
+.btn-proceed {
+  background-color: var(--navy);
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  padding: 14px 76px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(10, 17, 100, 0.25);
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.btn-proceed:hover {
+  background-color: var(--navy-deep);
+  box-shadow: 0 6px 16px rgba(10, 17, 100, 0.35);
+}
+
+.btn-proceed:active {
+  transform: scale(0.97);
+}
+
+/* --------------------------------------------------------------------------
+   FOOTER COPYRIGHT
+   -------------------------------------------------------------------------- */
+.devfest-footer {
+  margin: 24px 0 20px 0;
+  text-align: center;
+  position: relative;
+  z-index: 10;
+}
+
+.devfest-footer-text {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--footer-text);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* --------------------------------------------------------------------------
+   RESPONSIVENESS
+   -------------------------------------------------------------------------- */
+@media (max-width: 680px) {
+  .devfest-header {
+    padding: 0 20px;
+  }
+  .devfest-nav {
+    gap: 16px;
+  }
+  .frosted-modal {
+    padding: 24px 20px 28px 20px;
+    border-radius: 24px;
+  }
+  .track-selection-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+    max-width: 320px;
+  }
+  .btn-proceed {
+    width: 100%;
+    padding: 14px 20px;
+  }
+}

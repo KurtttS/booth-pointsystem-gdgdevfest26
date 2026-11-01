@@ -1,0 +1,758 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+    --navy: #111b7b;
+    --navy-dark: #0b145f;
+    --green: #16823b;
+    --green-dark: #08783a;
+    --gold: #ffda32;
+    --text: #101a70;
+    --muted: #aeb8dc;
+    --line: #cbd2eb;
+}
+
+/* =========================================
+   GLOBAL RESET (PREVENTS WINDOW SCROLLBAR)
+========================================= */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Disables outer browser scroller beside navbar */
+    font-family: 'Inter', Arial, sans-serif;
+    color: var(--text);
+    background: #fafafa;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+}
+
+/* =========================================
+   FULL PAGE SHELL
+========================================= */
+
+.page-shell {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+/* =========================================
+   MAIN LEADERBOARD (SCROLLER IS UNDER NAV)
+========================================= */
+
+.leaderboard {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    flex: 1;
+    height: calc(100vh - 82px);
+    overflow-y: auto;   /* Scrollbar is locked UNDER the navbar */
+    overflow-x: hidden;
+    padding: 30px 5% 40px;
+    background: radial-gradient(
+        ellipse at center,
+        #ffffff 0%,
+        #fafafa 65%,
+        #f4f4f4 100%
+    );
+}
+
+/* Custom Sleek Scrollbar under the Nav */
+.leaderboard::-webkit-scrollbar {
+    width: 7px;
+}
+
+.leaderboard::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.leaderboard::-webkit-scrollbar-thumb {
+    background: hidden;
+    border-radius: 10px;
+}
+
+.leaderboard::-webkit-scrollbar-thumb:hover {
+    background: var(--navy);
+}
+
+.leaderboard {
+    scrollbar-width: thin;
+    scrollbar-color: #0C1570 transparent;
+}
+
+/* Colorful background accents */
+
+.ambient {
+    position: absolute;
+    z-index: -1;
+    width: 320px;
+    height: 320px;
+    border-radius: 50%;
+    filter: blur(45px);
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.ambient-top {
+    top: -40px;
+    right: -40px;
+    background: conic-gradient(
+        #36c98b,
+        #2b4bcb,
+        #f5d83d,
+        #f04d55,
+        #36c98b
+    );
+}
+
+.ambient-bottom {
+    bottom: 20px;
+    left: -40px;
+    background: conic-gradient(
+        #2549cc,
+        #38c98b,
+        #f4d83b,
+        #f44e59,
+        #2549cc
+    );
+}
+
+/* =========================================
+   PAGE TITLE
+========================================= */
+
+.page-heading {
+    width: 100%;
+    text-align: center;
+    margin: 0 auto;
+    padding-bottom: 20px;
+}
+
+.page-heading h1 {
+    margin: 0;
+    color: var(--navy);
+    font-size: clamp(36px, 4.5vw, 68px);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 0.015em;
+}
+
+.subtitle {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+
+.subtitle p {
+    margin: 0;
+    font-size: clamp(11px, 1.2vw, 15px);
+    font-weight: 800;
+    letter-spacing: 0.22em;
+}
+
+.subtitle span {
+    width: 50px;
+    height: 3px;
+    border-radius: 5px;
+    background: var(--line);
+}
+
+/* =========================================
+   TOP THREE PODIUM
+========================================= */
+
+.podium {
+    width: min(900px, 100%);
+    margin: 75px auto 34px; /* Gap between title subtitle and crown */
+    display: grid;
+    grid-template-columns: 1fr 1.08fr 1fr;
+    align-items: end;
+    gap: clamp(16px, 3.5vw, 45px);
+}
+
+.podium-card {
+    position: relative;
+    min-width: 0;
+    min-height: 210px;
+    padding: 0 12px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    background: #fff;
+    box-shadow: 0 4px 6px #101a7015;
+}
+
+.second-place,
+.third-place {
+    min-height: 200px;
+}
+
+.first-place {
+    min-height: 245px;
+    padding-top: 0;
+    color: #fff;
+    background: var(--navy);
+    border-color: var(--navy);
+    box-shadow: 0 8px 18px #111b7b28;
+}
+
+/* =========================================
+   AVATARS & PROFILES
+========================================= */
+
+.avatar {
+    position: relative;
+    z-index: 1;
+    width: clamp(74px, 9vw, 105px);
+    height: clamp(74px, 9vw, 105px);
+    margin-top: -38px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 6px solid var(--navy);
+    border-radius: 50%;
+    background: var(--navy);
+}
+
+/* Top 1 Gold Avatar */
+.avatar-first {
+    width: clamp(84px, 10vw, 116px);
+    height: clamp(84px, 10vw, 116px);
+    margin-top: 0;
+    border-color: var(--gold);
+    background: var(--gold);
+}
+
+.avatar-head {
+    width: 30%;
+    height: 30%;
+    margin-bottom: 6px;
+    border-radius: 50%;
+    background: #fff;
+}
+
+.avatar-body {
+    width: 68%;
+    height: 36%;
+    border-radius: 50% 50% 35% 35%;
+    background: #fff;
+}
+
+/* Crown properly hovering over profile */
+.crown {
+    position: relative;
+    z-index: 3;
+    display: inline-block;
+    height: 36px;
+    margin-top: -44px;
+    margin-bottom: 8px;
+    color: var(--gold);
+    font-size: 38px;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+}
+
+/* Podium labels */
+
+.podium-info {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.podium-info h2 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.rank-label {
+    margin: 3px 0 12px;
+    color: #e9bd16;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.first-place .rank-label {
+    color: var(--gold);
+}
+
+/* Points badges */
+
+.points,
+.row-points {
+    min-width: 105px;
+    min-height: 38px;
+    padding: 8px 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    background: var(--green);
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.first-place .points {
+    background: #168c43;
+}
+
+/* =========================================
+   REMAINING RANKINGS (4 - 7)
+========================================= */
+
+.rank-list {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.rank-row {
+    position: relative;
+    width: 100%;
+    min-height: 62px;
+    padding: 8px 30px 8px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px solid var(--line);
+    border-radius: 40px 22px 22px 40px;
+    background: #fff;
+    box-shadow: 0 3px 4px #101a7015;
+}
+
+.rank-number {
+    flex: 0 0 52px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 26px;
+    color: #fff;
+    background: var(--navy);
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.rank-row strong {
+    font-size: 15px;
+    font-weight: 900;
+}
+
+.row-points {
+    min-width: 95px;
+    min-height: 36px;
+    margin-left: auto;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+/* =========================================
+   MORE RANKINGS CONTAINER (8 - 12)
+========================================= */
+
+
+.more-rankings {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    
+    /* Collapsed state */
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    transform: translateY(-8px);
+    pointer-events: none;
+
+    /* Smooth accordion animation for BOTH opening and closing */
+    transition: 
+        max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.35s ease,
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Expanded state */
+.more-rankings.open {
+    max-height: 480px; /* Ample room for rows 8 to 12 */
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Staggered entrance animation when opening */
+.more-rankings.open .rank-row {
+    animation: rowSlideIn 3.00s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.more-rankings.open .rank-row:nth-child(1) { animation-delay: 0.04s; }
+.more-rankings.open .rank-row:nth-child(2) { animation-delay: 0.08s; }
+.more-rankings.open .rank-row:nth-child(3) { animation-delay: 0.12s; }
+.more-rankings.open .rank-row:nth-child(4) { animation-delay: 0.16s; }
+.more-rankings.open .rank-row:nth-child(5) { animation-delay: 0.20s; }
+
+/* =========================================
+   FULL STANDINGS BUTTON
+========================================= */
+
+.full-standings-btn {
+    min-width: 220px;
+    margin: 26px auto 0;
+    padding: 13px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border: 0;
+    border-radius: 28px;
+    color: #fff;
+    background: var(--navy);
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 4px 10px #111b7b25;
+    transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.full-standings-btn:hover {
+    background: #202d9a;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px #111b7b35;
+}
+
+/* =========================================
+   FOOTER (CLEAN TEXT ONLY, NO FILL BOX)
+========================================= */
+
+footer {
+    width: 100%;
+    margin-top: 40px;
+    padding: 10px 15px 25px;
+    text-align: center;
+    color: #707aa6;
+    background: transparent; /* Removed gray fill box */
+    border: none;
+    box-shadow: none;
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    font-weight: 600;
+}
+
+/* =========================================
+   LEADERBOARD KEYFRAME ANIMATIONS
+========================================= */
+
+@keyframes podiumRise {
+    0% {
+        opacity: 0;
+        transform: translateY(35px) scale(0.96);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes firstPlaceEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(45px) scale(0.94);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes crownFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes rowSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateX(-16px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes gentleFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(14px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Entrances */
+footer,
+.page-heading {
+    animation: gentleFadeIn 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.second-place {
+    animation: podiumRise 3.00s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+}
+
+.first-place {
+    animation: firstPlaceEntrance 5.00s cubic-bezier(0.16, 1, 0.3, 1) 0.25s both;
+}
+
+.third-place {
+    animation: podiumRise 3.00s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+}
+
+.crown {
+    animation: crownFloat 3.2s ease-in-out infinite;
+    will-change: transform;
+}
+
+.rank-row:nth-child(1) {
+    animation: rowSlideIn 2.00s cubic-bezier(0.16, 1, 0.3, 1) 0.42s both;
+}
+.rank-row:nth-child(2) {
+    animation: rowSlideIn 2.00s cubic-bezier(0.16, 1, 0.3, 1) 0.48s both;
+}
+.rank-row:nth-child(3) {
+    animation: rowSlideIn 2.00s cubic-bezier(0.16, 1, 0.3, 1) 0.54s both;
+}
+.rank-row:nth-child(4) {
+    animation: rowSlideIn 2.00s cubic-bezier(0.16, 1, 0.3, 1) 0.60s both;
+}
+
+.full-standings-btn {
+    animation: gentleFadeIn 2.00s cubic-bezier(0.16, 1, 0.3, 1) 0.68s both;
+}
+
+/* =========================================
+   INTERACTIVE HOVER MICRO-INTERACTIONS
+========================================= */
+
+.podium-card {
+    transition: 
+        transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+    will-change: transform;
+}
+
+@media (hover: hover) {
+    .second-place:hover,
+    .third-place:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 24px rgba(16, 26, 112, 0.14);
+        border-color: #abb6e2;
+    }
+
+    .first-place:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 16px 32px rgba(17, 27, 123, 0.35);
+    }
+}
+
+.avatar {
+    transition: transform 0.3s ease;
+}
+
+.podium-card:hover .avatar {
+    transform: scale(1.05);
+}
+
+.points,
+.row-points {
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.podium-card:hover .points,
+.rank-row:hover .row-points {
+    transform: scale(1.04);
+}
+
+.rank-row {
+    transition: 
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        background 0.25s ease;
+    will-change: transform;
+}
+
+@media (hover: hover) {
+    .rank-row:hover {
+        transform: translateX(6px);
+        background: #fbfbfe;
+        border-color: #aeb8dc;
+        box-shadow: 0 6px 14px rgba(16, 26, 112, 0.12);
+    }
+}
+
+/* =========================================
+   TABLET AND MOBILE
+========================================= */
+
+@media (max-width: 700px) {
+    .leaderboard {
+        height: calc(100vh - 70px);
+        padding: 20px 4% 30px;
+    }
+
+    .page-heading {
+        padding-bottom: 12px;
+    }
+
+    .podium {
+        margin-top: 55px;
+        gap: 8px;
+        margin-bottom: 22px;
+    }
+
+    .podium-card {
+        min-height: 170px;
+        padding: 0 6px 16px;
+        border-radius: 20px;
+    }
+
+    .second-place,
+    .third-place {
+        min-height: 155px;
+    }
+
+    .first-place {
+        min-height: 190px;
+    }
+
+    .avatar {
+        width: 66px;
+        height: 66px;
+        margin-top: -30px;
+        border-width: 4px;
+    }
+
+    .avatar-first {
+        width: 74px;
+        height: 74px;
+        margin-top: 0;
+    }
+
+    .crown {
+        height: 26px;
+        margin-top: -34px;
+        margin-bottom: 4px;
+        font-size: 28px;
+    }
+
+    .podium-info {
+        margin-top: 6px;
+    }
+
+    .podium-info h2 {
+        font-size: 12px;
+    }
+
+    .rank-label {
+        margin-bottom: 8px;
+        font-size: 10px;
+    }
+
+    .points {
+        min-width: 0;
+        min-height: 30px;
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 10px;
+    }
+
+    .rank-list {
+        gap: 10px;
+    }
+
+    .rank-row {
+        min-height: 52px;
+        padding: 6px 16px 6px 8px;
+        gap: 10px;
+    }
+
+    .rank-number {
+        flex-basis: 38px;
+        height: 34px;
+        font-size: 12px;
+    }
+
+    .rank-row strong {
+        font-size: 12px;
+    }
+
+    .row-points {
+        min-width: 75px;
+        min-height: 30px;
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+
+    .full-standings-btn {
+        min-width: 190px;
+        padding: 11px 20px;
+    }
+
+    footer {
+        max-width: 340px;
+        margin: 26px auto 10px;
+        line-height: 1.8;
+        font-size: 9px;
+        letter-spacing: 1px;
+    }
+}
+
+/* =========================================
+   ACCESSIBILITY (REDUCED MOTION)
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .page-heading,
+    .podium-card,
+    .crown,
+    .rank-row,
+    .full-standings-btn {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}

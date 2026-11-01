@@ -1,0 +1,57 @@
+<%
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+%>
+<header class="dash-header station-header topbar">
+
+    <a class="dash-brand brand" href="/Dashboard.php<%= sidParam %>"
+       aria-label="DevFest Bacolod 2026 home">
+
+        <img src="/IMG/GDG_LOGO.png"
+             alt="DevFest Logo"
+             class="gdg-logo"
+             style="width: 44px; height: 38px; object-fit: contain;">
+
+        <div class="dash-brand-title brand-copy">
+            <span class="dash-brand-name brand-name">DevFest</span>
+            <span class="dash-brand-sub brand-location">Bacolod 2026</span>
+        </div>
+
+    </a>
+
+    <div class="dash-nav-actions">
+        <!-- Event Selection Button -->
+        <a href="/EventChoices.php<%= sidParam %>" class="btn-events" title="Return to Event Selection">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+            <span>Events</span>
+        </a>
+
+        <!-- Scanner Shortcut Button -->
+        <a href="/scanner.php<%= sidParam %>" class="btn-scanner">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+                <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+                <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+                <circle cx="12" cy="12" r="3"/>
+            </svg>
+            <span>Scanner</span>
+        </a>
+
+        <!-- Admin Profile Avatar -->
+        <a href="/StationProfile.php<%= sidParam %>" class="profile-btn" aria-label="Station Profile">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+            </svg>
+        </a>
+    </div>
+
+</header>

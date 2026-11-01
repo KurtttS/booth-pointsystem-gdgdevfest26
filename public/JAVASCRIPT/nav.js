@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const href = link.getAttribute('href');
             if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('http')) return;
 
-            if (href.includes('logout.php')) {
+            if (href.toLowerCase().includes('logout')) {
                 link.addEventListener('click', function () {
                     try {
                         sessionStorage.removeItem('devfest_sid');
