@@ -13,8 +13,8 @@ export class Event {
   }
 
   static async findById(id) {
-    if (!id || !isSupabaseConfigured() || !supabase) return Event.getDefault();
-    const num = parseInt(id, 10);
+    const num = parseInt(id, 10) || 1;
+    if (!isSupabaseConfigured() || !supabase) return Event.getDefault(num);
     const { data, error } = await supabase
       .from('events')
       .select('*')
@@ -23,16 +23,23 @@ export class Event {
 
     if (error) {
       console.error('[Supabase] Event.findById error:', error.message);
-      return Event.getDefault();
+      return Event.getDefault(num);
     }
-    return data || Event.getDefault();
+    return data || Event.getDefault(num);
   }
 
-  static getDefault() {
+  static getDefault(id = 1) {
+    if (parseInt(id, 10) === 2) {
+      return {
+        id: 2,
+        event_name: 'Professional Dev Day',
+        venue: 'Bacolod City College'
+      };
+    }
     return {
       id: 1,
-      event_name: 'GDG Tech Summit 2026',
-      venue: 'University Convention Hall'
+      event_name: 'Student Dev Day',
+      venue: 'Bacolod City College'
     };
   }
 }

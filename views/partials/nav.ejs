@@ -1,17 +1,19 @@
 <%
     const cur = (typeof currentPage !== 'undefined' && currentPage) ? currentPage : '';
     const isLogin = (cur === 'LoginBooth.php' || cur === 'LoginBooth');
-    const isTrackChoice = (cur === 'EventChoices.php' || cur === 'EventChoices');
+    const isDashboard = (cur === 'Dashboard.php' || cur === 'Dashboard');
     const isScanner = (cur === 'scanner.php' || cur === 'scanner');
     const isLeaderboard = (cur === 'Leaderboard.php' || cur === 'Leaderboard');
     const isSuperAdmin = (cur === 'SuperAdmin.php' || cur === 'SuperAdmin');
+    const isProfile = (cur === 'StationProfile.php' || cur === 'StationProfile');
+    const isChoices = (cur === 'EventChoices.php' || cur === 'EventChoices');
     const loggedIn = (typeof isLoggedIn !== 'undefined' && isLoggedIn);
     const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
     const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
 %>
 <header class="topbar">
 
-    <a class="brand" href="<%= loggedIn ? ('/EventChoices.php' + sidParam) : '/LoginBooth.php' %>"
+    <a class="brand" href="<%= loggedIn ? ('/Dashboard.php' + sidParam) : '/LoginBooth.php' %>"
        aria-label="DevFest Bacolod 2026 home">
 
         <img src="/IMG/GDG_LOGO.png"
@@ -49,23 +51,11 @@
                 SuperAdmin
             </a>
 
-        <% } else if (isTrackChoice) { %>
-            <!-- 2. TRACK SELECTION: Cannot access Scanner and Leaderboard -->
-            <a href="/EventChoices.php<%= sidParam %>"
-               class="active">
-                Track Selection
-            </a>
-
-            <a href="/logout.php<%= sidParam %>"
-               class="logout-link"
-               style="color: #ea4335;">
-                Logout
-            </a>
-
         <% } else { %>
-            <!-- 3. SCANNER & LEADERBOARD: Can access each other and Track Selection -->
-            <a href="/EventChoices.php<%= sidParam %>">
-                Track Selection
+            <!-- 2. AUTHENTICATED: Dashboard, Scanner, Events, Leaderboard, and Station Profile Icon -->
+            <a href="/Dashboard.php<%= sidParam %>"
+               class="<%= isDashboard ? 'active' : '' %>">
+                Dashboard
             </a>
 
             <a href="/scanner.php<%= sidParam %>"
@@ -73,15 +63,27 @@
                 Scanner
             </a>
 
+            <a href="/EventChoices.php<%= sidParam %>"
+               class="<%= isChoices ? 'active' : '' %>"
+               title="Event Selection">
+                Events
+            </a>
+
             <a href="/Leaderboard.php<%= sidParam %>"
                class="<%= isLeaderboard ? 'active' : '' %>">
                 Leaderboard
             </a>
 
-            <a href="/logout.php<%= sidParam %>"
-               class="logout-link"
-               style="color: #ea4335;">
-                Logout
+            <a href="/StationProfile.php<%= sidParam %>"
+               class="profile-btn <%= isProfile ? 'active' : '' %>"
+               aria-label="Station Profile"
+               title="Station Profile">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
             </a>
         <% } %>
 

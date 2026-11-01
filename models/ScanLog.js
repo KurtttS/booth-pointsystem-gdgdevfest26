@@ -269,14 +269,19 @@ export class ScanLog {
       // 1. Fetch registered attendees for this specific event from event_attendees
       const { data: regRows, error: regErr } = await supabase
         .from('event_attendees')
-        .select('attendee_id, ticket_number, ticket_title')
+        .select('attendee_id, ticket_number, ticket_title, checkin_status')
         .eq('event_id', eId);
 
       if (regErr) {
         console.error('[Supabase] getLeaderboard event_attendees error:', regErr.message);
       }
 
-      const regAttendeeIds = new Set((regRows || []).map(r => r.attendee_id));
+      // Only include checked-in registrants (checkin_status === 1) in baseline 0-PTS standings
+      const regAttendeeIds = new Set(
+        (regRows || [])
+          .filter(r => Number(r.checkin_status) === 1 || r.checkin_status === true)
+          .map(r => r.attendee_id)
+      );
       const ticketMap = new Map((regRows || []).map(r => [r.attendee_id, r.ticket_number]));
 
       // 2. Fetch scan logs strictly for this eventId

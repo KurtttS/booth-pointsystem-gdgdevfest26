@@ -81,4 +81,50 @@ export class LeaderboardController {
       res.status(500).json({ success: false, standings: [] });
     }
   }
+
+  /**
+   * Display Admin Leaderboard view matching AdminLeaderboard.php reference design.
+   */
+  static async showAdminLeaderboard(req, res) {
+    const sid = req.sessionID || req.query.sid || '';
+    const rawEventId = req.session?.event_id || req.session?.eventId || req.query.event_id || 1;
+    const eventId = parseInt(rawEventId, 10) || 1;
+
+    try {
+      const currentEvent = await Event.findById(eventId);
+      const standings = await ScanLog.getLeaderboard(eventId);
+
+      res.render('AdminLeaderboard', {
+        currentPage: 'AdminLeaderboard.php',
+        selectedEventId: eventId,
+        currentEvent,
+        trackName: currentEvent ? currentEvent.event_name : `Event ${eventId}`,
+        top1: standings[0] || null,
+        top2: standings[1] || null,
+        top3: standings[2] || null,
+        ranks4to7: standings.slice(3, 7),
+        ranks8to12: standings.slice(7),
+        totalAttendees: standings.length,
+        isLoggedIn: !!(req.session && req.session.isLoggedIn),
+        sid
+      });
+    } catch (err) {
+      console.error('showAdminLeaderboard error:', err);
+      res.render('AdminLeaderboard', {
+        currentPage: 'AdminLeaderboard.php',
+        selectedEventId: 1,
+        currentEvent: null,
+        trackName: 'Leaderboard',
+        top1: null,
+        top2: null,
+        top3: null,
+        ranks4to7: [],
+        ranks8to12: [],
+        totalAttendees: 0,
+        isLoggedIn: !!(req.session && req.session.isLoggedIn),
+        sid
+      });
+    }
+  }
 }
+

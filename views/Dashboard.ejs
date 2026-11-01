@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevFest Bacolod 2026 - Dashboard</title>
+
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="/IMG/GDGTOP.png?v=2">
+
+    <!-- Google Font: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="/CSS/Dashboard.css">
+    <link rel="stylesheet" href="/CSS/nav.css">
+</head>
+<body>
+
+<%
+    const adminName = (typeof admin_name !== 'undefined' && admin_name) ? admin_name : 'Admin';
+    const stationName = (typeof station_name !== 'undefined' && station_name) ? station_name : 'Active Station';
+    const currentEventName = (typeof eventName !== 'undefined' && eventName) ? eventName : '';
+    const stationLocation = (typeof station_location !== 'undefined' && station_location) ? station_location : '';
+    const totalUniqueVisitors = (typeof total_unique_visitors !== 'undefined') ? total_unique_visitors : 1;
+    const currentRewardRate = (typeof current_reward_rate !== 'undefined') ? current_reward_rate : 100;
+    const rewardTierName = (typeof reward_tier_name !== 'undefined' && reward_tier_name) ? reward_tier_name : 'First 1 - 10 (Early Bird)';
+    const pointsDistributed = (typeof points_distributed !== 'undefined') ? points_distributed : 100;
+    const totalScans = (typeof total_scans !== 'undefined') ? total_scans : 10;
+    const scansToday = (typeof scans_today !== 'undefined') ? scans_today : 5;
+    const pointsAwarded = (typeof points_awarded !== 'undefined') ? points_awarded : 100;
+    const boothImage = (typeof booth_image !== 'undefined' && booth_image) ? booth_image : '/IMG/booth-banner.jpg';
+    const leaderboardItems = (typeof leaderboard !== 'undefined' && Array.isArray(leaderboard) && leaderboard.length > 0)
+        ? leaderboard
+        : [
+            { id: 'ID: 025', points: 55, active: true },
+            { id: 'ID: 011', points: 45, active: false },
+            { id: 'ID: 067', points: 35, active: false },
+            { id: 'ID: 001', points: 15, active: false },
+            { id: 'ID: 014', points: 12, active: false }
+        ];
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+%>
+
+<div class="dashboard-page">
+
+    <!-- Top Navigation Bar -->
+    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+
+    <!-- Main Ambient Backdrop Blooms -->
+    <div class="blur-orb blur-top-right"></div>
+    <div class="blur-orb blur-mid-left"></div>
+    <div class="blur-orb blur-mid-right"></div>
+    <div class="blur-orb blur-bottom-left"></div>
+
+    <!-- Main Dashboard Container -->
+    <main class="dash-container">
+
+        <!-- Welcome Banner Greetings -->
+        <div class="dash-welcome-header">
+            <h1 class="dash-welcome-title">Welcome, <%= adminName %>!</h1>
+            <p class="dash-welcome-subtitle">Google Developer Groups</p>
+        </div>
+
+        <!-- Hero Station Banner -->
+        <section class="hero-station-card" id="heroStationCard">
+            <img
+                src="<%= boothImage %>"
+                alt="<%= stationName %> booth"
+                class="hero-station-img"
+                id="heroStationImg"
+                data-default-src="<%= boothImage %>"
+                onerror="this.src='https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&auto=format&fit=crop&q=80';"
+            >
+            <script>
+                (function() {
+                    try {
+                        var _bg = localStorage.getItem('devfest_dashboard_custom_bg');
+                        if (_bg) {
+                            var _el = document.getElementById('heroStationImg');
+                            if (_el) _el.src = _bg;
+                        }
+                    } catch(e) {}
+                })();
+            </script>
+
+            <div class="hero-station-overlay">
+                <div class="station-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/>
+                        <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                        <path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/>
+                        <path d="M2 7h20"/>
+                        <path d="M22 7v3a2 2 0 0 1-2 2 2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 16 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 12 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 8 12a2.7 2.7 0 0 1-1.59-.63.7.7 0 0 0-.82 0A2.7 2.7 0 0 1 4 12a2 2 0 0 1-2-2V7"/>
+                    </svg>
+                    <span>Active Station</span>
+                </div>
+                <h2 class="station-name"><%= stationName %></h2>
+                <div class="station-meta-bar">
+                    <p class="station-location"><%= stationLocation %><%= currentEventName ? (stationLocation ? ' · ' + currentEventName : currentEventName) : '' %></p>
+                    <a href="/EventChoices.php<%= sidParam %>" class="dash-switch-event-link" title="Switch or select a different event without logging out">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="17 1 21 5 17 9"></polyline>
+                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                            <polyline points="7 23 3 19 7 15"></polyline>
+                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+                        </svg>
+                        <span>Switch Event</span>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row of 3 Summary Metrics -->
+        <section class="metric-cards-grid">
+
+            <!-- Card 1: Total Unique Visitor -->
+            <div class="metric-card">
+                <div class="metric-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                    </svg>
+                </div>
+                <h3 class="metric-title">Total Unique Visitor</h3>
+                <span class="metric-subtitle">Cumulative unique scans</span>
+                <span class="metric-value"><%= totalUniqueVisitors %></span>
+                <span class="metric-unit">Attendees</span>
+            </div>
+
+            <!-- Card 2: Current Reward Rate -->
+            <div class="metric-card">
+                <div class="metric-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-1 6h2v2h-2V7zm0 4h2v6h-2v-6z"/>
+                    </svg>
+                </div>
+                <h3 class="metric-title">Current Reward Rate</h3>
+                <span class="metric-subtitle"><%= rewardTierName %></span>
+                <span class="metric-value">+<%= currentRewardRate %></span>
+                <span class="metric-unit">Points</span>
+            </div>
+
+            <!-- Card 3: Points Distributed -->
+            <div class="metric-card">
+                <div class="metric-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M19 3H5L2 9l10 12L22 9l-3-6zM4.3 8l1.7-3.4h3.6L7.9 8H4.3zm6.2 0l1.7-3.4h3.6l-1.7 3.4h-3.6zm4.9 0l1.7-3.4h3.6L19.7 8h-4.3z"/>
+                    </svg>
+                </div>
+                <h3 class="metric-title">Points Distributed</h3>
+                <span class="metric-subtitle">Across <%= totalUniqueVisitors %> verified scans</span>
+                <span class="metric-value"><%= pointsDistributed %></span>
+                <span class="metric-unit">Points</span>
+            </div>
+
+        </section>
+
+        <!-- Main Lower Grid: Leaderboard (Left) + Stats (Right) -->
+        <section class="dash-columns-grid">
+
+            <!-- Left: Leaderboard Card -->
+            <div class="leaderboard-card">
+                <a href="/AdminLeaderboard.php<%= sidParam %>" class="card-link" aria-label="Open full leaderboard"></a>
+
+                <div class="leaderboard-header">
+                    <h3 class="leaderboard-title">Leaderboard</h3>
+                    <p class="leaderboard-subtitle">Top-performing performers ranked by points and QR scans.</p>
+                </div>
+
+                <div class="leaderboard-list">
+                    <% leaderboardItems.slice(0, 5).forEach((item, index) => { %>
+                        <% const rank = index + 1; %>
+                        <div class="leaderboard-item <%= (rank === 1) ? 'rank-gold' : '' %>">
+                            <div class="leader-left">
+                                <span class="rank-circle"><%= rank %></span>
+                                <span class="booth-id-text"><%= item.id || item.name %></span>
+                            </div>
+                            <span class="pts-pill"><%= item.points %> PTS</span>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+
+            <!-- Right: Total Scans & Points Awarded Cards -->
+            <div class="dash-stacked-column">
+
+                <!-- Stat Card 1: Total Scans -->
+                <div class="stat-banner-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+                                <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+                                <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+                                <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+                                <circle cx="12" cy="10" r="3"/>
+                                <path d="M7 17c0-2.5 2.5-4 5-4s5 1.5 5 4"/>
+                            </svg>
+                        </span>
+                        <h4 class="stat-card-title">Total Scans</h4>
+                    </div>
+
+                    <div class="stat-huge-row">
+                        <span class="stat-huge-number"><%= totalScans %></span>
+                        <span class="stat-badge-today">+<%= scansToday %> Scans Today</span>
+                    </div>
+
+                    <p class="stat-footnote">Total number of QR code scans recorded during the event.</p>
+                </div>
+
+                <!-- Stat Card 2: Points Awarded -->
+                <div class="stat-banner-card">
+                    <div class="stat-card-header">
+                        <span class="stat-card-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2L4 5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5l-8-3zm0 13.5l-3.23 1.7 0.62-3.6-2.62-2.55 3.61-0.52L12 7.2l1.62 3.28 3.61 0.52-2.62 2.55 0.62 3.6L12 15.5z"/>
+                            </svg>
+                        </span>
+                        <h4 class="stat-card-title">Points Awarded</h4>
+                    </div>
+
+                    <div class="stat-huge-row">
+                        <span class="stat-huge-number">+<%= pointsAwarded %></span>
+                    </div>
+
+                    <p class="stat-footnote">Total points earned from successful QR scans and booth activities.</p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Footer -->
+        <footer class="dash-footer">
+            <p class="dash-footer-text">
+                &copy; 2026 GDG BACOLOD - AI Innovations Team . All Rights Reserved
+            </p>
+        </footer>
+
+    </main>
+</div>
+
+<script>
+(function () {
+  var counters = document.querySelectorAll('.metric-value, .stat-huge-number');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (!('IntersectionObserver' in window) || reduceMotion) return;
+
+  function format(prefix, value, suffix) {
+    return prefix + value.toLocaleString() + suffix;
+  }
+
+  function countUp(el) {
+    var original = el.dataset.original;
+    if (!original) return;
+    var match = original.match(/^(\D*)(\d[\d,]*)(\D*)$/);
+    if (!match) return;
+
+    var prefix = match[1];
+    var target = parseInt(match[2].replace(/,/g, ''), 10);
+    var suffix = match[3];
+    var duration = 2000;
+    var start = null;
+
+    function step(timestamp) {
+      if (start === null) start = timestamp;
+      var progress = Math.min((timestamp - start) / duration, 1);
+      var eased = 1 - Math.pow(1 - progress, 3);
+      el.textContent = format(prefix, Math.round(target * eased), suffix);
+
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = original;
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (entry.isIntersecting) {
+        countUp(entry.target);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.4 });
+
+  counters.forEach(function (el) {
+    var text = el.textContent.trim();
+    var match = text.match(/^(\D*)(\d[\d,]*)(\D*)$/);
+    if (!match) return;
+    el.dataset.original = text;
+    el.textContent = match[1] + '0' + match[3];
+    observer.observe(el);
+  });
+})();
+</script>
+<script src="/JAVASCRIPT/dashboard-bg.js"></script>
+<script>
+  if (window.DashboardBG) {
+    window.DashboardBG.applyToDashboard('heroStationImg');
+  }
+</script>
+
+</body>
+</html>

@@ -791,6 +791,27 @@ footer,
     border: 1px solid #ceead6;
 }
 
+.locked-event-switch-btn {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a73e8;
+    background: #e8f0fe;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid #d2e3fc;
+    text-decoration: none;
+    margin-left: 6px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.locked-event-switch-btn:hover {
+    background: #1a73e8;
+    color: #ffffff;
+    border-color: #1a73e8;
+    transform: translateY(-1px);
+}
+
 .locked-event-meta {
     display: flex;
     align-items: center;

@@ -59,6 +59,9 @@
                     <span class="locked-event-dot"></span>
                     <span class="locked-event-name"><%= currentEv.event_name %></span>
                     <span class="locked-event-tag">Current Event</span>
+                    <a href="/EventChoices.php<%= sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '' %>" class="locked-event-switch-btn" title="Switch or select a different event without logging out">
+                        ⇄ Switch Event
+                    </a>
                 </div>
                 <% if (currentEv.venue || currentEv.event_date) { %>
                 <div class="locked-event-meta">

@@ -244,8 +244,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const vh = video.videoHeight;
         if (!vw || !vh) return;
 
-        // Downscale high-res frames to max 640px width for fast, low-CPU QR decoding
-        const scale = vw > 640 ? 640 / vw : 1;
+        // Pass 1: Full camera frame (up to 800px wide)
+        const scale = vw > 800 ? 800 / vw : 1;
         const cw = Math.round(vw * scale);
         const ch = Math.round(vh * scale);
 
@@ -255,13 +255,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         qrCtx.drawImage(video, 0, 0, cw, ch);
-        const imageData = qrCtx.getImageData(0, 0, cw, ch);
-        const qrResult = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        let imageData = qrCtx.getImageData(0, 0, cw, ch);
+        let qrResult = window.jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: 'attemptBoth'
         });
 
         if (qrResult && qrResult.data) {
             handleScanResult(qrResult.data);
+            return;
+        }
+
+        // Pass 2: Native-resolution center reticle crop for smaller QR codes held up on a phone
+        const cropSize = Math.round(Math.min(vw, vh) * 0.65);
+        if (cropSize > 120) {
+            const sx = Math.round((vw - cropSize) / 2);
+            const sy = Math.round((vh - cropSize) / 2);
+            qrCanvas.width = cropSize;
+            qrCanvas.height = cropSize;
+            qrCtx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, cropSize, cropSize);
+            imageData = qrCtx.getImageData(0, 0, cropSize, cropSize);
+            qrResult = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'attemptBoth'
+            });
+            if (qrResult && qrResult.data) {
+                handleScanResult(qrResult.data);
+            }
         }
     }
 
@@ -519,7 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const sid = urlParams.get('sid');
-            const eventId = urlParams.get('event_id');
+            const eventId = (typeof window.ACTIVE_EVENT_ID !== 'undefined' && window.ACTIVE_EVENT_ID) ? window.ACTIVE_EVENT_ID : urlParams.get('event_id');
             const headers = { 'Content-Type': 'application/json' };
             if (sid) headers['X-Session-ID'] = sid;
 
@@ -650,7 +668,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const sid = urlParams.get('sid') || sessionStorage.getItem('devfest_sid') || localStorage.getItem('devfest_sid');
-            const eventId = urlParams.get('event_id');
+            const eventId = (typeof window.ACTIVE_EVENT_ID !== 'undefined' && window.ACTIVE_EVENT_ID) ? window.ACTIVE_EVENT_ID : urlParams.get('event_id');
             const headers = {};
             if (sid) headers['X-Session-ID'] = sid;
 

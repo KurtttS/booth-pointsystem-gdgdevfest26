@@ -154,6 +154,58 @@
     transform: translateY(-1px);
 }
 
+/* PROFILE BUTTON ICON (Matches Dashboard) */
+
+.topbar .nav-links a.profile-btn {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    min-height: 36px;
+    max-width: 36px;
+    max-height: 36px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    cursor: pointer;
+    text-decoration: none;
+    box-shadow: none;
+    transition: border-color 0.2s ease, transform 0.2s ease, background-color 0.2s ease;
+}
+
+.topbar .nav-links a.profile-btn svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    flex-shrink: 0;
+}
+
+.topbar .nav-links a.profile-btn:hover {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+.topbar .nav-links a.profile-btn::after {
+    display: none !important;
+}
+
+.topbar .nav-links a.profile-btn.active {
+    border-color: #ffffff;
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 2px #ffffff;
+}
+
+.topbar .nav-links a.profile-btn.active:hover {
+    background: rgba(255, 255, 255, 0.28);
+}
+
 /* HAMBURGER BUTTON */
 
 .topbar .menu-toggle {
@@ -315,6 +367,10 @@
         transition-delay: 0.14s;
     }
 
+    .topbar .nav-links.open a:nth-child(4) {
+        transition-delay: 0.19s;
+    }
+
     .topbar .nav-links a::after {
         display: none;
     }
@@ -325,6 +381,25 @@
 
     .topbar .nav-links a.active {
         padding: 12px;
+    }
+
+    .topbar .nav-links a.profile-btn {
+        width: 38px;
+        height: 38px;
+        min-width: 38px;
+        min-height: 38px;
+        max-width: 38px;
+        max-height: 38px;
+        padding: 0;
+        margin: 6px auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .topbar .nav-links a.profile-btn:hover {
+        transform: scale(1.08);
     }
 }
 

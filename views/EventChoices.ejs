@@ -22,10 +22,17 @@
 
 <body>
 
+<%
+    const activeEvId = (typeof eventId !== 'undefined' && eventId) ? parseInt(eventId, 10) : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1);
+    const activeTrack = (typeof track !== 'undefined' && track) ? track : (activeEvId === 2 ? 'professionals' : 'students');
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+    const activeName = (typeof currentEventName !== 'undefined' && currentEventName) ? currentEventName : (activeEvId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
+%>
 <div class="devfest-page">
     
     <!-- Shared navbar -->
-    <%- include('partials/nav', { currentPage: 'EventChoices.php', isLoggedIn: true, sid: (typeof sid !== 'undefined' ? sid : '') }) %>
+    <%- include('partials/nav', { currentPage: 'EventChoices.php', isLoggedIn: true, sid: sessionSid }) %>
 
     <!-- Main Stage with Vibrant DevFest Gradient Mesh -->
     <main class="devfest-stage">
@@ -61,16 +68,25 @@
                 </div>
             </div>
 
+            <!-- Current Active Event Status -->
+            <div class="active-event-indicator-box">
+                <span class="current-event-pill">
+                    <span class="pulse-dot"></span>
+                    Current Session Event: <strong><%= activeName %></strong>
+                </span>
+                <p class="current-event-guide">Select an event below to switch your booth terminal's active session without logging out.</p>
+            </div>
+
             <!-- Track Selection Form -->
             <form method="POST" action="/scanner.php" id="eventChoicesForm">
-                <input type="hidden" name="event_id" id="selectedEventId" value="<%= (typeof eventId !== 'undefined' && eventId) ? eventId : ((track === 'professionals') ? 2 : 1) %>">
-                <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined' && sid) ? sid : '' %>">
+                <input type="hidden" name="event_id" id="selectedEventId" value="<%= activeEvId %>">
+                <input type="hidden" name="sid" value="<%= sessionSid %>">
                 
                 <div class="track-selection-grid">
                     
                     <!-- Card 1: STUDENTS DEV DAY -->
-                    <label class="track-card track-card-students <%= (track === 'students') ? 'active' : '' %>" id="cardStudents" data-event-id="1">
-                        <input type="radio" name="track" value="students" class="track-radio" data-event-id="1" <%= (track === 'students') ? 'checked' : '' %>>
+                    <label class="track-card track-card-students <%= (activeEvId === 1) ? 'active' : '' %>" id="cardStudents" data-event-id="1">
+                        <input type="radio" name="track" value="students" class="track-radio" data-event-id="1" <%= (activeEvId === 1) ? 'checked' : '' %>>
                         <div class="selection-check">✓</div>
 
                         <div class="track-icon-wrapper">
@@ -92,8 +108,8 @@
                     </label>
 
                     <!-- Card 2: PROFESSIONALS NETWORK DAY -->
-                    <label class="track-card track-card-professionals <%= (track === 'professionals') ? 'active' : '' %>" id="cardProfessionals" data-event-id="2">
-                        <input type="radio" name="track" value="professionals" class="track-radio" data-event-id="2" <%= (track === 'professionals') ? 'checked' : '' %>>
+                    <label class="track-card track-card-professionals <%= (activeEvId === 2) ? 'active' : '' %>" id="cardProfessionals" data-event-id="2">
+                        <input type="radio" name="track" value="professionals" class="track-radio" data-event-id="2" <%= (activeEvId === 2) ? 'checked' : '' %>>
                         <div class="selection-check">✓</div>
 
                         <div class="track-icon-wrapper">
@@ -120,9 +136,10 @@
 
                 </div>
 
-                <!-- PROCEED Button -->
+                <!-- Action Buttons: PROCEED / SELECT & CANCEL -->
                 <div class="proceed-btn-wrapper">
-                    <button type="submit" class="btn-proceed">PROCEED</button>
+                    <button type="submit" class="btn-proceed" id="proceedBtn">UPDATE SELECTED EVENT</button>
+                    <a href="/scanner.php<%= sidParam %>" class="btn-cancel-return">Keep Current Event</a>
                 </div>
 
             </form>
