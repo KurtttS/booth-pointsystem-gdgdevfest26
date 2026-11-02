@@ -34,7 +34,7 @@
 <div class="station-page">
 
     <!-- Top Navigation Bar -->
-    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+    <%- include('partials/nav', { currentPage: 'StationProfile.php', isLoggedIn: true, sid: sessionSid }) %>
 
     <!-- Main Ambient Backdrop Blooms -->
     <div class="blur-orb blur-top-right"></div>
@@ -278,6 +278,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 });
 </script>
+<script src="/JAVASCRIPT/nav.js" defer></script>
 
 </body>
 </html>

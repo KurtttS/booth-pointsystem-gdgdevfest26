@@ -129,11 +129,10 @@
                         </button>
 
                         <p
-                            class="form-message"
+                            class="form-message <%= (typeof error !== 'undefined' && error) ? 'form-error' : ((typeof message !== 'undefined' && message) ? 'form-success' : '') %>"
                             id="formMessage"
                             role="status"
                             aria-live="polite"
-                            style="<%= (typeof error !== 'undefined' && error) ? 'color: #ea4335;' : ((typeof message !== 'undefined' && message) ? 'color: #1b6837;' : '') %>"
                         ><%= (typeof error !== 'undefined' && error) ? error : ((typeof message !== 'undefined' && message) ? message : '') %></p>
 
                     </form>

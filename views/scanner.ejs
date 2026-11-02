@@ -29,7 +29,7 @@
 <div class="page-shell">
 
     <!-- DevFest Topbar -->
-    <%- include('partials/navcam', { currentPage: 'scanner.php', sid: sessionSid, track: (typeof track !== 'undefined' ? track : 'students'), isLoggedIn: true }) %>
+    <%- include('partials/nav', { currentPage: 'scanner.php', sid: sessionSid, isLoggedIn: true }) %>
 
     <main class="scanner-main">
         <div class="ambient ambient-top"></div>
@@ -373,9 +373,12 @@
 </div>
 
 <!-- Page Scripts -->
-<script>
-    window.ACTIVE_EVENT_ID = <%= (typeof eventId !== 'undefined' && eventId) ? eventId : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1) %>;
-    window.ACTIVE_EVENT_NAME = "<%= (typeof eventName !== 'undefined' && eventName ? eventName : '').replace(/"/g, '\\"') %>";
+<script id="scannerConfig"
+        data-event-id="<%= (typeof eventId !== 'undefined' && eventId) ? eventId : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1) %>"
+        data-event-name="<%= (typeof eventName !== 'undefined' && eventName) ? eventName : '' %>">
+    const scannerConfig = document.currentScript.dataset;
+    window.ACTIVE_EVENT_ID = Number(scannerConfig.eventId);
+    window.ACTIVE_EVENT_NAME = scannerConfig.eventName;
 </script>
 <script src="/JAVASCRIPT/jsQR.js" defer></script>
 <script src="/JAVASCRIPT/Scanner.js" defer></script>

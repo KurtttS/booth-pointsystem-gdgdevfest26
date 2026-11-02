@@ -31,8 +31,8 @@
 
 <div class="page-shell">
 
-    <!-- Shared navbar (matches Dashboard) -->
-    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+    <!-- Shared navbar -->
+    <%- include('partials/nav', { currentPage: 'AdminLeaderboard.php', isLoggedIn: true, sid: sessionSid }) %>
 
     <!-- LEADERBOARD CONTENT -->
     <main class="leaderboard">
@@ -46,9 +46,23 @@
 
             <div class="subtitle">
                 <span></span>
-                <p>TOP ATTENDEES PERFORMERS</p>
+                <p>TOP ATTENDEES PERFORMERS &middot; <%= (typeof trackName !== 'undefined' && trackName) ? trackName.toUpperCase() : 'EVENT STANDINGS' %></p>
                 <span></span>
             </div>
+
+            <!-- DUAL EVENT TRACK TABS (STUDENT DEV DAY VS. PROFESSIONAL DEV DAY) -->
+            <nav class="event-track-tabs" aria-label="Event leaderboards">
+                <a href="/AdminLeaderboard.php?event_id=1<%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === 1) ? 'active' : '' %>">
+                    <span class="tab-badge-dot"></span>
+                    <span class="tab-text">Student Dev Day</span>
+                </a>
+                <a href="/AdminLeaderboard.php?event_id=2<%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === 2) ? 'active' : '' %>">
+                    <span class="tab-badge-dot"></span>
+                    <span class="tab-text">Professional Dev Day</span>
+                </a>
+            </nav>
 
             <!-- Optional locked event metadata for Leaderboard.js real-time live sync -->
             <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEvId %>" style="display: none;"></div>
@@ -217,5 +231,6 @@
 </div>
 
 <script src="/JAVASCRIPT/Leaderboard.js" defer></script>
+<script src="/JAVASCRIPT/nav.js" defer></script>
 </body>
 </html>

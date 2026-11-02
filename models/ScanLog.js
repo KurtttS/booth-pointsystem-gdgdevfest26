@@ -269,36 +269,55 @@ export class ScanLog {
       // 1. Fetch registered attendees for this specific event from event_attendees
       const { data: regRows, error: regErr } = await supabase
         .from('event_attendees')
-        .select('attendee_id, ticket_number, ticket_title, checkin_status')
+        .select('attendee_id, ticket_number, ticket_title, checkin_status, event_id')
         .eq('event_id', eId);
 
       if (regErr) {
         console.error('[Supabase] getLeaderboard event_attendees error:', regErr.message);
       }
 
+      // Attendees verified to belong strictly to this event
+      const allowedAttendeeIds = new Set(
+        (regRows || [])
+          .filter(r => parseInt(r.event_id, 10) === eId)
+          .map(r => r.attendee_id)
+      );
+
       // Only include checked-in registrants (checkin_status === 1) in baseline 0-PTS standings
       const regAttendeeIds = new Set(
         (regRows || [])
-          .filter(r => Number(r.checkin_status) === 1 || r.checkin_status === true)
+          .filter(r => parseInt(r.event_id, 10) === eId && (Number(r.checkin_status) === 1 || r.checkin_status === true))
           .map(r => r.attendee_id)
       );
-      const ticketMap = new Map((regRows || []).map(r => [r.attendee_id, r.ticket_number]));
+      const ticketMap = new Map((regRows || []).filter(r => parseInt(r.event_id, 10) === eId).map(r => [r.attendee_id, r.ticket_number]));
 
       // 2. Fetch scan logs strictly for this eventId
       let query = supabase.from('scan_logs').select('*').eq('eventId', eId).limit(5000);
       let { data: logs, error } = await query;
-      if (error || !logs) {
+      if (error || !logs || logs.length === 0) {
         // Fallback for unquoted lowercase column identifiers
         const retry = await supabase.from('scan_logs').select('*').eq('eventid', eId).limit(5000);
-        logs = retry.data || [];
+        if (retry.data && retry.data.length > 0) {
+          logs = retry.data;
+        } else {
+          logs = logs || [];
+        }
       }
+
+      // Strict Event Isolation: guarantee that only scans for this exact event are processed
+      // and only attendees registered for this event are counted
+      const eventScopedLogs = (logs || []).filter(log => {
+        const evId = parseInt(log.eventId ?? log.eventid ?? log.event_id, 10);
+        const aId = parseInt(log.attendeeId ?? log.attendeeid ?? log.attendee_id, 10);
+        return evId === eId && (allowedAttendeeIds.size === 0 || allowedAttendeeIds.has(aId));
+      });
 
       // 3. Aggregate points earned strictly in this event (total from each booth scanned)
       // and track the timestamp when each attendee reached their latest score for tiebreaking
       const totals = new Map();
       const latestScanTimestamps = new Map();
 
-      (logs || []).forEach(log => {
+      eventScopedLogs.forEach(log => {
         const aId = parseInt(log.attendeeId ?? log.attendeeid ?? log.attendee_id, 10);
         const pts = parseInt(log.points ?? log.point ?? 0, 10);
         const rawTime = log.timestamp || log.created_at;
@@ -315,10 +334,9 @@ export class ScanLog {
         }
       });
 
-      // 4. Eligible attendees: ALL attendees who have scanned in any booth for this event
-      // GUARANTEED to be included, plus all registered attendees for this event
+      // 4. Eligible attendees: strictly attendees registered for this event
       const targetAttendeeIds = Array.from(new Set([
-        ...totals.keys(),
+        ...Array.from(totals.keys()).filter(id => allowedAttendeeIds.size === 0 || allowedAttendeeIds.has(id)),
         ...regAttendeeIds
       ]));
 
@@ -336,12 +354,13 @@ export class ScanLog {
         console.error('[Supabase] getLeaderboard attendees error:', attErr.message);
       }
 
-      // 6. Fill in missing tickets for attendees who scanned
+      // 6. Fill in missing tickets strictly for this event
       const missingTicketAttendeeIds = targetAttendeeIds.filter(id => !ticketMap.has(id));
       if (missingTicketAttendeeIds.length > 0) {
         const { data: extraTickets } = await supabase
           .from('event_attendees')
-          .select('attendee_id, ticket_number')
+          .select('attendee_id, ticket_number, event_id')
+          .eq('event_id', eId)
           .in('attendee_id', missingTicketAttendeeIds);
 
         (extraTickets || []).forEach(t => {

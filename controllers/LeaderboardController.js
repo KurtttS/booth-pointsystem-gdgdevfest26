@@ -12,28 +12,29 @@ export class LeaderboardController {
       return res.redirect('/LoginBooth.php' + sidQuery);
     }
 
-    // Guard 2: When on track selection page (event not chosen yet), check session or query
-    const sessionEventId = req.session.event_id || req.session.eventId || req.session.selected_event_id || req.query.event_id;
-    if (!sessionEventId) {
-      return res.redirect('/EventChoices.php' + sidQuery);
-    }
-
-    // Keep session event in sync if passed via query
-    if (!req.session.event_id && sessionEventId) {
-      req.session.event_id = parseInt(sessionEventId, 10);
+    // Explicit query param takes top priority so the user can directly view either event leaderboard
+    let eventId = null;
+    if (req.query.event_id) {
+      eventId = parseInt(req.query.event_id, 10);
+    } else if (req.query.track) {
+      eventId = (req.query.track === 'professionals' || req.query.track === '2') ? 2 : 1;
+    } else if (req.session.event_id || req.session.eventId || req.session.selected_event_id) {
+      eventId = parseInt(req.session.event_id || req.session.eventId || req.session.selected_event_id, 10);
+    } else {
+      eventId = 1;
     }
 
     try {
-      const eventId = parseInt(sessionEventId, 10);
       const currentEvent = await Event.findById(eventId);
       const standings = await ScanLog.getLeaderboard(eventId);
       const isLoggedIn = true;
+      const eventName = currentEvent ? currentEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
 
       res.render('Leaderboard', {
         currentPage: 'Leaderboard.php',
         selectedEventId: eventId,
         currentEvent,
-        trackName: currentEvent ? currentEvent.event_name : `Event ${eventId}`,
+        trackName: eventName,
         top1: standings[0] || null,
         top2: standings[1] || null,
         top3: standings[2] || null,
@@ -47,9 +48,9 @@ export class LeaderboardController {
       console.error('LeaderboardController error:', err);
       res.render('Leaderboard', {
         currentPage: 'Leaderboard.php',
-        selectedEventId: 1,
+        selectedEventId: eventId,
         currentEvent: null,
-        trackName: 'Leaderboard',
+        trackName: eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day',
         top1: null,
         top2: null,
         top3: null,
@@ -64,8 +65,8 @@ export class LeaderboardController {
 
   static async getLeaderboardApi(req, res) {
     try {
-      // Prioritize active session event
-      const rawEventId = req.session?.event_id || req.session?.eventId || req.query.event_id || 1;
+      // Prioritize explicit query parameter so live leaderboard polling strictly requests its specific event
+      const rawEventId = req.query.event_id || req.session?.event_id || req.session?.eventId || 1;
       const eventId = parseInt(rawEventId, 10) || 1;
 
       const currentEvent = await Event.findById(eventId);
@@ -87,18 +88,19 @@ export class LeaderboardController {
    */
   static async showAdminLeaderboard(req, res) {
     const sid = req.sessionID || req.query.sid || '';
-    const rawEventId = req.session?.event_id || req.session?.eventId || req.query.event_id || 1;
+    const rawEventId = req.query.event_id || (req.query.track === 'professionals' ? 2 : (req.query.track === 'students' ? 1 : null)) || req.session?.event_id || req.session?.eventId || 1;
     const eventId = parseInt(rawEventId, 10) || 1;
 
     try {
       const currentEvent = await Event.findById(eventId);
       const standings = await ScanLog.getLeaderboard(eventId);
+      const eventName = currentEvent ? currentEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
 
       res.render('AdminLeaderboard', {
         currentPage: 'AdminLeaderboard.php',
         selectedEventId: eventId,
         currentEvent,
-        trackName: currentEvent ? currentEvent.event_name : `Event ${eventId}`,
+        trackName: eventName,
         top1: standings[0] || null,
         top2: standings[1] || null,
         top3: standings[2] || null,

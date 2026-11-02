@@ -54,15 +54,14 @@ export class ScanController {
         });
       }
 
-      // Retrieve booth and selected event details from Supabase
+      // Retrieve booth details from Supabase
       const booth = (await Booth.findById(boothId)) || Booth.getDefault();
-      const event = (await Event.findById(eventId)) || Event.getDefault();
 
-      // Strictly resolve attendee against event_attendees & checkin_status = 1 for selected event
+      // Strictly resolve attendee and route to their specific registered event (Student Dev Day vs. Professional Dev Day)
       const resolution = await Attendee.resolveForEvent({
         identifier: qrCode ? String(qrCode).trim() : '',
         name: attendeeName ? String(attendeeName).trim() : '',
-        eventId: event.id
+        eventId
       });
 
       if (resolution.status === 'not_found') {
@@ -76,13 +75,15 @@ export class ScanController {
 
       const { attendee, eventAttendee } = resolution;
       const fullName = Attendee.getFullName(attendee);
+      const event = (await Event.findById(eventId)) || Event.getDefault(eventId);
 
       if (resolution.status === 'wrong_event') {
+        const registeredEvent = (await Event.findById(resolution.registeredEventId)) || Event.getDefault(resolution.registeredEventId);
         return res.status(403).json({
           success: false,
           code: 'WRONG_EVENT',
           attendeeName: fullName,
-          message: `${fullName} is not registered for ${event.event_name}.`
+          message: `${fullName} is registered for ${registeredEvent.event_name}, not ${event.event_name}. Cannot record scan at a ${event.event_name} booth!`
         });
       }
 
@@ -100,7 +101,7 @@ export class ScanController {
         (eventAttendee && eventAttendee.ticket_number) ||
         `ID ${String(attendee.id).padStart(3, '0')}`;
 
-      // Check if Attendee has already finished this challenge (UNIQUE_ATTENDEE_BOOTH_EVENT in Supabase)
+      // Check if Attendee has already finished this challenge for their specific event
       const alreadyScanned = await ScanLog.hasScanned(attendee.id, booth.id, event.id);
       if (alreadyScanned) {
         return res.status(409).json({
@@ -109,11 +110,11 @@ export class ScanController {
           code: 'ALREADY_SCANNED',
           attendeeId: displayAttendeeId,
           attendeeName: fullName,
-          message: `${fullName} has already completed the challenge at ${booth.name}!`
+          message: `${fullName} has already completed the challenge at ${booth.name} for ${event.event_name}!`
         });
       }
 
-      // Count previous completions for this booth & event directly in Supabase
+      // Count previous completions strictly for this booth & event in Supabase
       const existingScanCount = await ScanLog.countByBoothAndEvent(booth.id, event.id);
 
       // Determine points & tier category strictly by visit order (never manual input):
@@ -123,7 +124,7 @@ export class ScanController {
       // Visits 91+      -> 45 PTS  ('91+')
       const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount);
 
-      // Store directly in Supabase scan_logs table
+      // Store directly in Supabase scan_logs table strictly under the attendee's eventId
       const createdLog = await ScanLog.create({
         attendeeId: attendee.id,
         boothId: booth.id,
@@ -142,7 +143,7 @@ export class ScanController {
 
       return res.status(201).json({
         success: true,
-        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS)`,
+        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS · ${event.event_name})`,
         scan: {
           id: createdLog.id,
           attendeeId: displayAttendeeId,
@@ -152,14 +153,18 @@ export class ScanController {
           category: tierResult.category,
           timestamp: timeStr,
           boothId: booth.id,
-          boothName: booth.name
+          boothName: booth.name,
+          eventId: event.id,
+          eventName: event.event_name
         },
         stats: {
           totalScans,
           currentTierPoints: nextTierInfo.points,
           awardedPoints: tierResult.points,
           currentCategory: nextTierInfo.category,
-          nextTierPoints: nextTierInfo.points
+          nextTierPoints: nextTierInfo.points,
+          eventId: event.id,
+          eventName: event.event_name
         }
       });
     } catch (err) {
@@ -185,10 +190,12 @@ export class ScanController {
         return res.status(403).json({ success: false, scans: [], totalScans: 0, message: 'No assigned booth found' });
       }
 
-      const rawEventId = req.session.event_id || req.session.eventId || req.query.event_id || 1;
+      const rawEventId = req.query.event_id || req.session.event_id || req.session.eventId || 1;
       const eventId = parseInt(rawEventId, 10) || 1;
-      req.session.event_id = eventId;
-      req.session.eventId = eventId;
+      if (req.session) {
+        req.session.event_id = eventId;
+        req.session.eventId = eventId;
+      }
 
       const scans = await ScanLog.getRecentScans(boothId, eventId);
       const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
