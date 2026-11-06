@@ -5,22 +5,118 @@ import { Booth } from './Booth.js';
 
 export class ScanLog {
   /**
-   * Determine points and tier category based on previous completions.
-   * 1st to 10th:   100 PTS ('1-10')
-   * 11th to 50th:  85 PTS  ('11-50')
-   * 51st to 90th:  65 PTS  ('51-90')
-   * 91st+:         45 PTS  ('91+')
+   * Determine points and tier category based on previous completions and booth type.
+   *
+   * 1. Sponsor booths:
+   *    - First 20 visits: 100 PTS
+   *    - Visits 21 to 50: 85 PTS
+   *    - Visits 51 to 90: 65 PTS
+   *    - Visits 91+:      45 PTS
+   *
+   * 2. GDG booth:
+   *    - Flat 65 PTS all throughout
+   *    - Attendees can scan twice
+   *
+   * 3. Other / Standard booths:
+   *    - Visits 1 to 10:  100 PTS
+   *    - Visits 11 to 50: 85 PTS
+   *    - Visits 51 to 90: 65 PTS
+   *    - Visits 91+:      45 PTS
    */
-  static calculatePointsForScanCount(existingCount) {
+  static calculatePointsForScanCount(existingCount, boothType = 'standard') {
+    const type = (boothType || 'standard').toString().toLowerCase();
     const scanNumber = existingCount + 1;
+
+    // GDG Booth: Only gives out 65 pts all throughout
+    if (type === 'gdg') {
+      return {
+        points: 65,
+        category: '51-90',
+        displayCategory: 'all-visits',
+        label: 'GDG Official Rate',
+        color: 'Blue',
+        tierIndex: 2
+      };
+    }
+
+    // Sponsor Booths: First 20 get 100 pts, then 85 pts up to visit 50
+    if (type === 'sponsor') {
+      if (scanNumber <= 20) {
+        return {
+          points: 100,
+          category: '1-10',
+          displayCategory: '1-20',
+          label: 'Early Bird (Top 20)',
+          color: 'Green',
+          tierIndex: 0
+        };
+      } else if (scanNumber <= 50) {
+        return {
+          points: 85,
+          category: '11-50',
+          displayCategory: '21-50',
+          label: 'Prime Time',
+          color: 'Yellow',
+          tierIndex: 1
+        };
+      } else if (scanNumber <= 90) {
+        return {
+          points: 65,
+          category: '51-90',
+          displayCategory: '51-90',
+          label: 'Rush Hour',
+          color: 'Blue',
+          tierIndex: 2
+        };
+      } else {
+        return {
+          points: 45,
+          category: '91+',
+          displayCategory: '91+',
+          label: 'Standard Visit',
+          color: 'Red',
+          tierIndex: 3
+        };
+      }
+    }
+
+    // Other / Standard Booths: Original 10, 50, 90 tier thresholds
     if (scanNumber <= 10) {
-      return { points: 100, category: '1-10', tierIndex: 0 };
+      return {
+        points: 100,
+        category: '1-10',
+        displayCategory: '1-10',
+        label: 'Early Bird',
+        color: 'Green',
+        tierIndex: 0
+      };
     } else if (scanNumber <= 50) {
-      return { points: 85, category: '11-50', tierIndex: 1 };
+      return {
+        points: 85,
+        category: '11-50',
+        displayCategory: '11-50',
+        label: 'Prime Time',
+        color: 'Yellow',
+        tierIndex: 1
+      };
     } else if (scanNumber <= 90) {
-      return { points: 65, category: '51-90', tierIndex: 2 };
+      return {
+        points: 65,
+        category: '51-90',
+        displayCategory: '51-90',
+        label: 'Rush Hour',
+        color: 'Blue',
+        tierIndex: 2
+      };
     } else {
-      return { points: 45, category: '91+', tierIndex: 3 };
+      return {
+        points: 45,
+        category: '91+',
+        displayCategory: '91+',
+        label: 'Standard Visit',
+        color: 'Red',
+        tierIndex: 3
+      };
     }
   }
 
@@ -58,40 +154,55 @@ export class ScanLog {
   }
 
   /**
-   * Check if an attendee has already scanned at this booth for this event directly in Supabase
-   * (Enforces UNIQUE_ATTENDEE_BOOTH_EVENT constraint).
+   * Count how many times an attendee has scanned at a specific booth for a specific event.
    */
-  static async hasScanned(attendeeId, boothId, eventId) {
-    if (!isSupabaseConfigured() || !supabase) return false;
+  static async getAttendeeScanCount(attendeeId, boothId, eventId) {
+    if (!isSupabaseConfigured() || !supabase) return 0;
     const aId = parseInt(attendeeId, 10);
     const bId = (boothId || '').trim();
     const eId = parseInt(eventId, 10);
 
     try {
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('scan_logs')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('attendeeId', aId)
         .ilike('boothId', bId)
-        .eq('eventId', eId)
-        .maybeSingle();
+        .eq('eventId', eId);
 
-      if (!error && data) return true;
+      if (!error && typeof count === 'number') {
+        return count;
+      }
 
       // Fallback for unquoted lowercase column identifiers
       const retry = await supabase
         .from('scan_logs')
-        .select('id')
+        .select('id', { count: 'exact', head: true })
         .eq('attendeeid', aId)
         .ilike('boothid', bId)
-        .eq('eventid', eId)
-        .maybeSingle();
+        .eq('eventid', eId);
 
-      return !!retry.data;
+      return retry.count || 0;
     } catch (e) {
-      console.error('[Supabase] hasScanned check error:', e.message);
-      return false;
+      console.error('[Supabase] getAttendeeScanCount error:', e.message);
+      return 0;
     }
+  }
+
+  /**
+   * Alias for getAttendeeScanCount.
+   */
+  static async countByAttendeeBoothAndEvent(attendeeId, boothId, eventId) {
+    return await ScanLog.getAttendeeScanCount(attendeeId, boothId, eventId);
+  }
+
+  /**
+   * Check if an attendee has already reached their scan limit for this booth.
+   * Defaults to 1 scan limit for Sponsor/Other, and 2 for GDG booths.
+   */
+  static async hasScanned(attendeeId, boothId, eventId, maxAllowed = 1) {
+    const count = await ScanLog.getAttendeeScanCount(attendeeId, boothId, eventId);
+    return count >= maxAllowed;
   }
 
   /**

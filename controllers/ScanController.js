@@ -56,6 +56,7 @@ export class ScanController {
 
       // Retrieve booth details from Supabase
       const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+      const event = (await Event.findById(eventId)) || Event.getDefault();
 
       // Strictly resolve attendee and route to their specific registered event (Student Dev Day vs. Professional Dev Day)
       const resolution = await Attendee.resolveForEvent({
@@ -101,7 +102,7 @@ export class ScanController {
         (eventAttendee && eventAttendee.ticket_number) ||
         `ID ${String(attendee.id).padStart(3, '0')}`;
 
-      // Check if Attendee has already finished this challenge for their specific event
+      // Check if Attendee has already finished this challenge (UNIQUE_ATTENDEE_BOOTH_EVENT in Supabase)
       const alreadyScanned = await ScanLog.hasScanned(attendee.id, booth.id, event.id);
       if (alreadyScanned) {
         return res.status(409).json({
@@ -110,19 +111,18 @@ export class ScanController {
           code: 'ALREADY_SCANNED',
           attendeeId: displayAttendeeId,
           attendeeName: fullName,
-          message: `${fullName} has already completed the challenge at ${booth.name} for ${event.event_name}!`
+          message: `${fullName} has already completed the challenge at ${booth.name}!`
         });
       }
 
       // Count previous completions strictly for this booth & event in Supabase
       const existingScanCount = await ScanLog.countByBoothAndEvent(booth.id, event.id);
 
-      // Determine points & tier category strictly by visit order (never manual input):
-      // Visits 1 to 10  -> 100 PTS ('1-10')
-      // Visits 11 to 50 -> 85 PTS  ('11-50')
-      // Visits 51 to 90 -> 65 PTS  ('51-90')
-      // Visits 91+      -> 45 PTS  ('91+')
-      const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount);
+      // Determine points & tier category based on booth type:
+      // - Sponsor: Visits 1-20 -> 100 PTS, 21-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
+      // - GDG: Flat 65 PTS all throughout (max 2 scans per attendee)
+      // - Standard/Other: Visits 1-10 -> 100 PTS, 11-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
+      const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount, boothType);
 
       // Store directly in Supabase scan_logs table strictly under the attendee's eventId
       const createdLog = await ScanLog.create({
@@ -134,16 +134,19 @@ export class ScanController {
       });
 
       const totalScans = existingScanCount + 1;
-      const nextTierInfo = ScanLog.calculatePointsForScanCount(totalScans);
+      const nextTierInfo = ScanLog.calculatePointsForScanCount(totalScans, boothType);
 
       const timeStr = new Date(createdLog.timestamp).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit'
       });
 
+      const scanNumberForAttendee = attendeeScanCount + 1;
+      const scanNotice = maxAllowedScans > 1 ? ` · Scan ${scanNumberForAttendee}/${maxAllowedScans}` : '';
+
       return res.status(201).json({
         success: true,
-        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS · ${event.event_name})`,
+        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS)`,
         scan: {
           id: createdLog.id,
           attendeeId: displayAttendeeId,
@@ -153,18 +156,14 @@ export class ScanController {
           category: tierResult.category,
           timestamp: timeStr,
           boothId: booth.id,
-          boothName: booth.name,
-          eventId: event.id,
-          eventName: event.event_name
+          boothName: booth.name
         },
         stats: {
           totalScans,
           currentTierPoints: nextTierInfo.points,
           awardedPoints: tierResult.points,
           currentCategory: nextTierInfo.category,
-          nextTierPoints: nextTierInfo.points,
-          eventId: event.id,
-          eventName: event.event_name
+          nextTierPoints: nextTierInfo.points
         }
       });
     } catch (err) {
@@ -197,13 +196,16 @@ export class ScanController {
         req.session.eventId = eventId;
       }
 
+      const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+      const boothType = Booth.getBoothType(booth);
       const scans = await ScanLog.getRecentScans(boothId, eventId);
       const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
-      const activeTier = ScanLog.calculatePointsForScanCount(totalScans);
+      const activeTier = ScanLog.calculatePointsForScanCount(totalScans, boothType);
 
       res.json({
         success: true,
         boothId,
+        boothType,
         eventId,
         scans,
         totalScans,
