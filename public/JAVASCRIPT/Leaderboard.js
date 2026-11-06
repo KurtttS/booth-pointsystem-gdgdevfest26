@@ -65,6 +65,11 @@ function createRankRowHtml(item) {
             const data = await res.json();
             if (!data || !data.success || !Array.isArray(data.standings)) return;
 
+            // Strict Event Isolation: never update DOM if the response belongs to another event
+            if (parseInt(data.eventId, 10) !== parseInt(eventId, 10)) {
+                return;
+            }
+
             const standings = data.standings;
             const currentDataKey = standings.map(s => `${s.id}:${s.points}:${s.rank}:${s.latestScanTimestamp || ''}`).join('|');
 

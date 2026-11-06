@@ -52,6 +52,20 @@
                 <span></span>
             </div>
 
+            <!-- DUAL EVENT TRACK TABS (STUDENT DEV DAY VS. PROFESSIONAL DEV DAY) -->
+            <nav class="event-track-tabs" aria-label="Event leaderboards">
+                <a href="/Leaderboard.php?event_id=1<%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === 1) ? 'active' : '' %>">
+                    <span class="tab-badge-dot"></span>
+                    <span class="tab-text">Student Dev Day</span>
+                </a>
+                <a href="/Leaderboard.php?event_id=2<%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === 2) ? 'active' : '' %>">
+                    <span class="tab-badge-dot"></span>
+                    <span class="tab-text">Professional Dev Day</span>
+                </a>
+            </nav>
+
             <!-- LOCKED EVENT / TRACK BADGE (ONLY SHOWS THE CURRENT BOOTH EVENT) -->
             <% if (currentEv) { %>
             <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEvId %>">

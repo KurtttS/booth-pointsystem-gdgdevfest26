@@ -29,7 +29,7 @@
 <div class="page-shell">
 
     <!-- DevFest Topbar -->
-    <%- include('partials/navcam', { currentPage: 'scanner.php', sid: sessionSid, track: (typeof track !== 'undefined' ? track : 'students'), isLoggedIn: true }) %>
+    <%- include('partials/nav', { currentPage: 'scanner.php', sid: sessionSid, isLoggedIn: true }) %>
 
     <main class="scanner-main">
         <div class="ambient ambient-top"></div>
@@ -58,20 +58,9 @@
                             </div>
                             <div>
                                 <h1 id="scannerHeading">Live Camera Scanner</h1>
-                                <div class="scanner-header-event-row">
-                                    <p class="subtitle">
-                                        <strong style="color: #4285F4;"><%= (typeof boothName !== 'undefined' && boothName) ? boothName : boothId %> (<%= boothId %>)</strong> · <span class="header-event-name"><%= (typeof eventName !== 'undefined' && eventName) ? eventName : ((typeof track !== 'undefined' && track === 'professionals') ? 'Professional Dev Day' : 'Student Dev Day') %></span>
-                                    </p>
-                                    <a href="/EventChoices.php<%= sidParam %>" class="btn-switch-event-header" id="headerSwitchEventBtn" title="Switch or select a different event without logging out">
-                                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
-                                            <polyline points="17 1 21 5 17 9"></polyline>
-                                            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
-                                            <polyline points="7 23 3 19 7 15"></polyline>
-                                            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
-                                        </svg>
-                                        <span>Change Event</span>
-                                    </a>
-                                </div>
+                                <p class="subtitle">
+                                    <strong style="color: #4285F4;"><%= (typeof boothName !== 'undefined' && boothName) ? boothName : 'Booth Station' %></strong> · <span class="header-event-name"><%= (typeof eventName !== 'undefined' && eventName) ? eventName : ((typeof track !== 'undefined' && track === 'professionals') ? 'Professional Dev Day' : 'Student Dev Day') %></span>
+                                </p>
                             </div>
                         </div>
 
@@ -117,20 +106,32 @@
                             </div>
                         </div>
 
-                        <!-- Camera Toggle Button on Lower Side -->
-                        <button type="button" id="toggleCameraBtn" class="camera-toggle-btn" aria-label="Toggle camera">
-                            <svg id="camIconOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
-                                <circle cx="12" cy="13" r="3"></circle>
-                            </svg>
-                            <svg id="camIconOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" hidden>
-                                <line x1="2" x2="22" y1="2" y2="22"></line>
-                                <path d="M10.41 10.41a2 2 0 1 0 2.83 2.83"></path>
-                                <path d="M13.5 4h-3L8 7H4a2 2 0 0 0-2 2v9c0 .29.06.57.17.81"></path>
-                                <path d="M6.5 19H20a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2.5l-1-1.2"></path>
-                            </svg>
-                            <span id="camToggleText">Turn Off Camera</span>
-                        </button>
+                        <!-- Camera Floating Controls on Lower Side (Full Screen & Toggle) -->
+                        <div class="camera-floating-controls">
+                            <button type="button" id="fullscreenCameraBtn" class="camera-control-pill-btn camera-fullscreen-btn" aria-label="Toggle camera full screen" title="Expand camera to full screen">
+                                <svg id="fullscreenIconExpand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                                </svg>
+                                <svg id="fullscreenIconCompress" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" hidden>
+                                    <path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>
+                                </svg>
+                                <span id="fullscreenBtnText">Full Screen</span>
+                            </button>
+
+                            <button type="button" id="toggleCameraBtn" class="camera-control-pill-btn camera-toggle-btn" aria-label="Toggle camera">
+                                <svg id="camIconOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"></path>
+                                    <circle cx="12" cy="13" r="3"></circle>
+                                </svg>
+                                <svg id="camIconOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" hidden>
+                                    <line x1="2" x2="22" y1="2" y2="22"></line>
+                                    <path d="M10.41 10.41a2 2 0 1 0 2.83 2.83"></path>
+                                    <path d="M13.5 4h-3L8 7H4a2 2 0 0 0-2 2v9c0 .29.06.57.17.81"></path>
+                                    <path d="M6.5 19H20a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2.5l-1-1.2"></path>
+                                </svg>
+                                <span id="camToggleText">Turn Off Camera</span>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Footer Controls -->
@@ -241,6 +242,12 @@
 
             </div>
 
+<%
+    const currentBoothType = (typeof boothType !== 'undefined' && boothType) ? boothType : 'standard';
+    const tier1Range = currentBoothType === 'sponsor' ? 'Visits 1-20' : 'Visits 1-10';
+    const tier2Range = currentBoothType === 'sponsor' ? 'Visits 21-50' : 'Visits 11-50';
+    const tier1Label = currentBoothType === 'sponsor' ? 'Early Bird (Top 20)' : 'Early Bird';
+%>
             <!-- ============================================================
                  BOTTOM ROW: POINT ALLOCATION MATRIX (AUTOMATIC & COLOR-CODED)
             ============================================================ -->
@@ -249,8 +256,27 @@
                     <div class="matrix-header-left">
                         <div class="matrix-icon">✦</div>
                         <div>
-                            <h2 id="matrixHeading">Point Allocation Matrix</h2>
-                            <p class="matrix-sub">Points are earned based on individually scanned visits · Color coded to match the scanner</p>
+                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <h2 id="matrixHeading" style="margin: 0;">Point Allocation Matrix</h2>
+                                <% if (currentBoothType === 'gdg') { %>
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; background: #e8f0fe; color: #1a73e8; border: 1px solid #1a73e8; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;">
+                                        ★ GDG Official Booth (Flat 65 PTS · 2 Scans Allowed)
+                                    </span>
+                                <% } else if (currentBoothType === 'sponsor') { %>
+                                    <span style="display: inline-flex; align-items: center; gap: 4px; background: #e6f4ea; color: #137333; border: 1px solid #34a853; padding: 2px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 700;">
+                                        ★ Sponsor Booth (First 20 at 100 PTS)
+                                    </span>
+                                <% } %>
+                            </div>
+                            <p class="matrix-sub">
+                                <% if (currentBoothType === 'gdg') { %>
+                                    Fixed 65 PTS per scan · Attendees can scan up to 2 times for challenges
+                                <% } else if (currentBoothType === 'sponsor') { %>
+                                    Special Sponsor Tiering: First 20 visits earn 100 PTS · 21-50 visits earn 85 PTS
+                                <% } else { %>
+                                    Points are earned based on individually scanned visits · Color coded to match the scanner
+                                <% } %>
+                            </p>
                         </div>
                     </div>
 
@@ -267,9 +293,9 @@
                     <div class="tier-card tier-100 tier-active" id="tierCard1" data-tier-points="100">
                         <span class="active-badge badge-green-active" id="activeBadge1">Active Tier</span>
                         <span class="filter-indicator-badge" id="filterBadge1" hidden>Filter Active</span>
-                        <span class="tier-range">Visits 1-10</span>
+                        <span class="tier-range" id="tier1RangeText"><%= tier1Range %></span>
                         <div class="tier-points">+ 100 <span>PTS</span></div>
-                        <span class="tier-label">Early Bird</span>
+                        <span class="tier-label" id="tier1LabelText"><%= tier1Label %></span>
                         <div class="tier-color-tag" style="color: #34a853;">
                             <span class="tier-color-dot" style="background: #34a853;"></span>
                             <span>Scanner Green</span>
@@ -280,7 +306,7 @@
                     <div class="tier-card tier-85" id="tierCard2" data-tier-points="85">
                         <span class="active-badge badge-yellow-active" id="activeBadge2" hidden>Active Tier</span>
                         <span class="filter-indicator-badge" id="filterBadge2" hidden>Filter Active</span>
-                        <span class="tier-range">Visits 11-50</span>
+                        <span class="tier-range" id="tier2RangeText"><%= tier2Range %></span>
                         <div class="tier-points">+ 85 <span>PTS</span></div>
                         <span class="tier-label">Prime Time</span>
                         <div class="tier-color-tag" style="color: #b45309;">
@@ -293,9 +319,9 @@
                     <div class="tier-card tier-65" id="tierCard3" data-tier-points="65">
                         <span class="active-badge badge-blue-active" id="activeBadge3" hidden>Active Tier</span>
                         <span class="filter-indicator-badge" id="filterBadge3" hidden>Filter Active</span>
-                        <span class="tier-range">Visits 51-90</span>
+                        <span class="tier-range" id="tier3RangeText"><%= currentBoothType === 'gdg' ? 'All Visits' : 'Visits 51-90' %></span>
                         <div class="tier-points">+ 65 <span>PTS</span></div>
-                        <span class="tier-label">Rush Hour</span>
+                        <span class="tier-label"><%= currentBoothType === 'gdg' ? 'GDG Rate' : 'Rush Hour' %></span>
                         <div class="tier-color-tag" style="color: #1a73e8;">
                             <span class="tier-color-dot" style="background: #1a73e8;"></span>
                             <span>Scanner Blue</span>
@@ -354,11 +380,6 @@
             </div>
 
             <div class="modal-field">
-                <label for="manualAttendeeName">Attendee Name (Optional)</label>
-                <input type="text" id="manualAttendeeName" placeholder="e.g. Juan Dela Cruz" autocomplete="off">
-            </div>
-
-            <div class="modal-field">
                 <label for="manualAttendeePoints">Points Awarded (Automatic Tier)</label>
                 <input type="number" id="manualAttendeePoints" value="100" readonly tabindex="-1" aria-readonly="true">
                 <small class="field-hint" id="manualTierHint">Auto-set to current active tier points (+100 PTS · Green)</small>
@@ -376,6 +397,7 @@
 <script>
     window.ACTIVE_EVENT_ID = <%= (typeof eventId !== 'undefined' && eventId) ? eventId : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1) %>;
     window.ACTIVE_EVENT_NAME = "<%= (typeof eventName !== 'undefined' && eventName ? eventName : '').replace(/"/g, '\\"') %>";
+    window.BOOTH_TYPE = "<%= currentBoothType %>";
 </script>
 <script src="/JAVASCRIPT/jsQR.js" defer></script>
 <script src="/JAVASCRIPT/Scanner.js" defer></script>

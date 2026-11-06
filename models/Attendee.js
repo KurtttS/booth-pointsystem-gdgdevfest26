@@ -158,14 +158,15 @@ export class Attendee {
   }
 
   /**
-   * Resolve a scanned QR code or manual input strictly against registered & checked-in
-   * attendees for the booth's currently selected eventId.
-   * Never auto-creates unregistered guest records.
+   * Resolve a scanned QR code or manual input strictly against the booth's event.
+   * If an attendee is registered for Professional Dev Day, scanning at a Student Dev Day booth
+   * will NOT insert or route to Professional Dev Day leaderboard; it will reject with WRONG_EVENT.
+   * Same goes with Professional Dev Day booth scanning Student Dev Day attendees.
    *
    * Possible return statuses:
-   * - 'ok': Attendee exists, is registered for eventId, and has checkin_status === 1
-   * - 'not_checked_in': Attendee is registered for eventId, but checkin_status !== 1
-   * - 'wrong_event': Attendee exists in database/another event, but not registered for eventId
+   * - 'ok': Attendee exists, registered for this booth's event, and checked in
+   * - 'not_checked_in': Attendee is registered for this booth's event, but checkin_status !== 1
+   * - 'wrong_event': Attendee is registered for a different event (e.g. Professional instead of Student)
    * - 'not_found': No matching ticket or attendee found in registration records
    */
   static async resolveForEvent({ identifier, name, eventId }) {
@@ -173,7 +174,7 @@ export class Attendee {
       throw new Error('Supabase is not configured. Please set SUPABASE_URL and SUPABASE_ANON_KEY in .env.');
     }
 
-    const targetEventId = parseInt(eventId, 10);
+    const boothEventId = parseInt(eventId, 10) || 1;
     const cleanCode = identifier ? identifier.trim() : '';
     const cleanName = name ? name.trim() : '';
 
@@ -184,20 +185,24 @@ export class Attendee {
     if (cleanCode) {
       const ticketMatches = await Attendee.findEventRegistrationsByTicket(cleanCode);
       if (ticketMatches.length > 0) {
-        const matchForTargetEvent = ticketMatches.find(
-          row => parseInt(row.event_id, 10) === targetEventId
+        // Look for match strictly for the booth's current event
+        const matchForBoothEvent = ticketMatches.find(
+          row => parseInt(row.event_id, 10) === boothEventId
         );
 
-        if (matchForTargetEvent) {
-          eventAttendee = matchForTargetEvent;
-          attendee = await Attendee.findById(matchForTargetEvent.attendee_id);
+        if (matchForBoothEvent) {
+          eventAttendee = matchForBoothEvent;
+          attendee = await Attendee.findById(matchForBoothEvent.attendee_id);
         } else {
-          // Ticket belongs to a different event
+          // Ticket belongs to a different event (e.g. Professional Dev Day instead of Student Dev Day)
+          // Reject with wrong_event so it does NOT insert or leak across leaderboards
           const otherAttendee = await Attendee.findById(ticketMatches[0].attendee_id);
           return {
             status: 'wrong_event',
             attendee: otherAttendee,
-            eventAttendee: null
+            eventAttendee: null,
+            registeredEventId: parseInt(ticketMatches[0].event_id, 10),
+            boothEventId
           };
         }
       }
@@ -219,35 +224,47 @@ export class Attendee {
       return {
         status: 'not_found',
         attendee: null,
-        eventAttendee: null
+        eventAttendee: null,
+        boothEventId
       };
     }
 
-    // 3. Verify registration in event_attendees for the selected event
+    // 3. Strictly verify attendee registration in event_attendees for the booth's event
     if (!eventAttendee) {
-      const { data: regRow, error: regErr } = await supabase
+      const { data: regRows, error: regErr } = await supabase
         .from('event_attendees')
         .select('*')
-        .eq('attendee_id', attendee.id)
-        .eq('event_id', targetEventId)
-        .maybeSingle();
+        .eq('attendee_id', attendee.id);
 
       if (regErr) {
         console.error('[Supabase] Attendee.resolveForEvent registration check error:', regErr.message);
       }
 
-      if (!regRow) {
+      if (regRows && regRows.length > 0) {
+        const matchForBooth = regRows.find(r => parseInt(r.event_id, 10) === boothEventId);
+        if (matchForBooth) {
+          eventAttendee = matchForBooth;
+        } else {
+          // Attendee is registered for a different event: reject so it does not insert into the other leaderboard
+          return {
+            status: 'wrong_event',
+            attendee,
+            eventAttendee: null,
+            registeredEventId: parseInt(regRows[0].event_id, 10),
+            boothEventId
+          };
+        }
+      } else {
         return {
-          status: 'wrong_event',
+          status: 'not_found',
           attendee,
-          eventAttendee: null
+          eventAttendee: null,
+          boothEventId
         };
       }
-
-      eventAttendee = regRow;
     }
 
-    // 4. Strictly enforce door check-in status (checkin_status === 1)
+    // 4. Strictly enforce door check-in status (checkin_status === 1) for the booth's event
     const isCheckedIn =
       Number(eventAttendee.checkin_status) === 1 || eventAttendee.checkin_status === true;
 
@@ -255,14 +272,16 @@ export class Attendee {
       return {
         status: 'not_checked_in',
         attendee,
-        eventAttendee
+        eventAttendee,
+        boothEventId
       };
     }
 
     return {
       status: 'ok',
       attendee,
-      eventAttendee
+      eventAttendee,
+      targetEventId: boothEventId
     };
   }
 

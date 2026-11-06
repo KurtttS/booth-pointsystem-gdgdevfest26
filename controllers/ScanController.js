@@ -54,15 +54,15 @@ export class ScanController {
         });
       }
 
-      // Retrieve booth and selected event details from Supabase
+      // Retrieve booth details from Supabase
       const booth = (await Booth.findById(boothId)) || Booth.getDefault();
-      const event = (await Event.findById(eventId)) || Event.getDefault();
+      const boothType = Booth.getBoothType(booth);
 
-      // Strictly resolve attendee against event_attendees & checkin_status = 1 for selected event
+      // Strictly resolve attendee and route to their specific registered event (Student Dev Day vs. Professional Dev Day)
       const resolution = await Attendee.resolveForEvent({
         identifier: qrCode ? String(qrCode).trim() : '',
         name: attendeeName ? String(attendeeName).trim() : '',
-        eventId: event.id
+        eventId
       });
 
       if (resolution.status === 'not_found') {
@@ -76,13 +76,15 @@ export class ScanController {
 
       const { attendee, eventAttendee } = resolution;
       const fullName = Attendee.getFullName(attendee);
+      const event = (await Event.findById(eventId)) || Event.getDefault(eventId);
 
       if (resolution.status === 'wrong_event') {
+        const registeredEvent = (await Event.findById(resolution.registeredEventId)) || Event.getDefault(resolution.registeredEventId);
         return res.status(403).json({
           success: false,
           code: 'WRONG_EVENT',
           attendeeName: fullName,
-          message: `${fullName} is not registered for ${event.event_name}.`
+          message: `${fullName} is registered for ${registeredEvent.event_name}, not ${event.event_name}. Cannot record scan at a ${event.event_name} booth!`
         });
       }
 
@@ -100,30 +102,37 @@ export class ScanController {
         (eventAttendee && eventAttendee.ticket_number) ||
         `ID ${String(attendee.id).padStart(3, '0')}`;
 
-      // Check if Attendee has already finished this challenge (UNIQUE_ATTENDEE_BOOTH_EVENT in Supabase)
-      const alreadyScanned = await ScanLog.hasScanned(attendee.id, booth.id, event.id);
-      if (alreadyScanned) {
+      // Check scan limits per booth type: GDG booths allow up to 2 scans; others allow 1
+      const maxAllowedScans = boothType === 'gdg' ? 2 : 1;
+      const attendeeScanCount = await ScanLog.countByAttendeeBoothAndEvent(attendee.id, booth.id, event.id);
+
+      if (attendeeScanCount >= maxAllowedScans) {
+        const limitMessage = maxAllowedScans > 1
+          ? `${fullName} has already completed the maximum allowed scans (${maxAllowedScans}) at ${booth.name} for ${event.event_name}!`
+          : `${fullName} has already completed the challenge at ${booth.name} for ${event.event_name}!`;
+
         return res.status(409).json({
           success: false,
           alreadyScanned: true,
           code: 'ALREADY_SCANNED',
           attendeeId: displayAttendeeId,
           attendeeName: fullName,
-          message: `${fullName} has already completed the challenge at ${booth.name}!`
+          scanCount: attendeeScanCount,
+          maxAllowedScans,
+          message: limitMessage
         });
       }
 
-      // Count previous completions for this booth & event directly in Supabase
+      // Count previous completions strictly for this booth & event in Supabase
       const existingScanCount = await ScanLog.countByBoothAndEvent(booth.id, event.id);
 
-      // Determine points & tier category strictly by visit order (never manual input):
-      // Visits 1 to 10  -> 100 PTS ('1-10')
-      // Visits 11 to 50 -> 85 PTS  ('11-50')
-      // Visits 51 to 90 -> 65 PTS  ('51-90')
-      // Visits 91+      -> 45 PTS  ('91+')
-      const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount);
+      // Determine points & tier category based on booth type:
+      // - Sponsor: Visits 1-20 -> 100 PTS, 21-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
+      // - GDG: Flat 65 PTS all throughout (max 2 scans per attendee)
+      // - Standard/Other: Visits 1-10 -> 100 PTS, 11-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
+      const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount, boothType);
 
-      // Store directly in Supabase scan_logs table
+      // Store directly in Supabase scan_logs table strictly under the attendee's eventId
       const createdLog = await ScanLog.create({
         attendeeId: attendee.id,
         boothId: booth.id,
@@ -133,16 +142,19 @@ export class ScanController {
       });
 
       const totalScans = existingScanCount + 1;
-      const nextTierInfo = ScanLog.calculatePointsForScanCount(totalScans);
+      const nextTierInfo = ScanLog.calculatePointsForScanCount(totalScans, boothType);
 
       const timeStr = new Date(createdLog.timestamp).toLocaleTimeString([], {
         hour: '2-digit',
         minute: '2-digit'
       });
 
+      const scanNumberForAttendee = attendeeScanCount + 1;
+      const scanNotice = maxAllowedScans > 1 ? ` · Scan ${scanNumberForAttendee}/${maxAllowedScans}` : '';
+
       return res.status(201).json({
         success: true,
-        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS)`,
+        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS · ${event.event_name}${scanNotice})`,
         scan: {
           id: createdLog.id,
           attendeeId: displayAttendeeId,
@@ -152,14 +164,22 @@ export class ScanController {
           category: tierResult.category,
           timestamp: timeStr,
           boothId: booth.id,
-          boothName: booth.name
+          boothName: booth.name,
+          boothType,
+          eventId: event.id,
+          eventName: event.event_name,
+          attendeeScanNumber: scanNumberForAttendee,
+          maxAllowedScans
         },
         stats: {
           totalScans,
           currentTierPoints: nextTierInfo.points,
           awardedPoints: tierResult.points,
           currentCategory: nextTierInfo.category,
-          nextTierPoints: nextTierInfo.points
+          nextTierPoints: nextTierInfo.points,
+          eventId: event.id,
+          eventName: event.event_name,
+          boothType
         }
       });
     } catch (err) {
@@ -185,18 +205,23 @@ export class ScanController {
         return res.status(403).json({ success: false, scans: [], totalScans: 0, message: 'No assigned booth found' });
       }
 
-      const rawEventId = req.session.event_id || req.session.eventId || req.query.event_id || 1;
+      const rawEventId = req.query.event_id || req.session.event_id || req.session.eventId || 1;
       const eventId = parseInt(rawEventId, 10) || 1;
-      req.session.event_id = eventId;
-      req.session.eventId = eventId;
+      if (req.session) {
+        req.session.event_id = eventId;
+        req.session.eventId = eventId;
+      }
 
+      const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+      const boothType = Booth.getBoothType(booth);
       const scans = await ScanLog.getRecentScans(boothId, eventId);
       const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
-      const activeTier = ScanLog.calculatePointsForScanCount(totalScans);
+      const activeTier = ScanLog.calculatePointsForScanCount(totalScans, boothType);
 
       res.json({
         success: true,
         boothId,
+        boothType,
         eventId,
         scans,
         totalScans,

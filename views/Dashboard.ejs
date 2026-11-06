@@ -48,7 +48,7 @@
 <div class="dashboard-page">
 
     <!-- Top Navigation Bar -->
-    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+    <%- include('partials/nav', { currentPage: 'Dashboard.php', isLoggedIn: true, sid: sessionSid }) %>
 
     <!-- Main Ambient Backdrop Blooms -->
     <div class="blur-orb blur-top-right"></div>
@@ -306,6 +306,7 @@
     window.DashboardBG.applyToDashboard('heroStationImg');
   }
 </script>
+<script src="/JAVASCRIPT/nav.js" defer></script>
 
 </body>
 </html>

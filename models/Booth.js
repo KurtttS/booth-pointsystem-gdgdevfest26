@@ -34,11 +34,34 @@ export class Booth {
     if (!data) return null;
 
     const sponsor = data.sponsorName || data.sponsor_name || data.sponsor || '';
+    const boothType = Booth.getBoothType(data);
     return {
       ...data,
+      booth_type: data.booth_type || boothType,
+      boothType: data.booth_type || boothType,
       sponsor,
       sponsorName: sponsor
     };
+  }
+
+  /**
+   * Determine booth type ('sponsor', 'gdg', or 'standard').
+   * Strictly uses the booth_type attribute.
+   */
+  static getBoothType(booth) {
+    if (!booth) return 'standard';
+    const explicitType = (booth.booth_type || booth.boothType || '').toString().trim().toLowerCase();
+    if (['sponsor', 'gdg', 'standard'].includes(explicitType)) {
+      return explicitType;
+    }
+
+    const id = (booth.id || '').toString().toLowerCase();
+    const name = (booth.name || '').toString().toLowerCase();
+
+    if (id.includes('gdg') || name.includes('gdg')) {
+      return 'gdg';
+    }
+    return 'standard';
   }
 
   static async findByUsername(username) {
@@ -136,7 +159,9 @@ export class Booth {
       name: 'Tech Innovation',
       location: 'Ground Floor',
       description: 'Showcase of innovative technology',
-      sponsorName: 'Tech Solutions Inc.'
+      sponsorName: 'Tech Solutions Inc.',
+      booth_type: 'standard',
+      boothType: 'standard'
     };
   }
 }

@@ -103,6 +103,8 @@ export class BoothController {
           req.session.boothName = boothAuth.booth.name;
           req.session.boothSponsor = boothAuth.booth.sponsorName || boothAuth.booth.sponsor || '';
           req.session.boothLocation = boothAuth.booth.location || '';
+          req.session.booth_type = boothAuth.booth.booth_type || Booth.getBoothType(boothAuth.booth);
+          req.session.boothType = req.session.booth_type;
           req.session.isAdmin = false;
           req.session.event_id = null;
           req.session.eventId = null;
@@ -265,6 +267,8 @@ export class BoothController {
       req.session.save(() => {});
     }
 
+    const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+    const boothType = Booth.getBoothType(booth);
     const initialScans = await ScanLog.getRecentScans(boothId, eventId);
     const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
 
@@ -274,7 +278,8 @@ export class BoothController {
       eventName,
       boothId,
       booth_IDs: boothId,
-      boothName: req.session.boothName || boothId,
+      boothName: req.session.boothName || booth.name || boothId,
+      boothType,
       eventId,
       event_id: eventId,
       initialScans,
@@ -359,14 +364,15 @@ export class BoothController {
     const adminName = req.session.admin_name || req.session.username || req.session.adminUser || req.session.boothUser || 'Admin';
     const stationName = booth?.name || req.session.boothName || 'Active Station';
     const stationLocation = booth?.location || event?.venue || '';
+    const boothType = Booth.getBoothType(booth);
 
     // Calculate metrics using existing ScanLog methods
     let totalScans = 0;
     let scansToday = 0;
     let pointsDistributed = 0;
     let totalUniqueVisitors = 0;
-    let rewardRate = 100;
-    let tierInfo = ScanLog.calculatePointsForScanCount(0);
+    let tierInfo = ScanLog.calculatePointsForScanCount(0, boothType);
+    let rewardRate = tierInfo.points;
     let leaderboard = [];
 
     try {
@@ -391,7 +397,7 @@ export class BoothController {
       totalUniqueVisitors = uniqueAttendees.size;
 
       // Current reward rate
-      tierInfo = ScanLog.calculatePointsForScanCount(totalScans);
+      tierInfo = ScanLog.calculatePointsForScanCount(totalScans, boothType);
       rewardRate = tierInfo.points;
 
       // Leaderboard: top 5 from existing getLeaderboard logic
@@ -413,9 +419,9 @@ export class BoothController {
     if (totalUniqueVisitors === 0 && req.session.unique_visitors) totalUniqueVisitors = req.session.unique_visitors;
 
     const tierLabels = {
-      '1-10': 'First 1 - 10 (Early Bird)',
-      '11-50': 'Visits 11 - 50 (Prime Time)',
-      '51-90': 'Visits 51 - 90 (Rush Hour)',
+      '1-10': boothType === 'sponsor' ? 'Top 1 - 20 (Early Bird)' : 'First 1 - 10 (Early Bird)',
+      '11-50': boothType === 'sponsor' ? 'Visits 21 - 50 (Prime Time)' : 'Visits 11 - 50 (Prime Time)',
+      '51-90': boothType === 'gdg' ? 'GDG Rate (65 PTS Flat)' : 'Visits 51 - 90 (Rush Hour)',
       '91+': 'Visits 91+ (Standard)'
     };
 
@@ -424,10 +430,11 @@ export class BoothController {
       admin_name: adminName,
       station_name: stationName,
       station_location: stationLocation,
+      boothType,
       eventName: event ? event.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day'),
       total_unique_visitors: totalUniqueVisitors,
       current_reward_rate: rewardRate,
-      reward_tier_name: tierLabels[tierInfo.category] || 'First 1 - 10 (Early Bird)',
+      reward_tier_name: tierLabels[tierInfo.category] || tierInfo.label || 'Standard Tier',
       points_distributed: pointsDistributed,
       total_scans: totalScans,
       scans_today: scansToday,
@@ -486,11 +493,14 @@ export class BoothController {
     const sponsor = booth?.sponsorName || booth?.sponsor_name || booth?.sponsor || '';
     const venueLocation = booth?.location || (event?.venue || '');
     const selectedEventName = event?.event_name || (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
+    const boothType = Booth.getBoothType(booth);
 
     res.render('StationProfile', {
       currentPage: 'StationProfile.php',
       booth_name: boothName,
       boothName,
+      booth_type: boothType,
+      boothType,
       sponsor,
       sponsorName: sponsor,
       category: sponsor, // Backward compatibility alias

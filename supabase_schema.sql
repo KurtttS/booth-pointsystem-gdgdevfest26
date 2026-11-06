@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS booths (
   location VARCHAR(100) NOT NULL,
   description TEXT DEFAULT NULL,
   "sponsorName" VARCHAR(100) DEFAULT NULL,
+  booth_type VARCHAR(20) NOT NULL DEFAULT 'standard',
   "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -122,13 +123,51 @@ CREATE TABLE IF NOT EXISTS scan_logs (
   "eventId" INT NOT NULL REFERENCES events(id) ON DELETE CASCADE,
   timestamp TIMESTAMPTZ(3) DEFAULT CURRENT_TIMESTAMP,
   points INT DEFAULT 100,
-  category scan_category_enum DEFAULT '1-10',
-  CONSTRAINT "UNIQUE_ATTENDEE_BOOTH_EVENT" UNIQUE ("attendeeId", "boothId", "eventId")
+  category VARCHAR(50) DEFAULT '1-10'
 );
 
 -- ------------------------------------------------------------------------------
 -- 4. Alter Existing Live Tables to Match Updated Schema
 -- ------------------------------------------------------------------------------
+ALTER TABLE booths
+  ADD COLUMN IF NOT EXISTS booth_type VARCHAR(20) NOT NULL DEFAULT 'standard';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'chk_booths_booth_type') THEN
+    ALTER TABLE booths
+      ADD CONSTRAINT chk_booths_booth_type
+      CHECK (booth_type IN ('standard', 'sponsor', 'gdg'));
+  END IF;
+
+  -- Safely backfill 'sponsor' type by checking for "sponsorName" without throwing error 42703
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'booths' AND column_name = 'sponsorName'
+  ) THEN
+    EXECUTE 'UPDATE booths SET booth_type = ''sponsor'' WHERE (booth_type = ''standard'' OR booth_type IS NULL) AND "sponsorName" IS NOT NULL AND "sponsorName" <> ''''';
+  ELSIF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'booths' AND column_name = 'sponsor_name'
+  ) THEN
+    EXECUTE 'UPDATE booths SET booth_type = ''sponsor'' WHERE (booth_type = ''standard'' OR booth_type IS NULL) AND sponsor_name IS NOT NULL AND sponsor_name <> ''''';
+  END IF;
+
+  -- Backfill 'gdg' type
+  UPDATE booths
+  SET booth_type = 'gdg'
+  WHERE LOWER(id) LIKE '%gdg%' OR LOWER(name) LIKE '%gdg%';
+END $$;
+
+-- Drop single-scan unique constraint to support up to 2 scans at GDG booths
+ALTER TABLE scan_logs DROP CONSTRAINT IF EXISTS "UNIQUE_ATTENDEE_BOOTH_EVENT";
+ALTER TABLE scan_logs DROP CONSTRAINT IF EXISTS scan_logs_attendeeId_boothId_eventId_key;
+ALTER TABLE scan_logs DROP CONSTRAINT IF EXISTS scan_logs_attendeeid_boothid_eventid_key;
+ALTER TABLE scan_logs DROP CONSTRAINT IF EXISTS unique_attendee_booth_event;
+
+ALTER TABLE scan_logs
+  ALTER COLUMN category TYPE VARCHAR(50);
+
 ALTER TABLE attendees
   ADD COLUMN IF NOT EXISTS nickname VARCHAR(100) DEFAULT NULL;
 
