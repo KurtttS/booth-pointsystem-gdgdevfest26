@@ -13,7 +13,7 @@
 %>
 <header class="topbar">
 
-    <a class="brand" href="<%= loggedIn ? ('/Dashboard.php' + sidParam) : '/LoginBooth.php' %>"
+    <a class="brand" href="<%= loggedIn ? ('/Dashboard.php' + sidParam) : ('/Leaderboard.php' + sidParam) %>"
        aria-label="DevFest Bacolod 2026 home">
 
         <img src="/IMG/GDG_LOGO.png"
@@ -39,17 +39,28 @@
 
     <nav class="nav-links" id="navLinks" aria-label="Main navigation">
 
-        <% if (isLogin || !loggedIn) { %>
-            <!-- 1. LOGIN / UNAUTHENTICATED: Cannot access Scanner and Leaderboard -->
-            <a href="/LoginBooth.php<%= sidParam %>"
-               class="<%= isLogin ? 'active' : '' %>">
-                Booth Portal
-            </a>
+        <% if (!loggedIn) { %>
+            <!-- UNAUTHENTICATED / GUEST: On leaderboard, only Login is in header; on login, show Leaderboard & Login -->
+            <% if (isLeaderboard) { %>
+                <a href="/LoginBooth.php<%= sidParam %>">
+                    Login
+                </a>
+            <% } else { %>
+                <a href="/Leaderboard.php<%= sidParam %>"
+                   class="<%= isLeaderboard ? 'active' : '' %>">
+                    Leaderboard
+                </a>
 
-            <a href="/SuperAdmin.php<%= sidParam %>"
-               class="<%= isSuperAdmin ? 'active' : '' %>">
-                SuperAdmin
-            </a>
+                <a href="/LoginBooth.php<%= sidParam %>"
+                   class="<%= isLogin ? 'active' : '' %>">
+                    Login
+                </a>
+
+                <a href="/SuperAdmin.php<%= sidParam %>"
+                   class="<%= isSuperAdmin ? 'active' : '' %>">
+                    SuperAdmin
+                </a>
+            <% } %>
 
         <% } else { %>
             <!-- 2. AUTHENTICATED: Dashboard, Scanner, Events, Leaderboard, and Station Profile Icon -->

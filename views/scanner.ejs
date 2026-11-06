@@ -397,6 +397,7 @@
 <script>
     window.ACTIVE_EVENT_ID = <%= (typeof eventId !== 'undefined' && eventId) ? eventId : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1) %>;
     window.ACTIVE_EVENT_NAME = "<%= (typeof eventName !== 'undefined' && eventName ? eventName : '').replace(/"/g, '\\"') %>";
+    window.BOOTH_TYPE = "<%= currentBoothType %>";
 </script>
 <script src="/JAVASCRIPT/jsQR.js" defer></script>
 <script src="/JAVASCRIPT/Scanner.js" defer></script>

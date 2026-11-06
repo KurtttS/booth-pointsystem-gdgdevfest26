@@ -56,7 +56,7 @@ export class ScanController {
 
       // Retrieve booth details from Supabase
       const booth = (await Booth.findById(boothId)) || Booth.getDefault();
-      const event = (await Event.findById(eventId)) || Event.getDefault();
+      const boothType = Booth.getBoothType(booth);
 
       // Strictly resolve attendee and route to their specific registered event (Student Dev Day vs. Professional Dev Day)
       const resolution = await Attendee.resolveForEvent({
@@ -102,16 +102,24 @@ export class ScanController {
         (eventAttendee && eventAttendee.ticket_number) ||
         `ID ${String(attendee.id).padStart(3, '0')}`;
 
-      // Check if Attendee has already finished this challenge (UNIQUE_ATTENDEE_BOOTH_EVENT in Supabase)
-      const alreadyScanned = await ScanLog.hasScanned(attendee.id, booth.id, event.id);
-      if (alreadyScanned) {
+      // Check scan limits per booth type: GDG booths allow up to 2 scans; others allow 1
+      const maxAllowedScans = boothType === 'gdg' ? 2 : 1;
+      const attendeeScanCount = await ScanLog.countByAttendeeBoothAndEvent(attendee.id, booth.id, event.id);
+
+      if (attendeeScanCount >= maxAllowedScans) {
+        const limitMessage = maxAllowedScans > 1
+          ? `${fullName} has already completed the maximum allowed scans (${maxAllowedScans}) at ${booth.name} for ${event.event_name}!`
+          : `${fullName} has already completed the challenge at ${booth.name} for ${event.event_name}!`;
+
         return res.status(409).json({
           success: false,
           alreadyScanned: true,
           code: 'ALREADY_SCANNED',
           attendeeId: displayAttendeeId,
           attendeeName: fullName,
-          message: `${fullName} has already completed the challenge at ${booth.name}!`
+          scanCount: attendeeScanCount,
+          maxAllowedScans,
+          message: limitMessage
         });
       }
 
@@ -146,7 +154,7 @@ export class ScanController {
 
       return res.status(201).json({
         success: true,
-        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS)`,
+        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS · ${event.event_name}${scanNotice})`,
         scan: {
           id: createdLog.id,
           attendeeId: displayAttendeeId,
@@ -156,14 +164,22 @@ export class ScanController {
           category: tierResult.category,
           timestamp: timeStr,
           boothId: booth.id,
-          boothName: booth.name
+          boothName: booth.name,
+          boothType,
+          eventId: event.id,
+          eventName: event.event_name,
+          attendeeScanNumber: scanNumberForAttendee,
+          maxAllowedScans
         },
         stats: {
           totalScans,
           currentTierPoints: nextTierInfo.points,
           awardedPoints: tierResult.points,
           currentCategory: nextTierInfo.category,
-          nextTierPoints: nextTierInfo.points
+          nextTierPoints: nextTierInfo.points,
+          eventId: event.id,
+          eventName: event.event_name,
+          boothType
         }
       });
     } catch (err) {

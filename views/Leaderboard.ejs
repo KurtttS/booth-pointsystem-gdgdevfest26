@@ -29,6 +29,12 @@
     const selectedEvId = (typeof selectedEventId !== 'undefined') ? selectedEventId : 1;
     const userIsLoggedIn = (typeof isLoggedIn !== 'undefined') ? !!isLoggedIn : false;
     const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const eventsList = (typeof allEvents !== 'undefined' && Array.isArray(allEvents) && allEvents.length > 0)
+        ? allEvents
+        : [
+            { id: 1, event_name: 'Student Dev Day' },
+            { id: 2, event_name: 'Professional Dev Day' }
+          ];
 %>
 
 <div class="page-shell">
@@ -54,16 +60,13 @@
 
             <!-- DUAL EVENT TRACK TABS (STUDENT DEV DAY VS. PROFESSIONAL DEV DAY) -->
             <nav class="event-track-tabs" aria-label="Event leaderboards">
-                <a href="/Leaderboard.php?event_id=1<%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
-                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === 1) ? 'active' : '' %>">
+                <% eventsList.forEach(function(ev) { %>
+                <a href="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === parseInt(ev.id, 10)) ? 'active' : '' %>">
                     <span class="tab-badge-dot"></span>
-                    <span class="tab-text">Student Dev Day</span>
+                    <span class="tab-text"><%= ev.event_name %></span>
                 </a>
-                <a href="/Leaderboard.php?event_id=2<%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
-                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === 2) ? 'active' : '' %>">
-                    <span class="tab-badge-dot"></span>
-                    <span class="tab-text">Professional Dev Day</span>
-                </a>
+                <% }); %>
             </nav>
 
             <!-- LOCKED EVENT / TRACK BADGE (ONLY SHOWS THE CURRENT BOOTH EVENT) -->
@@ -73,9 +76,19 @@
                     <span class="locked-event-dot"></span>
                     <span class="locked-event-name"><%= currentEv.event_name %></span>
                     <span class="locked-event-tag">Current Event</span>
+                    <% if (userIsLoggedIn) { %>
                     <a href="/EventChoices.php<%= sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '' %>" class="locked-event-switch-btn" title="Switch or select a different event without logging out">
                         ⇄ Switch Event
                     </a>
+                    <% } else { %>
+                    <%
+                        const nextEvId = (parseInt(selectedEvId, 10) === 1) ? 2 : 1;
+                        const nextEvObj = eventsList.find(e => parseInt(e.id, 10) === nextEvId) || (nextEvId === 2 ? { event_name: 'Professional Dev Day' } : { event_name: 'Student Dev Day' });
+                    %>
+                    <a href="/Leaderboard.php?event_id=<%= nextEvId %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>" class="locked-event-switch-btn" title="Switch to <%= nextEvObj.event_name %>">
+                        ⇄ Switch Event
+                    </a>
+                    <% } %>
                 </div>
                 <% if (currentEv.venue || currentEv.event_date) { %>
                 <div class="locked-event-meta">
