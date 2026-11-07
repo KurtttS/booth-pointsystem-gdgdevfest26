@@ -14,11 +14,11 @@ export class Booth {
   }
 
   static async findById(id) {
-    if (!id) return Booth.getDefault();
+    if (!id) return null;
     const cleanId = id.trim();
 
     if (!isSupabaseConfigured() || !supabase) {
-      return { id: cleanId, name: cleanId, location: 'Ground Floor' };
+      return null;
     }
 
     const { data, error } = await supabase
@@ -29,9 +29,39 @@ export class Booth {
 
     if (error) {
       console.error('[Supabase] Booth.findById error:', error.message);
-      return { id: cleanId, name: cleanId, location: 'Ground Floor' };
+      return null;
     }
-    return data || { id: cleanId, name: cleanId, location: 'Ground Floor' };
+    if (!data) return null;
+
+    const sponsor = data.sponsorName || data.sponsor_name || data.sponsor || '';
+    const boothType = Booth.getBoothType(data);
+    return {
+      ...data,
+      booth_type: data.booth_type || boothType,
+      boothType: data.booth_type || boothType,
+      sponsor,
+      sponsorName: sponsor
+    };
+  }
+
+  /**
+   * Determine booth type ('sponsor', 'gdg', or 'standard').
+   * Strictly uses the booth_type attribute.
+   */
+  static getBoothType(booth) {
+    if (!booth) return 'standard';
+    const explicitType = (booth.booth_type || booth.boothType || '').toString().trim().toLowerCase();
+    if (['sponsor', 'gdg', 'standard'].includes(explicitType)) {
+      return explicitType;
+    }
+
+    const id = (booth.id || '').toString().toLowerCase();
+    const name = (booth.name || '').toString().toLowerCase();
+
+    if (id.includes('gdg') || name.includes('gdg')) {
+      return 'gdg';
+    }
+    return 'standard';
   }
 
   static async findByUsername(username) {
@@ -70,19 +100,36 @@ export class Booth {
       .ilike('username', cleanUser)
       .maybeSingle();
 
+    if (error) {
+      console.error('[Supabase] Booth.validateLogin error:', error.message);
+      throw new Error(`Supabase query failed: ${error.message}`);
+    }
+
     // 2. If not found by username, try looking up by booth_id (e.g. user typed "BOOTH001")
     if (!userRecord) {
-      const { data: userByBooth } = await supabase
+      const { data: userByBooth, error: boothErr } = await supabase
         .from('booth_users')
         .select('*')
         .ilike('booth_id', cleanUser)
         .maybeSingle();
+      if (boothErr) {
+        console.error('[Supabase] Booth.validateLogin booth_id lookup error:', boothErr.message);
+        throw new Error(`Supabase query failed: ${boothErr.message}`);
+      }
       if (userByBooth) {
         userRecord = userByBooth;
       }
     }
 
-    if (!userRecord) return null;
+    if (!userRecord) {
+      const { count, error: countErr } = await supabase
+        .from('booth_users')
+        .select('id', { count: 'exact', head: true });
+      if (!countErr && count === 0) {
+        throw new Error('Supabase booth_users table returned 0 rows (either empty database or Row Level Security is blocking access).');
+      }
+      return null;
+    }
 
     // 3. Strict bcrypt password verification
     const hash = userRecord.password_hash || '';
@@ -102,7 +149,7 @@ export class Booth {
     const booth = await Booth.findById(userRecord.booth_id);
     return {
       user: userRecord,
-      booth: booth || { id: userRecord.booth_id, name: userRecord.booth_id, location: 'Ground Floor' }
+      booth: booth || { id: userRecord.booth_id, name: userRecord.booth_id, location: '', sponsorName: '', sponsor: '' }
     };
   }
 
@@ -112,7 +159,9 @@ export class Booth {
       name: 'Tech Innovation',
       location: 'Ground Floor',
       description: 'Showcase of innovative technology',
-      sponsorName: 'Tech Solutions Inc.'
+      sponsorName: 'Tech Solutions Inc.',
+      booth_type: 'standard',
+      boothType: 'standard'
     };
   }
 }

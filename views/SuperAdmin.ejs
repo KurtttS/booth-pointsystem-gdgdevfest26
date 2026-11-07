@@ -10,7 +10,7 @@
     <!-- Browser tab icon -->
     <link rel="icon" type="image/png" href="/IMG/GDGTOP.png?v=2">
 
-    <!-- Page stylesheet -->
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="/CSS/SuperAdmin.css">
     <link rel="stylesheet" href="/CSS/nav.css">
 </head>
@@ -21,166 +21,945 @@
         <div class="site-shell">
 
             <!-- Shared navbar -->
-            <%- include('partials/nav', { currentPage: 'SuperAdmin.php', isLoggedIn: (typeof isLoggedIn !== 'undefined' ? isLoggedIn : false), sid: (typeof sid !== 'undefined' ? sid : '') }) %>
+            <%- include('partials/nav', {
+                currentPage: 'SuperAdmin.php',
+                activeTab: (typeof activeTab !== 'undefined' ? activeTab : 'overview'),
+                isLoggedIn: (typeof isLoggedIn !== 'undefined' ? isLoggedIn : false),
+                isAdmin: (typeof isAdmin !== 'undefined' ? isAdmin : false),
+                sid: (typeof sid !== 'undefined' ? sid : '')
+            }) %>
 
-            <main class="main-content">
+            <% if (!isLoggedIn) { %>
 
-                <section class="login-card" aria-labelledby="pageTitle">
+                <!-- ==============================================================
+                     SUPER ADMIN LOGIN SCREEN (When unauthenticated)
+                     ============================================================== -->
+                <main class="main-content">
+                    <section class="login-card" aria-labelledby="pageTitle">
 
-                    <div class="card-brand" aria-label="DevFest Bacolod 2026">
-                        <img
-                            src="/IMG/GDG_LOGO.png"
-                            alt="DevFest Logo"
-                            class="gdg-logo"
-                        >
+                        <div class="card-brand" aria-label="DevFest Bacolod 2026">
+                            <img src="/IMG/GDG_LOGO.png" alt="DevFest Logo" class="gdg-logo">
+                            <span class="brand-copy">
+                                <span class="brand-name">DevFest</span>
+                                <span class="brand-location">Bacolod 2026</span>
+                            </span>
+                        </div>
 
-                        <span class="brand-copy">
-                            <span class="brand-name">DevFest</span>
-                            <span class="brand-location">Bacolod 2026</span>
-                        </span>
+                        <h1 id="pageTitle" class="login-title">SuperAdmin Terminal</h1>
+                        <p class="subtitle">LOGIN FOR DEVFEST ADMINISTRATORS</p>
+
+                        <% if (typeof message !== 'undefined' && message) { %>
+                            <div class="alert-banner <%= messageSuccess ? 'alert-success' : 'alert-error' %>" role="alert">
+                                <span><%= message %></span>
+                            </div>
+                        <% } %>
+
+                        <form id="adminLoginForm" action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+
+                            <div class="field">
+                                <label for="adminUsername">Admin Username</label>
+                                <div class="input-wrap">
+                                    <span class="field-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <circle cx="12" cy="9" r="3.2"></circle>
+                                            <path d="M5.5 19c.9-3 3.3-4.6 6.5-4.6s5.6 1.6 6.5 4.6"></path>
+                                        </svg>
+                                    </span>
+                                    <input id="adminUsername" name="username" type="text" autocomplete="username" placeholder="Enter admin username" required autofocus>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <label for="adminPassword">Admin Password</label>
+                                <div class="input-wrap">
+                                    <span class="field-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2ZM10 7a2 2 0 1 1 4 0v2h-4V7Zm2 9.8a1.8 1.8 0 1 1 1.8-1.8 1.8 1.8 0 0 1-1.8 1.8Z"></path>
+                                        </svg>
+                                    </span>
+                                    <input id="adminPassword" name="password" type="password" autocomplete="current-password" placeholder="Enter admin password" required>
+                                    <button class="toggle-password" type="button" id="toggleAdminPassword" aria-label="Show password">
+                                        <svg id="adminEyeIcon" viewBox="0 0 24 24" fill="currentColor">
+                                            <path d="M12 5c-5.2 0-9.4 4.5-10.5 6.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19s9.4-4.5 10.5-6.1a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button class="login-button" type="submit">LOGIN ADMIN</button>
+                        </form>
+                    </section>
+
+                    <div class="superadmin-footer">
+                        © 2026 GDG BACOLOD - AI Innovations Team . All Rights Reserved
                     </div>
+                </main>
 
-                    <h1 id="pageTitle">SuperAdmin Terminal</h1>
+            <% } else { %>
 
-                    <p class="subtitle">LOGIN FOR DEVFEST ADMINISTRATORS</p>
+                <!-- ==============================================================
+                     AUTHENTICATED SUPER ADMIN PORTAL (Screenshots 1, 2, 3, 4)
+                     ============================================================== -->
+                <div class="superadmin-bg-mesh">
+                    <div class="superadmin-container">
 
-                    <form id="adminLoginForm" action="/SuperAdmin.php" method="post">
-
-                        <!-- Admin Username -->
-                        <div class="field">
-                            <label for="adminUsername">Admin Username</label>
-
-                            <div class="input-wrap">
-
-                                <span class="field-icon" aria-hidden="true">
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        stroke-width="1.6"
-                                    >
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <circle cx="12" cy="9" r="3.2"></circle>
-                                        <path d="M5.5 19c.9-3 3.3-4.6 6.5-4.6s5.6 1.6 6.5 4.6"></path>
-                                    </svg>
-                                </span>
-
-                                <input
-                                    id="adminUsername"
-                                    name="username"
-                                    type="text"
-                                    autocomplete="username"
-                                    aria-label="Admin Username"
-                                    placeholder="Enter admin username"
-                                    required
-                                >
-
+                        <!-- Notification Banner -->
+                        <% if (typeof message !== 'undefined' && message) { %>
+                            <div class="alert-banner <%= messageSuccess ? 'alert-success' : 'alert-error' %>" role="alert">
+                                <span><%= message %></span>
                             </div>
-                        </div>
+                        <% } %>
 
-                        <!-- Admin Password -->
-                        <div class="field">
-                            <label for="adminPassword">Admin Password</label>
+                        <% if (activeTab === 'overview') { %>
 
-                            <div class="input-wrap">
+                            <!-- ==============================================================
+                                 SCREENSHOT 1: OVERVIEW PAGE
+                                 ============================================================== -->
+                            <div class="superadmin-header">
+                                <h1 class="superadmin-title">Welcome, Super Admin <%= displayName %>!</h1>
+                                <p class="superadmin-subtitle">DevFest Bacolod 2026 - Google Developer Groups</p>
+                            </div>
 
-                                <span class="field-icon" aria-hidden="true">
-                                    <svg
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                    >
-                                        <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2ZM10 7a2 2 0 1 1 4 0v2h-4V7Zm2 9.8a1.8 1.8 0 1 1 1.8-1.8 1.8 1.8 0 0 1-1.8 1.8Z"></path>
-                                    </svg>
-                                </span>
+                            <div class="overview-grid">
+                                <!-- Left Column: Attendees Bar Chart + Booths Donut Chart -->
+                                <div class="overview-left-col">
 
-                                <input
-                                    id="adminPassword"
-                                    name="password"
-                                    type="password"
-                                    autocomplete="current-password"
-                                    aria-label="Admin Password"
-                                    placeholder="Enter admin password"
-                                    required
-                                >
+                                    <!-- Card 1: Attendees -->
+                                    <div class="superadmin-card">
+                                        <h2 class="card-heading">Attendees</h2>
+                                        <p class="card-subheading">Number of attendees per booth.</p>
 
-                                <button
-                                    class="toggle-password"
-                                    type="button"
-                                    id="toggleAdminPassword"
-                                    aria-label="Show password"
-                                    title="Show password"
-                                >
-                                    <svg
-                                        id="adminEyeIcon"
-                                        viewBox="0 0 24 24"
-                                        fill="currentColor"
-                                        aria-hidden="true"
-                                    >
-                                        <path d="M12 5c-5.2 0-9.4 4.5-10.5 6.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19s9.4-4.5 10.5-6.1a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>
-                                    </svg>
+                                        <!-- Bar Chart Container -->
+                                        <%
+                                            const maxCount = Math.max(10, ...(attendeesPerBooth || []).map(b => b.count));
+                                            // Scale Y-axis ticks to nice round numbers
+                                            const yMax = Math.max(100, Math.ceil(maxCount / 100) * 100);
+                                            const yStep = Math.round(yMax / 7);
+                                        %>
+                                        <div class="bar-chart-container">
+                                            <div class="chart-y-axis">
+                                                <span><%= yMax %>+</span>
+                                                <span><%= Math.round(yStep * 6) %></span>
+                                                <span><%= Math.round(yStep * 5) %></span>
+                                                <span><%= Math.round(yStep * 4) %></span>
+                                                <span><%= Math.round(yStep * 3) %></span>
+                                                <span><%= Math.round(yStep * 2) %></span>
+                                                <span><%= Math.round(yStep * 1) %></span>
+                                                <span>0</span>
+                                            </div>
+
+                                            <div class="chart-bars-wrap">
+                                                <% (attendeesPerBooth || []).slice(0, 8).forEach(function(booth) {
+                                                    const barHeightPct = Math.min(100, Math.max(3, Math.round((booth.count / yMax) * 100)));
+                                                %>
+                                                    <div class="chart-bar-group" title="<%= booth.name %>: <%= booth.count %> attendees">
+                                                        <div class="chart-bar-tooltip"><%= booth.name %>: <%= booth.count %></div>
+                                                        <div class="chart-bar" style="height: <%= barHeightPct %>%;"></div>
+                                                        <div class="chart-bar-label"><%= booth.name %></div>
+                                                    </div>
+                                                <% }); %>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card 2: Booths (Donut Chart) -->
+                                    <div class="superadmin-card">
+                                        <h2 class="card-heading">Booths</h2>
+                                        <p class="card-subheading">Outstanding Booths with most rewarded points.</p>
+
+                                        <div class="donut-chart-wrap">
+                                            <%
+                                                const topBooths = (boothsRewardedPoints || []).slice(0, 4);
+                                                const totalDonutPoints = topBooths.reduce((sum, b) => sum + (b.points || 0), 0) || 1;
+                                                const donutColors = ['#0d1b54', '#1e7e34', '#fbc02d', '#d32f2f'];
+                                                const radius = 60;
+                                                const circumference = 2 * Math.PI * radius; // ~376.99
+                                                let accumulatedOffset = 0;
+                                            %>
+                                            <svg class="donut-svg" viewBox="0 0 170 170">
+                                                <% if (topBooths.length === 0) { %>
+                                                    <circle cx="85" cy="85" r="<%= radius %>" class="donut-segment" stroke="#e2e8f0" stroke-dasharray="<%= circumference %>" stroke-dashoffset="0"></circle>
+                                                <% } else { %>
+                                                    <% topBooths.forEach(function(b, idx) {
+                                                        const pct = (b.points / totalDonutPoints);
+                                                        const segLength = pct * circumference;
+                                                        const color = donutColors[idx % donutColors.length];
+                                                        const currentOffset = accumulatedOffset;
+                                                        accumulatedOffset += segLength;
+                                                    %>
+                                                        <circle cx="85" cy="85" r="<%= radius %>" class="donut-segment" stroke="<%= color %>"
+                                                                stroke-dasharray="<%= segLength %> <%= circumference - segLength %>"
+                                                                stroke-dashoffset="-<%= currentOffset %>">
+                                                            <title><%= b.name %>: <%= b.points.toLocaleString() %> pts (<%= Math.round(pct * 100) %>%)</title>
+                                                        </circle>
+                                                    <% }); %>
+                                                <% } %>
+                                            </svg>
+
+                                            <!-- Legend -->
+                                            <div class="donut-legend">
+                                                <% if (topBooths.length === 0) { %>
+                                                    <div class="donut-legend-item">
+                                                        <span class="legend-dot" style="background: #94a3b8;"></span>
+                                                        <span>No scan points recorded yet</span>
+                                                    </div>
+                                                <% } else { %>
+                                                    <% topBooths.forEach(function(b, idx) { %>
+                                                        <div class="donut-legend-item">
+                                                            <span class="legend-dot" style="background: <%= donutColors[idx % donutColors.length] %>;"></span>
+                                                            <span><%= b.name %></span>
+                                                        </div>
+                                                    <% }); %>
+                                                <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Right Column: Attendees Information -->
+                                <div class="superadmin-card overview-right-card">
+                                    <h2 class="card-heading">Attendees Information</h2>
+                                    <p class="card-subheading">Number of attendees per booth.</p>
+
+                                    <div class="attendees-card-header">
+                                        <h3 class="attendees-header-title">Attendee ID</h3>
+
+                                        <div class="dropdown-menu-container">
+                                            <button class="event-filter-btn" type="button" id="overviewFilterToggle">
+                                                <span>Filter by Events</span>
+                                                <svg viewBox="0 0 24 24" fill="currentColor">
+                                                    <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"></path>
+                                                </svg>
+                                            </button>
+
+                                            <div class="dropdown-popover" id="overviewFilterPopover">
+                                                <a href="/SuperAdmin.php?tab=overview<%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                   class="dropdown-item <%= !selectedEventId ? 'is-selected' : '' %>">All Events</a>
+                                                <% (events || []).forEach(function(ev) { %>
+                                                    <a href="/SuperAdmin.php?tab=overview&event_id=<%= ev.id %><%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                       class="dropdown-item <%= selectedEventId === ev.id ? 'is-selected' : '' %>"><%= ev.event_name %></a>
+                                                <% }); %>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="attendees-list">
+                                        <% if (!attendeesInformation || attendeesInformation.length === 0) { %>
+                                            <div style="text-align: center; color: #94a3b8; padding: 40px 10px; font-weight: 600;">
+                                                No attendees found for this event selection.
+                                            </div>
+                                        <% } else { %>
+                                            <% attendeesInformation.forEach(function(att, index) {
+                                                const rankNum = index + 1;
+                                                let rankBadgeClass = 'rank-badge-other';
+                                                if (rankNum === 1) rankBadgeClass = 'rank-badge-1';
+                                                else if (rankNum === 2) rankBadgeClass = 'rank-badge-2';
+                                                else if (rankNum === 3) rankBadgeClass = 'rank-badge-3';
+                                            %>
+                                                <div class="attendee-rank-row">
+                                                    <span class="rank-badge <%= rankBadgeClass %>"><%= rankNum %></span>
+                                                    <span class="attendee-row-id"><%= att.id || ('QR-Attendee-' + String(rankNum).padStart(3, '0')) %></span>
+                                                    <span class="attendee-row-points">Points Earned: <strong><%= att.points || 0 %></strong></span>
+                                                    <span class="attendee-row-event">Event: <strong><%= att.eventName || 'DevFest Day' %></strong></span>
+                                                </div>
+                                            <% }); %>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+
+                        <% } else if (activeTab === 'attendees') { %>
+
+                            <!-- ==============================================================
+                                 SCREENSHOT 2: ATTENDEES PAGE
+                                 ============================================================== -->
+                            <div class="superadmin-action-bar">
+                                <div class="action-bar-left">
+                                    <!-- Search input -->
+                                    <div class="search-pill-wrap">
+                                        <svg class="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                            <circle cx="11" cy="11" r="7"></circle>
+                                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                        </svg>
+                                        <input type="text" id="attendeeSearchInput" placeholder="Search Attendee" value="<%= (typeof searchQuery !== 'undefined') ? searchQuery : '' %>">
+                                    </div>
+
+                                    <!-- Funnel filter -->
+                                    <div class="dropdown-menu-container">
+                                        <button class="funnel-icon-btn funnel-gold" type="button" id="attendeesFilterToggle" title="Filter by Event">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"></path>
+                                            </svg>
+                                        </button>
+                                        <div class="dropdown-popover" id="attendeesFilterPopover">
+                                            <a href="/SuperAdmin.php?tab=attendees<%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                               class="dropdown-item <%= !selectedEventId ? 'is-selected' : '' %>">All Events</a>
+                                            <% (events || []).forEach(function(ev) { %>
+                                                <a href="/SuperAdmin.php?tab=attendees&event_id=<%= ev.id %><%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                   class="dropdown-item <%= selectedEventId === ev.id ? 'is-selected' : '' %>"><%= ev.event_name %></a>
+                                            <% }); %>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn-pill-add btn-pill-add-gold" type="button" id="openAddAttendeeModal">
+                                    Add Attendee +
                                 </button>
-
                             </div>
+
+                            <!-- Attendees Table -->
+                            <div class="superadmin-table-card">
+                                <div class="table-header-gold">
+                                    <span>Attendee ID</span>
+                                    <span>Attendee Name</span>
+                                    <span>Address</span>
+                                    <span>Event Attended</span>
+                                    <span>Actions</span>
+                                </div>
+
+                                <div id="attendeesTableBody">
+                                    <% if (!attendees || attendees.length === 0) { %>
+                                        <div style="padding: 40px; text-align: center; color: #64748b; font-weight: 600;">
+                                            No attendee records found matching your filters.
+                                        </div>
+                                    <% } else { %>
+                                        <% attendees.forEach(function(att) { %>
+                                            <div class="table-row-item table-row-attendee" data-id="<%= att.id %>" data-search="<%= (att.qrId + ' ' + att.fullName + ' ' + att.address + ' ' + att.eventName).toLowerCase() %>">
+                                                <span class="table-cell-id"><%= att.qrId %></span>
+                                                <span><%= att.fullName %></span>
+                                                <span><%= att.address %></span>
+                                                <span><%= att.eventName %></span>
+                                                <div class="table-cell-actions">
+                                                    <button class="btn-action-edit" type="button"
+                                                            data-id="<%= att.id %>"
+                                                            data-qrid="<%= att.qrId %>"
+                                                            data-firstname="<%= att.firstName %>"
+                                                            data-lastname="<%= att.lastName %>"
+                                                            data-address="<%= att.address %>"
+                                                            data-eventid="<%= att.eventId %>"
+                                                            onclick="openEditAttendee(this)"
+                                                            title="Edit Attendee">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                            <path d="M12 20h9"></path>
+                                                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button class="btn-action-delete" type="button"
+                                                            data-id="<%= att.id %>"
+                                                            data-name="<%= att.fullName %>"
+                                                            onclick="openDeleteAttendee(this)">
+                                                        Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        <% }); %>
+                                    <% } %>
+                                </div>
+                            </div>
+
+                        <% } else if (activeTab === 'booths') { %>
+
+                            <% if (selectedBoothId === 'all') { %>
+
+                                <!-- ==============================================================
+                                     SCREENSHOT 3: ALL BOOTHS LIST PAGE
+                                     ============================================================== -->
+                                <div class="superadmin-action-bar">
+                                    <div class="action-bar-left">
+                                        <!-- All Booths dropdown pill -->
+                                        <div class="dropdown-menu-container">
+                                            <button class="dropdown-pill-btn" type="button" id="boothsDropdownToggle">
+                                                <span>All Booths</span>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="dropdown-popover" id="boothsDropdownPopover">
+                                                <a href="/SuperAdmin.php?tab=booths&booth_id=all<%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                   class="dropdown-item is-selected">All Booths</a>
+                                                <% (booths || []).forEach(function(b) { %>
+                                                    <a href="/SuperAdmin.php?tab=booths&booth_id=<%= b.id %><%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                       class="dropdown-item"><%= b.name %></a>
+                                                <% }); %>
+                                            </div>
+                                        </div>
+
+                                        <!-- Navy Funnel icon -->
+                                        <button class="funnel-icon-btn funnel-navy" type="button" title="Filter Booths" onclick="document.getElementById('boothsDropdownToggle').click()">
+                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M10 18h4v-2h-4v2zM3 6v2h18V6H3zm3 7h12v-2H6v2z"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <button class="btn-pill-add btn-pill-add-navy" type="button" id="openAddBoothModal">
+                                        Add Booth +
+                                    </button>
+                                </div>
+
+                                <!-- Booths Table -->
+                                <div class="superadmin-table-card">
+                                    <div class="table-header-navy">
+                                        <span>Booth ID</span>
+                                        <span>Booth Name</span>
+                                        <span>Location</span>
+                                        <span>Description</span>
+                                        <span>Sponsor Name</span>
+                                        <span>Actions</span>
+                                    </div>
+
+                                    <div id="boothsTableBody">
+                                        <% if (!booths || booths.length === 0) { %>
+                                            <div style="padding: 40px; text-align: center; color: #64748b; font-weight: 600;">
+                                                No booths registered in the database.
+                                            </div>
+                                        <% } else { %>
+                                            <% booths.forEach(function(b) { %>
+                                                <div class="table-row-item table-row-booth" data-id="<%= b.id %>">
+                                                    <span class="table-cell-id"><%= b.id %></span>
+                                                    <span style="text-transform: uppercase;"><%= b.name %></span>
+                                                    <span><%= b.location || 'Activity Area' %></span>
+                                                    <span><%= b.description || b.name %></span>
+                                                    <span><%= b.sponsorName || b.sponsor || b.name %></span>
+                                                    <div class="table-cell-actions">
+                                                        <button class="btn-action-edit" type="button"
+                                                                data-id="<%= b.id %>"
+                                                                data-name="<%= b.name %>"
+                                                                data-location="<%= b.location %>"
+                                                                data-desc="<%= b.description %>"
+                                                                data-sponsor="<%= b.sponsorName || b.sponsor %>"
+                                                                data-type="<%= b.booth_type || 'standard' %>"
+                                                                onclick="openEditBooth(this)"
+                                                                title="Edit Booth">
+                                                            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                                                <path d="M12 20h9"></path>
+                                                                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                                            </svg>
+                                                        </button>
+                                                        <button class="btn-action-delete" type="button"
+                                                                data-id="<%= b.id %>"
+                                                                data-name="<%= b.name %>"
+                                                                onclick="openDeleteBooth(this)">
+                                                            Delete
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        <% } %>
+                                    </div>
+                                </div>
+
+                            <% } else { %>
+
+                                <!-- ==============================================================
+                                     SCREENSHOT 4: BOOTH DETAIL / ANALYTICS VIEW
+                                     ============================================================== -->
+                                <div class="superadmin-action-bar">
+                                    <div class="action-bar-left">
+                                        <!-- Selected booth dropdown pill -->
+                                        <div class="dropdown-menu-container">
+                                            <button class="dropdown-pill-btn" type="button" id="boothDetailDropdownToggle">
+                                                <span><%= currentBooth ? currentBooth.name : 'Select Booth' %></span>
+                                                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="6 9 12 15 18 9"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="dropdown-popover" id="boothDetailDropdownPopover">
+                                                <a href="/SuperAdmin.php?tab=booths&booth_id=all<%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                   class="dropdown-item">All Booths</a>
+                                                <% (booths || []).forEach(function(b) { %>
+                                                    <a href="/SuperAdmin.php?tab=booths&booth_id=<%= b.id %><%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                       class="dropdown-item <%= (currentBooth && currentBooth.id === b.id) ? 'is-selected' : '' %>"><%= b.name %></a>
+                                                <% }); %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="booth-analytics-grid">
+                                    <!-- Column 1 (Left): Visitors Table -->
+                                    <div class="analytics-visitors-card">
+                                        <div class="visitors-card-header">
+                                            <span>User ID</span>
+                                            <span>Username</span>
+                                        </div>
+                                        <div class="visitors-list-wrap">
+                                            <% if (!visitors || visitors.length === 0) { %>
+                                                <div style="padding: 30px 20px; text-align: center; color: #94a3b8; font-weight: 600; font-size: 13px;">
+                                                    No visitor scans recorded for this booth yet.
+                                                </div>
+                                            <% } else { %>
+                                                <% visitors.forEach(function(v) { %>
+                                                    <div class="visitor-row-item">
+                                                        <span class="table-cell-id"><%= v.userId %></span>
+                                                        <span><%= v.username %></span>
+                                                    </div>
+                                                <% }); %>
+                                            <% } %>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 2 (Middle): 3 Stat Cards -->
+                                    <div class="analytics-middle-col">
+                                        <!-- Stat 1: Total Unique Visitor -->
+                                        <div class="stat-box-card">
+                                            <div class="stat-icon-wrap">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 3s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="stat-box-title">Total Unique Visitor</h3>
+                                            <p class="stat-box-subtitle">Cumulative unique scans</p>
+                                            <div class="stat-box-number-gold"><%= totalUniqueVisitors || 0 %></div>
+                                            <div class="stat-box-unit">Attendees</div>
+                                        </div>
+
+                                        <!-- Stat 2: Current Reward Rate -->
+                                        <div class="stat-box-card">
+                                            <div class="stat-icon-wrap">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="stat-box-title">Current Reward Rate</h3>
+                                            <p class="stat-box-subtitle">
+                                                <%= (rewardTier && rewardTier.label) ? rewardTier.label : 'Early Bird' %>
+                                            </p>
+                                            <div class="stat-box-number-gold">+<%= (rewardTier && rewardTier.points) ? rewardTier.points : 100 %></div>
+                                            <div class="stat-box-unit">Points</div>
+                                        </div>
+
+                                        <!-- Stat 3: Points Distributed -->
+                                        <div class="stat-box-card">
+                                            <div class="stat-icon-wrap">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M19 3H5L2 9l10 12L22 9l-3-6zM12 17.5L5.5 9h13L12 17.5zM6.4 5h11.2l1.5 3H4.9l1.5-3z"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="stat-box-title">Points Distributed</h3>
+                                            <p class="stat-box-subtitle">Across <%= totalScans || 0 %> verified scans</p>
+                                            <div class="stat-box-number-gold"><%= (pointsDistributed || 0).toLocaleString() %></div>
+                                            <div class="stat-box-unit">Points</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Column 3 (Right): 2 Big Stat Cards -->
+                                    <div class="analytics-right-col">
+                                        <!-- Big Stat 1: Total Scans -->
+                                        <div class="big-stat-card">
+                                            <div class="big-stat-icon">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M4 4h6V2H4C2.9 2 2 2.9 2 4v6h2V4zm16 0h-6V2h6c1.1 0 2 .9 2 2v6h-2V4zM4 20h6v2H4c-1.1 0-2-.9-2-2v-6h2v6zm16 0h-6v2h6c1.1 0 2-.9 2-2v-6h-2v6zM12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="big-stat-title">Total Scans</h3>
+                                            <div class="big-stat-number"><%= totalScans || 0 %></div>
+                                            <div class="big-stat-badge-green">+<%= scansToday || 0 %> Scans Today</div>
+                                        </div>
+
+                                        <!-- Big Stat 2: Points Awarded -->
+                                        <div class="big-stat-card">
+                                            <div class="big-stat-icon big-stat-icon-blue">
+                                                <svg viewBox="0 0 24 24">
+                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14.88V19h-2v-2.12c-1.72-.4-3-1.88-3-3.88h2c0 1.1.9 2 2 2s2-.9 2-2c0-.98-.65-1.54-1.92-2-1.73-.62-3.08-1.57-3.08-3.5 0-1.72 1.13-3.14 2.7-3.62V4h2v1.88c1.54.38 2.68 1.74 2.78 3.32h-2c-.1-.7-.65-1.2-1.48-1.2-.83 0-1.3.47-1.3 1.1 0 .8.62 1.25 1.83 1.68 1.83.65 3.17 1.62 3.17 3.72 0 1.78-1.18 3.25-2.7 3.7z"/>
+                                                </svg>
+                                            </div>
+                                            <h3 class="big-stat-title">Points Awarded</h3>
+                                            <div class="big-stat-number">+<%= (pointsAwarded || 0).toLocaleString() %></div>
+                                            <p class="big-stat-description">Total points earned from successful QR scans and booth activities.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            <% } %>
+
+                        <% } %>
+
+                        <!-- Page Footer -->
+                        <div class="superadmin-footer">
+                            © 2026 GDG BACOLOD - AI Innovations Team . All Rights Reserved
                         </div>
 
-                        <button class="login-button" type="submit">
-                            LOGIN ADMIN
-                        </button>
+                    </div>
+                </div>
 
-                        <p
-                            class="form-message"
-                            id="adminFormMessage"
-                            role="status"
-                            aria-live="polite"
-                            style="<%= typeof message !== 'undefined' ? (messageSuccess ? 'color: #1b6837;' : 'color: #ea4335;') : '' %>"
-                        >
-                            <%= typeof message !== 'undefined' ? message : '' %>
-                        </p>
+                <!-- ==============================================================
+                     MODALS: ADD / EDIT / DELETE ATTENDEE & BOOTH
+                     ============================================================== -->
 
-                    </form>
-                </section>
+                <!-- 1. ADD ATTENDEE MODAL -->
+                <div class="modal-backdrop" id="addAttendeeModal">
+                    <div class="modal-dialog">
+                        <div class="modal-header">
+                            <h3>Add Attendee</h3>
+                            <button class="modal-close-btn" type="button" onclick="closeModal('addAttendeeModal')">&times;</button>
+                        </div>
+                        <form action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="action" value="add_attendee">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+                            <div class="modal-body">
+                                <div class="modal-form-group">
+                                    <label for="newAttendeeId">Attendee ID / QR Token</label>
+                                    <input id="newAttendeeId" name="attendeeId" type="text" placeholder="e.g. QR-Attendee-001">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newFirstName">First Name *</label>
+                                    <input id="newFirstName" name="firstName" type="text" required placeholder="e.g. Kurt">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newLastName">Last Name</label>
+                                    <input id="newLastName" name="lastName" type="text" placeholder="e.g. Satumbaga">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newAddress">Address / Affiliation</label>
+                                    <input id="newAddress" name="address" type="text" placeholder="e.g. Tupad Balay, Bacolod City">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newEventId">Event Attended</label>
+                                    <select id="newEventId" name="eventId">
+                                        <% (events || []).forEach(function(ev) { %>
+                                            <option value="<%= ev.id %>"><%= ev.event_name %></option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn-cancel" type="button" onclick="closeModal('addAttendeeModal')">Cancel</button>
+                                <button class="modal-btn-submit" type="submit">Add Attendee</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-                <footer>
-                    © 2026 GDG BACOLOD - AI Innovations Team. All Rights Reserved
-                </footer>
+                <!-- 2. EDIT ATTENDEE MODAL -->
+                <div class="modal-backdrop" id="editAttendeeModal">
+                    <div class="modal-dialog">
+                        <div class="modal-header">
+                            <h3>Edit Attendee</h3>
+                            <button class="modal-close-btn" type="button" onclick="closeModal('editAttendeeModal')">&times;</button>
+                        </div>
+                        <form action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="action" value="edit_attendee">
+                            <input type="hidden" name="id" id="editAttendeeDbId">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+                            <div class="modal-body">
+                                <div class="modal-form-group">
+                                    <label for="editAttendeeQrId">Attendee ID / QR Token</label>
+                                    <input id="editAttendeeQrId" name="attendeeId" type="text" required>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editAttendeeFirstName">First Name *</label>
+                                    <input id="editAttendeeFirstName" name="firstName" type="text" required>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editAttendeeLastName">Last Name</label>
+                                    <input id="editAttendeeLastName" name="lastName" type="text">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editAttendeeAddress">Address</label>
+                                    <input id="editAttendeeAddress" name="address" type="text">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editAttendeeEventId">Event Attended</label>
+                                    <select id="editAttendeeEventId" name="eventId">
+                                        <% (events || []).forEach(function(ev) { %>
+                                            <option value="<%= ev.id %>"><%= ev.event_name %></option>
+                                        <% }); %>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn-cancel" type="button" onclick="closeModal('editAttendeeModal')">Cancel</button>
+                                <button class="modal-btn-submit" type="submit">Update Attendee</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
 
-            </main>
+                <!-- 3. DELETE ATTENDEE MODAL -->
+                <div class="modal-backdrop" id="deleteAttendeeModal">
+                    <div class="modal-dialog">
+                        <div class="modal-header" style="background: #ea4335;">
+                            <h3>Confirm Delete Attendee</h3>
+                            <button class="modal-close-btn" type="button" onclick="closeModal('deleteAttendeeModal')">&times;</button>
+                        </div>
+                        <form action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="action" value="delete_attendee">
+                            <input type="hidden" name="id" id="deleteAttendeeDbId">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+                            <div class="modal-body">
+                                <p style="font-size: 15px; color: #0d1b54; margin: 0 0 10px;">
+                                    Are you sure you want to delete <strong id="deleteAttendeeName"></strong>?
+                                </p>
+                                <p style="font-size: 13px; color: #64748b; margin: 0;">
+                                    This will remove their profile, event registrations, and recorded scan points from the database.
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn-cancel" type="button" onclick="closeModal('deleteAttendeeModal')">Cancel</button>
+                                <button class="modal-btn-submit btn-submit-danger" type="submit">Delete Attendee</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 4. ADD BOOTH MODAL -->
+                <div class="modal-backdrop" id="addBoothModal">
+                    <div class="modal-dialog">
+                        <div class="modal-header">
+                            <h3>Add Booth</h3>
+                            <button class="modal-close-btn" type="button" onclick="closeModal('addBoothModal')">&times;</button>
+                        </div>
+                        <form action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="action" value="add_booth">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+                            <div class="modal-body">
+                                <div class="modal-form-group">
+                                    <label for="newBoothId">Booth ID *</label>
+                                    <input id="newBoothId" name="boothId" type="text" required placeholder="e.g. BOOTH001">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newBoothName">Booth Name *</label>
+                                    <input id="newBoothName" name="boothName" type="text" required placeholder="e.g. TECH INNOVATION">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newBoothLocation">Location</label>
+                                    <input id="newBoothLocation" name="location" type="text" placeholder="e.g. Ground Floor">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newBoothDesc">Description</label>
+                                    <textarea id="newBoothDesc" name="description" placeholder="e.g. Showcase of Innovative Technology"></textarea>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newBoothSponsor">Sponsor Name</label>
+                                    <input id="newBoothSponsor" name="sponsorName" type="text" placeholder="e.g. Tech Solutions Inc.">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="newBoothType">Booth Type</label>
+                                    <select id="newBoothType" name="boothType">
+                                        <option value="standard">Standard Booth (Early bird 10)</option>
+                                        <option value="sponsor">Sponsor Booth (Early bird 20)</option>
+                                        <option value="gdg">GDG Booth (Flat 65 pts, 2 scans)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn-cancel" type="button" onclick="closeModal('addBoothModal')">Cancel</button>
+                                <button class="modal-btn-submit" type="submit">Add Booth</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 5. EDIT BOOTH MODAL -->
+                <div class="modal-backdrop" id="editBoothModal">
+                    <div class="modal-dialog">
+                        <div class="modal-header">
+                            <h3>Edit Booth</h3>
+                            <button class="modal-close-btn" type="button" onclick="closeModal('editBoothModal')">&times;</button>
+                        </div>
+                        <form action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="action" value="edit_booth">
+                            <input type="hidden" name="id" id="editBoothId">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+                            <div class="modal-body">
+                                <div class="modal-form-group">
+                                    <label>Booth ID</label>
+                                    <input type="text" id="editBoothIdDisplay" disabled style="background: #f1f5f9;">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editBoothName">Booth Name *</label>
+                                    <input id="editBoothName" name="boothName" type="text" required>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editBoothLocation">Location</label>
+                                    <input id="editBoothLocation" name="location" type="text">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editBoothDesc">Description</label>
+                                    <textarea id="editBoothDesc" name="description"></textarea>
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editBoothSponsor">Sponsor Name</label>
+                                    <input id="editBoothSponsor" name="sponsorName" type="text">
+                                </div>
+                                <div class="modal-form-group">
+                                    <label for="editBoothType">Booth Type</label>
+                                    <select id="editBoothType" name="boothType">
+                                        <option value="standard">Standard Booth (Early bird 10)</option>
+                                        <option value="sponsor">Sponsor Booth (Early bird 20)</option>
+                                        <option value="gdg">GDG Booth (Flat 65 pts, 2 scans)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn-cancel" type="button" onclick="closeModal('editBoothModal')">Cancel</button>
+                                <button class="modal-btn-submit" type="submit">Update Booth</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 6. DELETE BOOTH MODAL -->
+                <div class="modal-backdrop" id="deleteBoothModal">
+                    <div class="modal-dialog">
+                        <div class="modal-header" style="background: #ea4335;">
+                            <h3>Confirm Delete Booth</h3>
+                            <button class="modal-close-btn" type="button" onclick="closeModal('deleteBoothModal')">&times;</button>
+                        </div>
+                        <form action="/SuperAdmin.php" method="post">
+                            <input type="hidden" name="action" value="delete_booth">
+                            <input type="hidden" name="id" id="deleteBoothId">
+                            <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
+                            <div class="modal-body">
+                                <p style="font-size: 15px; color: #0d1b54; margin: 0 0 10px;">
+                                    Are you sure you want to delete booth <strong id="deleteBoothName"></strong>?
+                                </p>
+                                <p style="font-size: 13px; color: #64748b; margin: 0;">
+                                    This will delete the booth and remove its recorded visitor scans from the database.
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button class="modal-btn-cancel" type="button" onclick="closeModal('deleteBoothModal')">Cancel</button>
+                                <button class="modal-btn-submit btn-submit-danger" type="submit">Delete Booth</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+            <% } %>
 
         </div>
     </div>
 
-    <!-- Scripts -->
+    <!-- Client-side Interactions -->
     <script>
+    // Password visibility toggle for login card
     const adminPasswordInput = document.getElementById('adminPassword');
     const toggleAdminPassword = document.getElementById('toggleAdminPassword');
     const adminEyeIcon = document.getElementById('adminEyeIcon');
 
     if (toggleAdminPassword && adminPasswordInput && adminEyeIcon) {
-      toggleAdminPassword.addEventListener('click', () => {
-        const isHidden = adminPasswordInput.type === 'password';
-        adminPasswordInput.type = isHidden ? 'text' : 'password';
-        toggleAdminPassword.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-        toggleAdminPassword.title = isHidden ? 'Hide password' : 'Show password';
-        adminEyeIcon.innerHTML = isHidden
-          ? '<path d="M3 2 2 3l4 4C3.5 8.6 1.9 10.5 1.5 11.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19c1.7 0 3.3-.5 4.7-1.2l3.3 3.3 1-1L3 2Zm9 14.2a4.2 4.2 0 0 1-4.2-4.2c0-.7.2-1.4.5-2l5.7 5.7c-.6.3-1.3.5-2 .5ZM12 5c-1.3 0-2.6.3-3.8.8l2 2A4.2 4.2 0 0 1 16.2 14l2.2 2.2c2.1-1.4 3.6-3.1 4.1-3.9a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>'
-          : '<path d="M12 5c-5.2 0-9.4 4.5-10.5 6.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19s9.4-4.5 10.5-6.1a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>';
-      });
+        toggleAdminPassword.addEventListener('click', () => {
+            const isHidden = adminPasswordInput.type === 'password';
+            adminPasswordInput.type = isHidden ? 'text' : 'password';
+            adminEyeIcon.innerHTML = isHidden
+                ? '<path d="M3 2 2 3l4 4C3.5 8.6 1.9 10.5 1.5 11.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19c1.7 0 3.3-.5 4.7-1.2l3.3 3.3 1-1L3 2Zm9 14.2a4.2 4.2 0 0 1-4.2-4.2c0-.7.2-1.4.5-2l5.7 5.7c-.6.3-1.3.5-2 .5ZM12 5c-1.3 0-2.6.3-3.8.8l2 2A4.2 4.2 0 0 1 16.2 14l2.2 2.2c2.1-1.4 3.6-3.1 4.1-3.9a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>'
+                : '<path d="M12 5c-5.2 0-9.4 4.5-10.5 6.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19s9.4-4.5 10.5-6.1a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>';
+        });
     }
 
-    // Error handling: Prevent Backspace key from navigating back outside inputs
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Backspace' || event.keyCode === 8) {
-        const target = event.target;
-        const isEditable =
-          (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) &&
-          !target.readOnly &&
-          !target.disabled;
-        if (!isEditable) {
-          event.preventDefault();
-        }
-      }
+    // Modal Helper functions
+    function openModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('is-open');
+    }
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.remove('is-open');
+    }
+
+    // Close modal on click outside dialog
+    document.querySelectorAll('.modal-backdrop').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) modal.classList.remove('is-open');
+        });
     });
+
+    // Attendees Add Modal Button
+    const openAddAttendeeBtn = document.getElementById('openAddAttendeeModal');
+    if (openAddAttendeeBtn) {
+        openAddAttendeeBtn.addEventListener('click', () => openModal('addAttendeeModal'));
+    }
+
+    // Edit Attendee Modal Handler
+    function openEditAttendee(btn) {
+        document.getElementById('editAttendeeDbId').value = btn.dataset.id;
+        document.getElementById('editAttendeeQrId').value = btn.dataset.qrid || '';
+        document.getElementById('editAttendeeFirstName').value = btn.dataset.firstname || '';
+        document.getElementById('editAttendeeLastName').value = btn.dataset.lastname || '';
+        document.getElementById('editAttendeeAddress').value = btn.dataset.address || '';
+        if (btn.dataset.eventid) {
+            document.getElementById('editAttendeeEventId').value = btn.dataset.eventid;
+        }
+        openModal('editAttendeeModal');
+    }
+
+    // Delete Attendee Modal Handler
+    function openDeleteAttendee(btn) {
+        document.getElementById('deleteAttendeeDbId').value = btn.dataset.id;
+        document.getElementById('deleteAttendeeName').textContent = btn.dataset.name || 'this attendee';
+        openModal('deleteAttendeeModal');
+    }
+
+    // Booths Add Modal Button
+    const openAddBoothBtn = document.getElementById('openAddBoothModal');
+    if (openAddBoothBtn) {
+        openAddBoothBtn.addEventListener('click', () => openModal('addBoothModal'));
+    }
+
+    // Edit Booth Modal Handler
+    function openEditBooth(btn) {
+        document.getElementById('editBoothId').value = btn.dataset.id;
+        document.getElementById('editBoothIdDisplay').value = btn.dataset.id;
+        document.getElementById('editBoothName').value = btn.dataset.name || '';
+        document.getElementById('editBoothLocation').value = btn.dataset.location || '';
+        document.getElementById('editBoothDesc').value = btn.dataset.desc || '';
+        document.getElementById('editBoothSponsor').value = btn.dataset.sponsor || '';
+        document.getElementById('editBoothType').value = btn.dataset.type || 'standard';
+        openModal('editBoothModal');
+    }
+
+    // Delete Booth Modal Handler
+    function openDeleteBooth(btn) {
+        document.getElementById('deleteBoothId').value = btn.dataset.id;
+        document.getElementById('deleteBoothName').textContent = btn.dataset.name || btn.dataset.id;
+        openModal('deleteBoothModal');
+    }
+
+    // Dropdown Popovers Toggle
+    function setupDropdown(toggleId, popoverId) {
+        const toggle = document.getElementById(toggleId);
+        const popover = document.getElementById(popoverId);
+        if (toggle && popover) {
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                popover.classList.toggle('is-open');
+            });
+            document.addEventListener('click', (e) => {
+                if (!popover.contains(e.target) && e.target !== toggle) {
+                    popover.classList.remove('is-open');
+                }
+            });
+        }
+    }
+
+    setupDropdown('overviewFilterToggle', 'overviewFilterPopover');
+    setupDropdown('attendeesFilterToggle', 'attendeesFilterPopover');
+    setupDropdown('boothsDropdownToggle', 'boothsDropdownPopover');
+    setupDropdown('boothDetailDropdownToggle', 'boothDetailDropdownPopover');
+
+    // Real-time Attendee Table Search Filter
+    const searchInput = document.getElementById('attendeeSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const query = (e.target.value || '').trim().toLowerCase();
+            const rows = document.querySelectorAll('.table-row-attendee');
+            rows.forEach(row => {
+                const searchData = row.dataset.search || '';
+                if (!query || searchData.includes(query)) {
+                    row.style.display = 'grid';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+    }
     </script>
     <script src="/JAVASCRIPT/nav.js" defer></script>
 </body>
 </html>
+

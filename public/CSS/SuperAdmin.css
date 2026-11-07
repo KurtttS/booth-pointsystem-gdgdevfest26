@@ -1,13 +1,22 @@
 
 /* =========================================
-   DEVFEST BOOTH PORTAL — LOGIN PAGE CSS
+   DEVFEST BOOTH PORTAL & SUPERADMIN CSS
+   Exact match for Overview, Attendees, Booths,
+   Booth Analytics, and Login screens
 ========================================= */
 
 :root {
-    --navy: #111b78;
-    --navy-deep: #101a78;
+    --navy: #0d1b54;
+    --navy-deep: #0a1442;
     --green: #188447;
-    --text: #111b78;
+    --green-light: #22c55e;
+    --red: #ea4335;
+    --red-hover: #d93025;
+    --gold: #f59e0b;
+    --gold-deep: #d97706;
+    --purple: #7e57c2;
+    --text-navy: #0d1b54;
+    --text-muted: #64748b;
     --line: #c6c9e8;
     --white: #ffffff;
 }
@@ -25,9 +34,9 @@ body {
 }
 
 body {
-    font-family: Inter, "Segoe UI", Arial, sans-serif;
-    color: var(--text);
-    background: #f5f5f5;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+    color: var(--text-navy);
+    background: #f8fafc;
 }
 
 /* =========================================
@@ -48,124 +57,1144 @@ body {
     width: 100%;
     min-height: 100vh;
     margin: 0;
-    overflow: hidden;
-    background: #f8f8f8;
+    overflow-x: hidden;
+    background: #f8fafc;
 }
 
 /* =========================================
-   COLORFUL GRADIENT BACKGROUND
+   COLORFUL BLURRED GRADIENT BACKGROUND
+   (Exact colorful atmospheric DevFest glow)
 ========================================= */
 
-.site-shell::before {
+.superadmin-bg-mesh {
+    position: relative;
+    width: 100%;
+    min-height: calc(100vh - 82px);
+    background: #f8fafc;
+}
+
+.superadmin-bg-mesh::before {
     content: "";
-    position: absolute;
-    z-index: -1;
-    top: 82px;
+    position: fixed;
+    z-index: 0;
+    top: 80px;
     left: 0;
     right: 0;
     bottom: 0;
     pointer-events: none;
-
     background:
-        radial-gradient(
-            ellipse 24% 23% at 0% 49%,
-            rgba(255, 79, 65, 0.96) 0%,
-            rgba(255, 100, 83, 0.83) 32%,
-            rgba(255, 125, 106, 0.42) 57%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 29% 25% at 19% 66%,
-            rgba(54, 207, 148, 0.95) 0%,
-            rgba(77, 214, 157, 0.82) 38%,
-            rgba(107, 222, 174, 0.4) 65%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 27% 27% at 1% 85%,
-            rgba(29, 43, 139, 0.99) 0%,
-            rgba(38, 54, 151, 0.9) 38%,
-            rgba(51, 68, 158, 0.5) 64%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 25% 24% at 30% 95%,
-            rgba(255, 226, 91, 0.96) 0%,
-            rgba(255, 234, 131, 0.8) 40%,
-            rgba(255, 240, 174, 0.38) 68%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 27% 24% at 83% 5%,
-            rgba(255, 83, 69, 0.98) 0%,
-            rgba(255, 119, 74, 0.88) 38%,
-            rgba(255, 159, 91, 0.48) 66%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 27% 24% at 100% 5%,
-            rgba(255, 226, 91, 0.96) 0%,
-            rgba(255, 234, 131, 0.8) 40%,
-            rgba(255, 240, 174, 0.38) 68%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 23% 24% at 77% 25%,
-            rgba(26, 39, 132, 0.98) 0%,
-            rgba(35, 49, 144, 0.9) 38%,
-            rgba(45, 59, 148, 0.45) 65%,
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 27% 26% at 100% 36%,
-            rgba(56, 205, 143, 0.95) 0%,
-            rgba(86, 215, 159, 0.78) 40%,
-            rgba(119, 224, 179, 0.38) 68%,
-            transparent 100%
-        ),
-        #f8f8f8;
+        radial-gradient(circle 380px at 92% 10%, rgba(248, 113, 113, 0.45) 0%, rgba(251, 146, 60, 0.25) 45%, transparent 75%),
+        radial-gradient(circle 360px at 96% 38%, rgba(251, 191, 36, 0.4) 0%, rgba(253, 224, 71, 0.2) 48%, transparent 75%),
+        radial-gradient(circle 420px at 4% 92%, rgba(59, 130, 246, 0.5) 0%, rgba(99, 102, 241, 0.35) 42%, transparent 78%),
+        radial-gradient(circle 360px at 2% 48%, rgba(52, 211, 153, 0.45) 0%, rgba(16, 185, 129, 0.22) 50%, transparent 75%),
+        #f8fafc;
+    filter: blur(14px) saturate(1.15);
+}
 
-    filter: saturate(1.08);
+.superadmin-container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 1380px;
+    margin: 0 auto;
+    padding: 32px 36px 60px;
 }
 
 /* =========================================
-   MAIN CONTENT
+   PAGE HEADER (Welcome, Super Admin [Name]!)
+========================================= */
+
+.superadmin-header {
+    margin-bottom: 26px;
+}
+
+.superadmin-title {
+    margin: 0;
+    color: var(--navy);
+    font-size: clamp(26px, 3vw, 36px);
+    font-weight: 800;
+    letter-spacing: -0.6px;
+    line-height: 1.15;
+}
+
+.superadmin-subtitle {
+    margin: 6px 0 0;
+    color: #818cf8;
+    font-size: clamp(14px, 1.4vw, 17px);
+    font-weight: 600;
+}
+
+/* =========================================
+   OVERVIEW GRID (Screenshot 1: image_f8b34ecf.png)
+========================================= */
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1.15fr;
+    gap: 28px;
+    align-items: stretch;
+}
+
+.overview-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Generic White Rounded Card */
+.superadmin-card {
+    background: #ffffff;
+    border: 1.5px solid #202b66;
+    border-radius: 28px;
+    padding: 26px 30px;
+    box-shadow: 0 4px 18px rgba(13, 27, 84, 0.05);
+    position: relative;
+    overflow: hidden;
+}
+
+.card-heading {
+    margin: 0;
+    color: var(--navy);
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+}
+
+.card-subheading {
+    margin: 4px 0 18px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+/* =========================================
+   BAR CHART (Attendees per booth)
+========================================= */
+
+.bar-chart-container {
+    position: relative;
+    width: 100%;
+    height: 250px;
+    display: flex;
+    margin-top: 10px;
+}
+
+.chart-y-axis {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 190px;
+    padding-right: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    color: #64748b;
+    border-right: 1.5px solid #0d1b54;
+    text-align: right;
+    width: 38px;
+    flex-shrink: 0;
+}
+
+.chart-bars-wrap {
+    position: relative;
+    flex: 1;
+    height: 190px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    padding: 0 10px;
+    border-bottom: 1.5px solid #0d1b54;
+}
+
+.chart-bar-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+    flex: 1;
+    max-width: 48px;
+    position: relative;
+}
+
+.chart-bar {
+    width: 28px;
+    background: #0d1b54;
+    border-radius: 2px 2px 0 0;
+    transition: height 0.6s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
+    cursor: pointer;
+    min-height: 4px;
+}
+
+.chart-bar:hover {
+    background: #1e3a8a;
+    transform: scaleY(1.02);
+}
+
+.chart-bar-label {
+    position: absolute;
+    top: 196px;
+    width: 64px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 600;
+    color: #94a3b8;
+    line-height: 1.1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Tooltip on bar hover */
+.chart-bar-tooltip {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    background: #0d1b54;
+    color: #ffffff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(4px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 10;
+}
+
+.chart-bar-group:hover .chart-bar-tooltip {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* =========================================
+   DONUT CHART (Outstanding Booths)
+========================================= */
+
+.donut-chart-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 0 4px;
+}
+
+.donut-svg {
+    width: 170px;
+    height: 170px;
+    transform: rotate(-90deg);
+}
+
+.donut-segment {
+    fill: transparent;
+    stroke-width: 32;
+    transition: stroke-width 0.2s ease, opacity 0.2s ease;
+    cursor: pointer;
+}
+
+.donut-segment:hover {
+    stroke-width: 36;
+    opacity: 0.92;
+}
+
+.donut-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 14px 20px;
+    margin-top: 18px;
+    width: 100%;
+}
+
+.donut-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+.legend-dot {
+    width: 13px;
+    height: 13px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* =========================================
+   ATTENDEES INFORMATION CARD (Right Side)
+========================================= */
+
+.overview-right-card {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.attendees-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    margin-top: 10px;
+    border-bottom: 1.5px solid #f1f5f9;
+}
+
+.attendees-header-title {
+    color: var(--navy);
+    font-size: 15px;
+    font-weight: 750;
+    margin: 0;
+}
+
+.event-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    border: none;
+    color: var(--navy);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 8px;
+    transition: background 0.15s ease;
+}
+
+.event-filter-btn:hover {
+    background: #f1f5f9;
+}
+
+.event-filter-btn svg {
+    width: 16px;
+    height: 16px;
+    color: var(--navy);
+}
+
+.attendees-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    max-height: 540px;
+}
+
+.attendee-rank-row {
+    display: grid;
+    grid-template-columns: 36px 1.4fr 1.2fr 1.4fr;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.rank-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 12px;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+}
+
+.rank-badge-1 { background: #ea4335; }
+.rank-badge-2 { background: #34a853; }
+.rank-badge-3 { background: #7e57c2; }
+.rank-badge-other { background: #3b82f6; }
+
+.attendee-row-id {
+    color: var(--navy);
+    font-weight: 800;
+    font-size: 14px;
+}
+
+.attendee-row-points {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.attendee-row-points strong {
+    color: var(--navy);
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.attendee-row-event {
+    color: #64748b;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.attendee-row-event strong {
+    color: var(--navy);
+    font-weight: 750;
+}
+
+/* =========================================
+   TOP ACTION BAR (Attendees & Booths Pages)
+========================================= */
+
+.superadmin-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 22px;
+}
+
+.action-bar-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+/* Pill Search Input */
+.search-pill-wrap {
+    position: relative;
+    width: 440px;
+    max-width: 100%;
+}
+
+.search-pill-wrap input {
+    width: 100%;
+    height: 48px;
+    padding: 0 20px 0 46px;
+    border-radius: 9999px;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-pill-wrap input:focus {
+    border-color: #0d1b54;
+    box-shadow: 0 0 0 3px rgba(13, 27, 84, 0.12);
+}
+
+.search-pill-icon {
+    position: absolute;
+    left: 17px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+/* Funnel filter buttons */
+.funnel-icon-btn {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.funnel-icon-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.05);
+}
+
+.funnel-icon-btn.funnel-gold svg {
+    color: #f59e0b;
+}
+
+.funnel-icon-btn.funnel-navy svg {
+    color: var(--navy);
+}
+
+/* Dropdown Pill Button (e.g. All Booths v, Game Booth v) */
+.dropdown-pill-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    height: 48px;
+    padding: 0 24px;
+    border-radius: 9999px;
+    background: var(--navy);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 750;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(13, 27, 84, 0.25);
+    transition: background 0.2s, transform 0.15s;
+    position: relative;
+}
+
+.dropdown-pill-btn:hover {
+    background: #09133d;
+    transform: translateY(-1px);
+}
+
+.dropdown-pill-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke: currentColor;
+    transition: transform 0.2s ease;
+}
+
+/* Add Buttons (Add Attendee +, Add Booth +) */
+.btn-pill-add {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 48px;
+    padding: 0 28px;
+    border-radius: 9999px;
+    background: #ffffff;
+    font-size: 15px;
+    font-weight: 750;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-pill-add-gold {
+    border: 1.5px solid #f59e0b;
+    color: #d97706;
+}
+
+.btn-pill-add-gold:hover {
+    background: #fffbeb;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(245, 158, 11, 0.2);
+}
+
+.btn-pill-add-navy {
+    border: 1.5px solid var(--navy);
+    color: var(--navy);
+}
+
+.btn-pill-add-navy:hover {
+    background: #f1f3fa;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(13, 27, 84, 0.16);
+}
+
+/* =========================================
+   TABLE CONTAINERS (Screenshot 2 & 3)
+========================================= */
+
+.superadmin-table-card {
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    min-height: 520px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* Golden Table Header (Screenshot 2: Attendees) */
+.table-header-gold {
+    background: #f59e0b;
+    display: grid;
+    grid-template-columns: 1.4fr 1.6fr 1.8fr 1.6fr 140px;
+    align-items: center;
+    padding: 18px 32px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+/* Navy Table Header (Screenshot 3: Booths) */
+.table-header-navy {
+    background: var(--navy);
+    display: grid;
+    grid-template-columns: 1.2fr 1.8fr 1.4fr 2.4fr 1.8fr 140px;
+    align-items: center;
+    padding: 18px 32px;
+    font-size: 15px;
+    font-weight: 750;
+    color: #ffffff;
+}
+
+/* Table Rows */
+.table-row-item {
+    display: grid;
+    align-items: center;
+    padding: 22px 32px;
+    border-bottom: 1.5px solid #f1f5f9;
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--navy);
+    transition: background 0.15s ease;
+}
+
+.table-row-item:hover {
+    background: #f8fafc;
+}
+
+.table-row-attendee {
+    grid-template-columns: 1.4fr 1.6fr 1.8fr 1.6fr 140px;
+}
+
+.table-row-booth {
+    grid-template-columns: 1.2fr 1.8fr 1.4fr 2.4fr 1.8fr 140px;
+}
+
+.table-cell-id {
+    color: var(--navy);
+    font-weight: 800;
+    letter-spacing: -0.2px;
+}
+
+.table-cell-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: flex-start;
+}
+
+/* Circular Edit Button */
+.btn-action-edit {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: var(--navy);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+    transition: all 0.15s ease;
+}
+
+.btn-action-edit:hover {
+    border-color: var(--navy);
+    background: #f8fafc;
+    transform: scale(1.08);
+}
+
+.btn-action-edit svg {
+    width: 17px;
+    height: 17px;
+    stroke: currentColor;
+}
+
+/* Red Pill Delete Button */
+.btn-action-delete {
+    height: 34px;
+    padding: 0 18px;
+    border-radius: 20px;
+    background: #ea4335;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 750;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(234, 67, 53, 0.28);
+    transition: all 0.15s ease;
+}
+
+.btn-action-delete:hover {
+    background: #d93025;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(234, 67, 53, 0.38);
+}
+
+/* =========================================
+   BOOTH ANALYTICS VIEW (Screenshot 4: image_eab7f1b2.png)
+========================================= */
+
+.booth-analytics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+}
+
+/* Left Visitors Card */
+.analytics-visitors-card {
+    background: #ffffff;
+    border-radius: 24px;
+    box-shadow: 0 4px 20px rgba(13, 27, 84, 0.05);
+    overflow: hidden;
+    border: 1px solid rgba(13, 27, 84, 0.12);
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
+}
+
+.visitors-card-header {
+    background: var(--navy);
+    padding: 18px 24px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    font-size: 14px;
+    font-weight: 750;
+    color: #ffffff;
+}
+
+.visitors-list-wrap {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+.visitor-row-item {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    padding: 16px 24px;
+    border-bottom: 1.5px solid #f1f5f9;
+    font-size: 13px;
+    font-weight: 750;
+    color: var(--navy);
+}
+
+.visitor-row-item:hover {
+    background: #f8fafc;
+}
+
+/* Middle Column: 3 Stat Cards */
+.analytics-middle-col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.stat-box-card {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 22px;
+    padding: 24px 24px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-icon-wrap {
+    width: 44px;
+    height: 44px;
+    margin-bottom: 10px;
+    display: grid;
+    place-items: center;
+    color: var(--navy);
+}
+
+.stat-icon-wrap svg {
+    width: 36px;
+    height: 36px;
+    fill: currentColor;
+}
+
+.stat-box-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 750;
+    color: var(--navy);
+}
+
+.stat-box-subtitle {
+    margin: 3px 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #ef4444;
+}
+
+.stat-box-number-gold {
+    font-size: 38px;
+    font-weight: 800;
+    color: #f59e0b;
+    line-height: 1.1;
+}
+
+.stat-box-unit {
+    font-size: 14px;
+    font-weight: 750;
+    color: var(--navy);
+    margin-top: 2px;
+}
+
+/* Right Column: 2 Big Stat Cards */
+.analytics-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.big-stat-card {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 24px;
+    padding: 30px 28px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.03);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    flex: 1;
+    justify-content: center;
+}
+
+.big-stat-icon {
+    width: 46px;
+    height: 46px;
+    margin-bottom: 12px;
+    display: grid;
+    place-items: center;
+    color: var(--navy);
+}
+
+.big-stat-icon-blue {
+    color: #5c6bc0;
+}
+
+.big-stat-icon svg {
+    width: 40px;
+    height: 40px;
+    fill: currentColor;
+}
+
+.big-stat-title {
+    margin: 0 0 12px;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+.big-stat-number {
+    font-size: 64px;
+    font-weight: 800;
+    color: var(--navy);
+    line-height: 1;
+    margin-bottom: 14px;
+}
+
+.big-stat-badge-green {
+    font-size: 13px;
+    font-weight: 700;
+    color: #16a34a;
+}
+
+.big-stat-description {
+    font-size: 12px;
+    font-weight: 500;
+    color: #64748b;
+    line-height: 1.4;
+    max-width: 260px;
+}
+
+/* =========================================
+   MODALS (Add/Edit Attendee & Booth)
+========================================= */
+
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(13, 27, 84, 0.45);
+    backdrop-filter: blur(4px);
+    z-index: 2000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    overflow-y: auto;
+}
+
+.modal-backdrop.is-open {
+    display: flex;
+}
+
+.modal-dialog {
+    background: #ffffff;
+    border-radius: 20px;
+    width: 480px;
+    max-width: 96vw;
+    max-height: calc(100vh - 32px);
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 45px rgba(13, 27, 84, 0.22);
+    overflow: hidden;
+    animation: modalSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.modal-dialog > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.modal-header {
+    background: var(--navy);
+    color: #ffffff;
+    padding: 14px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: -0.2px;
+}
+
+.modal-close-btn {
+    background: transparent;
+    border: none;
+    color: #ffffff;
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 6px;
+    display: grid;
+    place-items: center;
+    transition: opacity 0.15s, background 0.15s;
+}
+
+.modal-close-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.modal-body {
+    padding: 16px 22px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 transparent;
+}
+
+.modal-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 6px;
+}
+
+.modal-form-group {
+    margin-bottom: 12px;
+}
+
+.modal-form-group:last-child {
+    margin-bottom: 4px;
+}
+
+.modal-form-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 750;
+    color: var(--navy);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.modal-form-group input,
+.modal-form-group select,
+.modal-form-group textarea {
+    width: 100%;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1.5px solid #cbd5e1;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--navy);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    background: #fff;
+    font-family: inherit;
+}
+
+.modal-form-group textarea {
+    height: 56px;
+    min-height: 48px;
+    padding: 8px 14px;
+    resize: vertical;
+    line-height: 1.4;
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus,
+.modal-form-group textarea:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(13, 27, 84, 0.1);
+}
+
+.modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 22px;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+    flex-shrink: 0;
+}
+
+.modal-btn-cancel {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    height: 38px;
+    padding: 0 18px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, color 0.15s;
+}
+
+.modal-btn-cancel:hover {
+    background: #e2e8f0;
+    color: var(--navy);
+}
+
+.modal-btn-submit {
+    background: var(--navy);
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    height: 38px;
+    padding: 0 20px;
+    font-weight: 750;
+    font-size: 13px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.modal-btn-submit:hover {
+    background: #09133d;
+}
+
+.modal-btn-submit.btn-submit-danger {
+    background: #ea4335;
+}
+
+.modal-btn-submit.btn-submit-danger:hover {
+    background: #d93025;
+}
+
+/* =========================================
+   DROPDOWN MENUS (For All Booths filter)
+========================================= */
+
+.dropdown-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 260px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(13, 27, 84, 0.18);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    padding: 8px;
+    z-index: 100;
+    display: none;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.dropdown-popover.is-open {
+    display: block;
+}
+
+.dropdown-item {
+    display: block;
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--navy);
+    text-decoration: none;
+    transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+    background: #f1f5f9;
+}
+
+.dropdown-item.is-selected {
+    background: #eef2ff;
+    color: #3b82f6;
+}
+
+/* =========================================
+   LOGIN SCREEN STYLES (Preserved)
 ========================================= */
 
 .main-content {
     width: 100%;
     min-height: calc(100vh - 82px);
     padding: 40px 20px;
-
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
 }
 
-/* =========================================
-   LOGIN CARD
-========================================= */
-
 .login-card {
     width: 680px;
     max-width: 100%;
-    min-height: 680px;
+    min-height: 640px;
     padding: 55px 58px;
-
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-
     background: rgba(255, 255, 255, 0.98);
     border: 1px solid rgba(20, 27, 70, 0.07);
     border-radius: 30px;
     box-shadow: 0 5px 16px rgba(0, 0, 0, 0.13);
 }
-
-/* =========================================
-   LOGIN CARD LOGO
-========================================= */
 
 .card-brand {
     color: var(--navy);
@@ -173,16 +1202,14 @@ body {
     justify-content: center;
     align-items: center;
     gap: 10px;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
 }
 
-.card-brand .gdg-logo,
-.card-brand .gdg-top {
+.card-brand .gdg-logo {
     display: block;
     width: 60px;
     height: 52px;
     object-fit: contain;
-    object-position: center;
     flex-shrink: 0;
 }
 
@@ -206,46 +1233,36 @@ body {
     margin-top: 3px;
 }
 
-/* =========================================
-   PAGE TITLE
-========================================= */
-
-h1 {
+h1.login-title {
     margin: 0;
     text-align: center;
     color: #E84432;
-    font-size: 46px;
+    font-size: 42px;
     font-weight: 800;
     line-height: 1.2;
     letter-spacing: -1px;
 }
 
-/* =========================================
-   SUBTITLE
-========================================= */
-
 .subtitle {
     text-align: center;
-    font-size: 14px;
-    letter-spacing: 2.5px;
+    font-size: 13px;
+    letter-spacing: 2.2px;
     font-weight: 600;
-    margin: 17px 0 43px;
+    margin: 14px 0 36px;
+    color: var(--navy);
 }
 
-/* =========================================
-   FORM FIELDS
-========================================= */
-
 .field {
-    margin-bottom: 25px;
+    margin-bottom: 22px;
 }
 
 .field label {
     display: block;
-    margin: 0 0 12px 15px;
-    font-size: 14px;
+    margin: 0 0 10px 12px;
+    font-size: 13px;
     font-weight: 750;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.2px;
+    color: var(--navy);
 }
 
 .input-wrap {
@@ -255,17 +1272,14 @@ h1 {
 
 .input-wrap input {
     width: 100%;
-    height: 66px;
-    padding: 0 55px;
-
+    height: 62px;
+    padding: 0 52px;
     border: 1px solid var(--line);
     border-radius: 14px;
-
     background: #ffffff;
     color: #20245f;
-    font-size: 18px;
+    font-size: 17px;
     outline: none;
-
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
@@ -274,72 +1288,50 @@ h1 {
     box-shadow: 0 0 0 3px rgba(17, 27, 120, 0.09);
 }
 
-/* =========================================
-   USERNAME AND PASSWORD ICONS
-========================================= */
-
 .field-icon {
     position: absolute;
     left: 18px;
     top: 50%;
     transform: translateY(-50%);
-
-    width: 23px;
-    height: 23px;
-
+    width: 22px;
+    height: 22px;
     display: grid;
     place-items: center;
-
     color: var(--navy);
     pointer-events: none;
 }
 
 .field-icon svg,
 .toggle-password svg {
-    width: 23px;
-    height: 23px;
+    width: 22px;
+    height: 22px;
 }
-
-/* =========================================
-   SHOW / HIDE PASSWORD
-========================================= */
 
 .toggle-password {
     position: absolute;
     right: 14px;
     top: 50%;
     transform: translateY(-50%);
-
     padding: 6px;
     border: 0;
     background: transparent;
     color: var(--navy);
-
     display: grid;
     place-items: center;
-
     cursor: pointer;
 }
 
-/* =========================================
-   LOGIN BUTTON
-========================================= */
-
 .login-button {
     display: block;
-    width: 82%;
-    height: 66px;
-    margin: 38px auto 0;
-
+    width: 84%;
+    height: 62px;
+    margin: 32px auto 0;
     border: none;
     border-radius: 13px;
-
     color: #ffffff;
     background: #E84432;
-
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 750;
-
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
 }
@@ -348,317 +1340,91 @@ h1 {
     background: #9a2d21;
 }
 
-.login-button:active {
-    transform: scale(0.99);
-}
-
-/* =========================================
-   FORM MESSAGE
-========================================= */
-
-.form-message {
-    margin: 14px 0 0;
-    min-height: 18px;
-    text-align: center;
+/* Alert banners */
+.alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 20px;
+    margin-bottom: 22px;
+    border-radius: 14px;
     font-size: 14px;
-    color: #b3261e;
-}
-
-/* =========================================
-   FOOTER
-========================================= */
-
-footer {
-    margin-top: 20px;
-    text-align: center;
-    color: #707aa6;
-    font-size: 10px;
-    letter-spacing: 1.8px;
     font-weight: 600;
+    line-height: 1.4;
+}
+
+.alert-banner svg {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+}
+
+.alert-banner.alert-error {
+    background-color: #fce8e6;
+    border: 1px solid #f5c2c7;
+    color: #c5221f;
+}
+
+.alert-banner.alert-success {
+    background-color: #e6f4ea;
+    border: 1px solid #ceead6;
+    color: #137333;
+}
+
+/* Footer (Matching exact text in screenshots) */
+.superadmin-footer {
+    margin-top: 48px;
+    text-align: center;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.8px;
 }
 
 /* =========================================
-   TABLET AND MOBILE
+   RESPONSIVE DESIGN
 ========================================= */
 
-@media (max-width: 760px) {
-    .page,
-    .site-shell {
+@media (max-width: 1080px) {
+    .overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .booth-analytics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .superadmin-table-card {
+        overflow-x: auto;
+    }
+
+    .table-header-gold,
+    .table-header-navy,
+    .table-row-item {
+        min-width: 820px;
+    }
+}
+
+@media (max-width: 768px) {
+    .superadmin-container {
+        padding: 20px 16px 40px;
+    }
+
+    .superadmin-action-bar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .action-bar-left {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-pill-wrap {
         width: 100%;
-        min-height: 100vh;
-        margin: 0;
     }
 
-    .site-shell::before {
-        top: 70px;
-        left: 0;
-        right: 0;
-        bottom: 0;
-
-        background:
-            radial-gradient(
-                ellipse 65% 18% at 0% 35%,
-                rgba(255, 78, 65, 0.9) 0%,
-                transparent 76%
-            ),
-            radial-gradient(
-                ellipse 75% 22% at 20% 53%,
-                rgba(54, 207, 148, 0.92) 0%,
-                transparent 78%
-            ),
-            radial-gradient(
-                ellipse 65% 22% at 10% 88%,
-                rgba(28, 43, 139, 0.98) 0%,
-                transparent 78%
-            ),
-            radial-gradient(
-                ellipse 70% 22% at 35% 100%,
-                rgba(255, 226, 91, 0.9) 0%,
-                transparent 78%
-            ),
-            radial-gradient(
-                ellipse 65% 20% at 100% 7%,
-                rgba(255, 82, 68, 0.95) 0%,
-                transparent 76%
-            ),
-            radial-gradient(
-                ellipse 65% 23% at 100% 30%,
-                rgba(54, 204, 143, 0.9) 0%,
-                transparent 78%
-            ),
-            #f8f8f8;
-    }
-
-    .main-content {
-        min-height: calc(100vh - 70px);
-        padding: 30px 18px;
+    .btn-pill-add {
         justify-content: center;
-    }
-
-    .login-card {
-        width: 100%;
-        max-width: 520px;
-        min-height: 0;
-        padding: 38px 28px 42px;
-        border-radius: 24px;
-    }
-
-    .card-brand {
-        margin-bottom: 24px;
-    }
-
-    .card-brand .gdg-logo,
-    .card-brand .gdg-top {
-        width: 48px;
-        height: 43px;
-    }
-
-    .card-brand .brand-name {
-        font-size: 28px;
-    }
-
-    .card-brand .brand-location {
-        font-size: 13px;
-    }
-
-    h1 {
-        font-size: clamp(28px, 6vw, 38px);
-        letter-spacing: -0.7px;
-    }
-
-    .subtitle {
-        font-size: 10px;
-        letter-spacing: 1.8px;
-        margin: 13px 0 32px;
-    }
-
-    .field {
-        margin-bottom: 22px;
-    }
-
-    .field label {
-        font-size: 12px;
-        margin-bottom: 10px;
-    }
-
-    .input-wrap input {
-        height: 58px;
-        padding-left: 48px;
-        padding-right: 45px;
-        font-size: 16px;
-    }
-
-    .field-icon {
-        left: 15px;
-        width: 20px;
-        height: 20px;
-    }
-
-    .field-icon svg,
-    .toggle-password svg {
-        width: 20px;
-        height: 20px;
-    }
-
-    .login-button {
-        width: 88%;
-        height: 58px;
-        margin-top: 30px;
-        font-size: 16px;
-    }
-
-    footer {
-        max-width: 340px;
-        line-height: 1.8;
-        font-size: 9px;
-        letter-spacing: 1px;
-        margin-top: 18px;
-    }
-}
-
-/* =========================================
-   EXTRA-SMALL PHONES
-========================================= */
-
-@media (max-width: 400px) {
-    .main-content {
-        padding: 24px 13px;
-    }
-
-    .login-card {
-        padding: 30px 19px 34px;
-        border-radius: 21px;
-    }
-
-    .card-brand .gdg-logo,
-    .card-brand .gdg-top {
-        width: 42px;
-        height: 40px;
-    }
-
-    .card-brand .brand-name {
-        font-size: 24px;
-    }
-
-    .card-brand .brand-location {
-        font-size: 12px;
-    }
-
-    h1 {
-        font-size: clamp(25px, 7vw, 30px);
-    }
-
-    .subtitle {
-        font-size: 8px;
-        letter-spacing: 1.2px;
-    }
-
-    .field label {
-        font-size: 11px;
-    }
-
-    .input-wrap input {
-        height: 53px;
-    }
-
-    .login-button {
-        width: 92%;
-        height: 54px;
-        font-size: 15px;
-    }
-
-    footer {
-        font-size: 8px;
-        letter-spacing: 0.7px;
-    }
-}
-
-/* =========================================
-   ACCESSIBILITY
-========================================= */
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        transition: none !important;
-    }
-}
-
-/* =========================================
-   KEYFRAME ANIMATIONS
-========================================= */
-
-/* Smooth fade-and-glide entrance */
-@keyframes cardEntrance {
-    0% {
-        opacity: 0;
-        transform: translateY(26px) scale(0.985);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
-}
-
-/* Subtle staggered fade for inner elements */
-@keyframes fadeSlideUp {
-    0% {
-        opacity: 0;
-        transform: translateY(12px);
-    }
-    100% {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* =========================================
-   ANIMATED LOGIN & SUPERADMIN CARD
-========================================= */
-
-.login-card,
-.admin-card,
-footer {
-    /* Entrance on page load */
-    animation: cardEntrance 3.00s cubic-bezier(0.16, 1, 0.3, 1) both;
-
-    /* Smooth transition for mouse interactions */
-    transition: 
-        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-        box-shadow 0.4s ease,
-        border-color 0.4s ease;
-    will-change: transform, opacity;
-}
-
-/* Elegant lift effect on desktop hover */
-@media (hover: hover) {
-    .login-card:hover,
-    .admin-card:hover,
-    footer:hover{
-        transform: translateY(-4px);
-        box-shadow: 
-            0 16px 32px rgba(17, 27, 120, 0.12),
-            0 4px 12px rgba(0, 0, 0, 0.06);
-        border-color: rgba(17, 27, 120, 0.16);
-    }
-}
-
-
-
-/* =========================================
-   ACCESSIBILITY (REDUCED MOTION)
-========================================= */
-
-@media (prefers-reduced-motion: reduce) {
-    .login-card,
-    .admin-card,
-    footer,
-    .login-card *,
-    footer *,
-    .admin-card * {
-        animation: none !important;
-        transition: none !important;
-        transform: none !important;
     }
 }

@@ -478,11 +478,19 @@ body {
     to { transform: translateY(0); opacity: 1; }
 }
 
-.camera-toggle-btn {
+.camera-floating-controls {
     position: absolute;
     bottom: 12px;
     right: 12px;
     z-index: 12;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.camera-control-pill-btn {
     display: inline-flex;
     align-items: center;
     gap: 7px;
@@ -491,16 +499,30 @@ body {
     border-radius: 20px;
     background: rgba(9, 14, 36, 0.75);
     backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     color: #ffffff;
     font-size: 12px;
     font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s, transform 0.15s;
+    transition: background 0.2s, transform 0.15s, border-color 0.2s;
+    user-select: none;
 }
 
-.camera-toggle-btn:hover {
+.camera-control-pill-btn:hover {
     background: rgba(9, 14, 36, 0.95);
     transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.camera-control-pill-btn svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.camera-fullscreen-btn.is-active {
+    background: rgba(26, 115, 232, 0.85);
+    border-color: #1a73e8;
 }
 
 .camera-toggle-btn.is-off {
@@ -508,9 +530,45 @@ body {
     border-color: #ea4335;
 }
 
-.camera-toggle-btn svg {
-    width: 15px;
-    height: 15px;
+/* Fullscreen Mode (Native & CSS Fallback) */
+.video-container:fullscreen,
+.video-container:-webkit-full-screen,
+.video-container.is-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    min-height: none !important;
+    border-radius: 0 !important;
+    aspect-ratio: auto !important;
+    z-index: 999999 !important;
+    background: #000000 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+}
+
+.video-container:fullscreen #scannerVideo,
+.video-container:-webkit-full-screen #scannerVideo,
+.video-container.is-fullscreen #scannerVideo {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #000;
+}
+
+.video-container:fullscreen .qr-target-box,
+.video-container:-webkit-full-screen .qr-target-box,
+.video-container.is-fullscreen .qr-target-box {
+    width: min(340px, 70vmin) !important;
+    height: min(340px, 70vmin) !important;
+}
+
+.video-container:fullscreen .camera-floating-controls,
+.video-container:-webkit-full-screen .camera-floating-controls,
+.video-container.is-fullscreen .camera-floating-controls {
+    bottom: 24px;
+    right: 24px;
 }
 
 .card-footer.footer-between {
@@ -1355,4 +1413,66 @@ footer {
     .matrix-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* =========================================
+   SWITCH EVENT BUTTONS & NAVIGATION
+========================================= */
+.scanner-header-event-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 3px;
+}
+
+.btn-switch-event-header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 12px;
+    background: rgba(66, 133, 244, 0.08);
+    color: #1a73e8;
+    border: 1px solid rgba(66, 133, 244, 0.28);
+    border-radius: 9999px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-switch-event-header:hover {
+    background: #1a73e8;
+    color: #ffffff;
+    border-color: #1a73e8;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(26, 115, 232, 0.25);
+}
+
+.btn-switch-event-footer {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 22px;
+    border: 1.5px solid #c3cce9;
+    border-radius: 14px;
+    background: #ffffff;
+    color: #111b78;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(17, 27, 120, 0.06);
+    transition: all 0.2s ease;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.btn-switch-event-footer:hover {
+    background: #f0f4ff;
+    border-color: #4285F4;
+    color: #1a73e8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(66, 133, 244, 0.18);
 }

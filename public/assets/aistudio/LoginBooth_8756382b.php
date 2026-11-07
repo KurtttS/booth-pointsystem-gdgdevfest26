@@ -1,0 +1,156 @@
+
+<?php
+// LoginBooth.php — DevFest Bacolod 2026 Booth Portal login screen.
+// Connect the form to your authentication logic in the form's submit handler.
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DevFest Bacolod 2026</title>
+
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="IMG/GDGTOP.png?v=2">
+
+    <!-- Page stylesheet -->
+    <link rel="stylesheet" href="CSS/LoginBooth.css">
+    <link rel="stylesheet" href="CSS/nav.css">
+</head>
+
+<body>
+
+    <div class="page">
+        <div class="site-shell">
+
+            <!-- Shared navbar -->
+            <?php include 'nav.php'; ?>
+
+            <main class="main-content">
+
+                <section class="login-card" aria-labelledby="pageTitle">
+
+                    <div class="card-brand" aria-label="DevFest Bacolod 2026">
+                        <img
+                            src="IMG/GDG_LOGO.png"
+                            alt="DevFest Logo"
+                            class="gdg-logo"
+                        >
+
+                        <span class="brand-copy">
+                            <span class="brand-name">DevFest</span>
+                            <span class="brand-location">Bacolod 2026</span>
+                        </span>
+                    </div>
+
+                    <h1 id="pageTitle">Booth Portal Terminal</h1>
+
+                    <p class="subtitle">LOGIN FOR BOOTH ORGANIZERS</p>
+
+                    <form id="loginForm" action="EventChoices.php" method="post">
+
+                        <!-- Booth Username -->
+                        <div class="field">
+                            <label for="boothUsername">Booth Username</label>
+
+                            <div class="input-wrap">
+
+                                <span class="field-icon" aria-hidden="true">
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="1.6"
+                                    >
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <circle cx="12" cy="9" r="3.2"></circle>
+                                        <path d="M5.5 19c.9-3 3.3-4.6 6.5-4.6s5.6 1.6 6.5 4.6"></path>
+                                    </svg>
+                                </span>
+
+                                <input
+                                    id="boothUsername"
+                                    name="username"
+                                    type="text"
+                                    autocomplete="username"
+                                    aria-label="Booth Username"
+                                    required
+                                >
+
+                            </div>
+                        </div>
+
+                        <!-- Booth Password -->
+                        <div class="field">
+                            <label for="boothPassword">Booth Password</label>
+
+                            <div class="input-wrap">
+
+                                <span class="field-icon" aria-hidden="true">
+                                    <svg
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                    >
+                                        <path d="M17 9h-1V7a4 4 0 0 0-8 0v2H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2ZM10 7a2 2 0 1 1 4 0v2h-4V7Zm2 9.8a1.8 1.8 0 1 1 1.8-1.8 1.8 1.8 0 0 1-1.8 1.8Z"></path>
+                                    </svg>
+                                </span>
+
+                                <input
+                                    id="boothPassword"
+                                    name="password"
+                                    type="password"
+                                    autocomplete="current-password"
+                                    aria-label="Booth Password"
+                                    required
+                                >
+
+                                <button
+                                    class="toggle-password"
+                                    type="button"
+                                    id="togglePassword"
+                                    aria-label="Show password"
+                                    title="Show password"
+                                >
+                                    <svg
+                                        id="eyeIcon"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                        aria-hidden="true"
+                                    >
+                                        <path d="M12 5c-5.2 0-9.4 4.5-10.5 6.1a1.5 1.5 0 0 0 0 1.8C2.6 14.5 6.8 19 12 19s9.4-4.5 10.5-6.1a1.5 1.5 0 0 0 0-1.8C21.4 9.5 17.2 5 12 5Zm0 11.2a4.2 4.2 0 1 1 0-8.4 4.2 4.2 0 0 1 0 8.4Zm0-2.3a1.9 1.9 0 1 0 0-3.8 1.9 1.9 0 0 0 0 3.8Z"></path>
+                                    </svg>
+                                </button>
+
+                            </div>
+                        </div>
+                        
+                        <button class="login-button" type="submit">
+                            LOGIN BOOTH
+                        </button>
+
+                        <p
+                            class="form-message"
+                            id="formMessage"
+                            role="status"
+                            aria-live="polite"
+                        ></p>
+
+                    </form>
+                </section>
+
+                <footer>
+                    © 2026 GDG BACOLOD - AI Innovations Team. All Rights Reserved
+                </footer>
+
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Existing JavaScript -->
+    <script src="JAVASCRIPT/LoginBooth.js" defer></script>
+    <script src="JAVASCRIPT/nav.js" defer></script>
+</body>
+</html>

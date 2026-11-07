@@ -22,7 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeFilterLabel = document.getElementById('activeFilterLabel');
     const clearFilterBtn = document.getElementById('clearFilterBtn');
 
-    // Camera Toggle Elements
+    // Camera Controls & Fullscreen Elements
+    const videoContainer = document.getElementById('videoContainer');
+    const fullscreenBtn = document.getElementById('fullscreenCameraBtn');
+    const fullscreenIconExpand = document.getElementById('fullscreenIconExpand');
+    const fullscreenIconCompress = document.getElementById('fullscreenIconCompress');
+    const fullscreenBtnText = document.getElementById('fullscreenBtnText');
     const toggleCamBtn = document.getElementById('toggleCameraBtn');
     const camIconOn = document.getElementById('camIconOn');
     const camIconOff = document.getElementById('camIconOff');
@@ -232,6 +237,102 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Fullscreen Handling (Native Fullscreen with CSS Fallback) ---
+    function isCurrentlyFullscreen() {
+        return !!(
+            document.fullscreenElement ||
+            document.webkitFullscreenElement ||
+            document.mozFullScreenElement ||
+            document.msFullscreenElement ||
+            (videoContainer && videoContainer.classList.contains('is-fullscreen'))
+        );
+    }
+
+    function updateFullscreenUI(active) {
+        if (!fullscreenBtn) return;
+        if (active) {
+            fullscreenBtn.classList.add('is-active');
+            if (fullscreenIconExpand) fullscreenIconExpand.hidden = true;
+            if (fullscreenIconCompress) fullscreenIconCompress.hidden = false;
+            if (fullscreenBtnText) fullscreenBtnText.textContent = 'Exit Full Screen';
+            fullscreenBtn.setAttribute('title', 'Exit full screen (Esc)');
+        } else {
+            fullscreenBtn.classList.remove('is-active');
+            if (fullscreenIconExpand) fullscreenIconExpand.hidden = false;
+            if (fullscreenIconCompress) fullscreenIconCompress.hidden = true;
+            if (fullscreenBtnText) fullscreenBtnText.textContent = 'Full Screen';
+            fullscreenBtn.setAttribute('title', 'Expand camera to full screen');
+        }
+    }
+
+    async function toggleFullscreen() {
+        if (!videoContainer) return;
+
+        if (isCurrentlyFullscreen()) {
+            try {
+                if (document.exitFullscreen) {
+                    await document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) {
+                    await document.webkitExitFullscreen();
+                } else if (document.mozCancelFullScreen) {
+                    await document.mozCancelFullScreen();
+                } else if (document.msExitFullscreen) {
+                    await document.msExitFullscreen();
+                }
+            } catch (e) {
+                // Ignore failure, CSS class fallback ensures cleanup
+            }
+            videoContainer.classList.remove('is-fullscreen');
+            document.body.classList.remove('camera-fullscreen-active');
+            updateFullscreenUI(false);
+        } else {
+            try {
+                if (videoContainer.requestFullscreen) {
+                    await videoContainer.requestFullscreen();
+                } else if (videoContainer.webkitRequestFullscreen) {
+                    await videoContainer.webkitRequestFullscreen();
+                } else if (videoContainer.mozRequestFullScreen) {
+                    await videoContainer.mozRequestFullScreen();
+                } else if (videoContainer.msRequestFullscreen) {
+                    await videoContainer.msRequestFullscreen();
+                }
+            } catch (err) {
+                // If native fullscreen is disallowed in iframes, fallback cleanly to CSS fullscreen
+                console.warn('Native requestFullscreen denied or restricted:', err);
+            }
+
+            // Always activate CSS overlay if native wasn't granted or for seamless viewport fill
+            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+                videoContainer.classList.add('is-fullscreen');
+                document.body.classList.add('camera-fullscreen-active');
+            }
+            updateFullscreenUI(true);
+        }
+    }
+
+    if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => {
+            toggleFullscreen();
+        });
+    }
+
+    ['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(evt => {
+        document.addEventListener(evt, () => {
+            const isFs = isCurrentlyFullscreen();
+            if (!isFs && videoContainer) {
+                videoContainer.classList.remove('is-fullscreen');
+                document.body.classList.remove('camera-fullscreen-active');
+            }
+            updateFullscreenUI(isFs);
+        });
+    });
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && videoContainer && videoContainer.classList.contains('is-fullscreen')) {
+            toggleFullscreen();
+        }
+    });
+
     if (cameraSelect) {
         cameraSelect.addEventListener('change', () => {
             if (cameraSelect.value) startCamera(cameraSelect.value);
@@ -244,8 +345,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const vh = video.videoHeight;
         if (!vw || !vh) return;
 
-        // Downscale high-res frames to max 640px width for fast, low-CPU QR decoding
-        const scale = vw > 640 ? 640 / vw : 1;
+        // Pass 1: Full camera frame (up to 800px wide)
+        const scale = vw > 800 ? 800 / vw : 1;
         const cw = Math.round(vw * scale);
         const ch = Math.round(vh * scale);
 
@@ -255,13 +356,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         qrCtx.drawImage(video, 0, 0, cw, ch);
-        const imageData = qrCtx.getImageData(0, 0, cw, ch);
-        const qrResult = window.jsQR(imageData.data, imageData.width, imageData.height, {
+        let imageData = qrCtx.getImageData(0, 0, cw, ch);
+        let qrResult = window.jsQR(imageData.data, imageData.width, imageData.height, {
             inversionAttempts: 'attemptBoth'
         });
 
         if (qrResult && qrResult.data) {
             handleScanResult(qrResult.data);
+            return;
+        }
+
+        // Pass 2: Native-resolution center reticle crop for smaller QR codes held up on a phone
+        const cropSize = Math.round(Math.min(vw, vh) * 0.65);
+        if (cropSize > 120) {
+            const sx = Math.round((vw - cropSize) / 2);
+            const sy = Math.round((vh - cropSize) / 2);
+            qrCanvas.width = cropSize;
+            qrCanvas.height = cropSize;
+            qrCtx.drawImage(video, sx, sy, cropSize, cropSize, 0, 0, cropSize, cropSize);
+            imageData = qrCtx.getImageData(0, 0, cropSize, cropSize);
+            qrResult = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'attemptBoth'
+            });
+            if (qrResult && qrResult.data) {
+                handleScanResult(qrResult.data);
+            }
         }
     }
 
@@ -305,6 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
             totalScansCounter.textContent = totalScansCount;
         }
 
+        const boothType = (window.BOOTH_TYPE || 'standard').toLowerCase();
+
         let activeIndex = 0;
         let percentage = 0;
         let currentTierText = '';
@@ -312,36 +433,80 @@ document.addEventListener('DOMContentLoaded', () => {
         let currentTierPoints = 100;
         let currentColorLabel = 'Green';
 
-        if (totalScansCount < 10) {
-            activeIndex = 0;
-            currentTierPoints = 100;
-            currentColorLabel = 'Green';
-            percentage = Math.min(100, Math.round((totalScansCount / 10) * 100));
-            currentTierText = `Current Tier Progress (${totalScansCount}/10 Visits)`;
-            nextTierText = 'Next Tier: 11-50 Visits (85 PTS · Yellow)';
-        } else if (totalScansCount < 50) {
-            activeIndex = 1;
-            currentTierPoints = 85;
-            currentColorLabel = 'Yellow';
-            const inTier = totalScansCount - 10;
-            percentage = Math.min(100, Math.round((inTier / 40) * 100));
-            currentTierText = `Current Tier Progress (${totalScansCount}/50 Visits)`;
-            nextTierText = 'Next Tier: 51-90 Visits (65 PTS · Blue)';
-        } else if (totalScansCount < 90) {
-            activeIndex = 2;
+        if (boothType === 'gdg') {
+            // GDG Booth: Flat 65 PTS for all visits, attendees can scan twice
+            activeIndex = 2; // 65 PTS card (Tier 3)
             currentTierPoints = 65;
             currentColorLabel = 'Blue';
-            const inTier = totalScansCount - 50;
-            percentage = Math.min(100, Math.round((inTier / 40) * 100));
-            currentTierText = `Current Tier Progress (${totalScansCount}/90 Visits)`;
-            nextTierText = 'Next Tier: 91+ Visits (45 PTS · Red)';
-        } else {
-            activeIndex = 3;
-            currentTierPoints = 45;
-            currentColorLabel = 'Red';
             percentage = 100;
-            currentTierText = `Max Tier Active (${totalScansCount} Visits)`;
-            nextTierText = 'Standard Visit Active (45 PTS · Red)';
+            currentTierText = `GDG Station Active (${totalScansCount} Scans Recorded)`;
+            nextTierText = 'GDG Special: Flat 65 PTS · Attendees can scan up to 2 times';
+        } else if (boothType === 'sponsor') {
+            // Sponsor Booths: First 20 get 100 pts, then 85 pts up to visit 50
+            if (totalScansCount < 20) {
+                activeIndex = 0;
+                currentTierPoints = 100;
+                currentColorLabel = 'Green';
+                percentage = Math.min(100, Math.round((totalScansCount / 20) * 100));
+                currentTierText = `Current Tier Progress (${totalScansCount}/20 Visits)`;
+                nextTierText = 'Next Tier: 21-50 Visits (85 PTS · Yellow)';
+            } else if (totalScansCount < 50) {
+                activeIndex = 1;
+                currentTierPoints = 85;
+                currentColorLabel = 'Yellow';
+                const inTier = totalScansCount - 20;
+                percentage = Math.min(100, Math.round((inTier / 30) * 100));
+                currentTierText = `Current Tier Progress (${totalScansCount}/50 Visits)`;
+                nextTierText = 'Next Tier: 51-90 Visits (65 PTS · Blue)';
+            } else if (totalScansCount < 90) {
+                activeIndex = 2;
+                currentTierPoints = 65;
+                currentColorLabel = 'Blue';
+                const inTier = totalScansCount - 50;
+                percentage = Math.min(100, Math.round((inTier / 40) * 100));
+                currentTierText = `Current Tier Progress (${totalScansCount}/90 Visits)`;
+                nextTierText = 'Next Tier: 91+ Visits (45 PTS · Red)';
+            } else {
+                activeIndex = 3;
+                currentTierPoints = 45;
+                currentColorLabel = 'Red';
+                percentage = 100;
+                currentTierText = `Max Tier Active (${totalScansCount} Visits)`;
+                nextTierText = 'Standard Visit Active (45 PTS · Red)';
+            }
+        } else {
+            // Standard / Other Booths: Original 1-10, 11-50, 51-90, 91+ thresholds
+            if (totalScansCount < 10) {
+                activeIndex = 0;
+                currentTierPoints = 100;
+                currentColorLabel = 'Green';
+                percentage = Math.min(100, Math.round((totalScansCount / 10) * 100));
+                currentTierText = `Current Tier Progress (${totalScansCount}/10 Visits)`;
+                nextTierText = 'Next Tier: 11-50 Visits (85 PTS · Yellow)';
+            } else if (totalScansCount < 50) {
+                activeIndex = 1;
+                currentTierPoints = 85;
+                currentColorLabel = 'Yellow';
+                const inTier = totalScansCount - 10;
+                percentage = Math.min(100, Math.round((inTier / 40) * 100));
+                currentTierText = `Current Tier Progress (${totalScansCount}/50 Visits)`;
+                nextTierText = 'Next Tier: 51-90 Visits (65 PTS · Blue)';
+            } else if (totalScansCount < 90) {
+                activeIndex = 2;
+                currentTierPoints = 65;
+                currentColorLabel = 'Blue';
+                const inTier = totalScansCount - 50;
+                percentage = Math.min(100, Math.round((inTier / 40) * 100));
+                currentTierText = `Current Tier Progress (${totalScansCount}/90 Visits)`;
+                nextTierText = 'Next Tier: 91+ Visits (45 PTS · Red)';
+            } else {
+                activeIndex = 3;
+                currentTierPoints = 45;
+                currentColorLabel = 'Red';
+                percentage = 100;
+                currentTierText = `Max Tier Active (${totalScansCount} Visits)`;
+                nextTierText = 'Standard Visit Active (45 PTS · Red)';
+            }
         }
 
         if (tierProgressBar) {
@@ -376,7 +541,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (manualTierHint) {
-            manualTierHint.textContent = `Auto-set to current active tier points (+${currentTierPoints} PTS · ${currentColorLabel})`;
+            if (boothType === 'gdg') {
+                manualTierHint.textContent = `Auto-set to GDG flat rate (+65 PTS · Blue · Max 2 scans/attendee)`;
+            } else if (boothType === 'sponsor') {
+                manualTierHint.textContent = `Auto-set to Sponsor active tier (+${currentTierPoints} PTS · ${currentColorLabel} · Top 20: 100 PTS)`;
+            } else {
+                manualTierHint.textContent = `Auto-set to current active tier points (+${currentTierPoints} PTS · ${currentColorLabel})`;
+            }
         }
 
         // If currently set to "auto" filter, automatically re-run filter for the new active tier
@@ -386,6 +557,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function getCurrentTierPoints() {
+        const bType = (window.BOOTH_TYPE || 'standard').toLowerCase();
+        if (bType === 'gdg') return 65;
+        if (bType === 'sponsor') {
+            if (totalScansCount < 20) return 100;
+            if (totalScansCount < 50) return 85;
+            if (totalScansCount < 90) return 65;
+            return 45;
+        }
         if (totalScansCount < 10) return 100;
         if (totalScansCount < 50) return 85;
         if (totalScansCount < 90) return 65;
@@ -519,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const sid = urlParams.get('sid');
-            const eventId = urlParams.get('event_id');
+            const eventId = (typeof window.ACTIVE_EVENT_ID !== 'undefined' && window.ACTIVE_EVENT_ID) ? window.ACTIVE_EVENT_ID : urlParams.get('event_id');
             const headers = { 'Content-Type': 'application/json' };
             if (sid) headers['X-Session-ID'] = sid;
 
@@ -633,14 +812,11 @@ document.addEventListener('DOMContentLoaded', () => {
         manualForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const idInput = document.getElementById('manualAttendeeId');
-            const nameInput = document.getElementById('manualAttendeeName');
-
             const id = idInput ? idInput.value.trim() : '';
-            const name = nameInput ? nameInput.value.trim() : '';
 
             if (!id) return;
 
-            sendScanToBackend(id, name);
+            sendScanToBackend(id);
             closeModal();
         });
     }
@@ -650,7 +826,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const urlParams = new URLSearchParams(window.location.search);
             const sid = urlParams.get('sid') || sessionStorage.getItem('devfest_sid') || localStorage.getItem('devfest_sid');
-            const eventId = urlParams.get('event_id');
+            const eventId = (typeof window.ACTIVE_EVENT_ID !== 'undefined' && window.ACTIVE_EVENT_ID) ? window.ACTIVE_EVENT_ID : urlParams.get('event_id');
             const headers = {};
             if (sid) headers['X-Session-ID'] = sid;
 
@@ -667,6 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     data.scans.slice().reverse().forEach(scan => {
                         addScanToFeed(scan.attendeeId, scan.attendeeName, scan.points, scan.timestamp);
                     });
+                }
+                if (data.boothType) {
+                    window.BOOTH_TYPE = data.boothType;
                 }
                 totalScansCount = typeof data.totalScans === 'number' ? data.totalScans : 0;
                 updateMatrixProgress();

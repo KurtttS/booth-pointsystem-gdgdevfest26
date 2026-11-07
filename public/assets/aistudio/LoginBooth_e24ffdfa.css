@@ -1,0 +1,665 @@
+
+/* =========================================
+   DEVFEST BOOTH PORTAL — LOGIN PAGE CSS
+========================================= */
+
+:root {
+    --navy: #111b78;
+    --navy-deep: #101a78;
+    --green: #188447;
+    --text: #111b78;
+    --line: #c6c9e8;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    color: var(--text);
+    background: #f5f5f5;
+}
+
+/* =========================================
+   FULL PAGE CONTAINER
+========================================= */
+
+.page {
+    width: 100%;
+    min-height: 100vh;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.site-shell {
+    position: relative;
+    isolation: isolate;
+    width: 100%;
+    min-height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    background: #f8f8f8;
+}
+
+/* =========================================
+   COLORFUL GRADIENT BACKGROUND
+========================================= */
+
+.site-shell::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 82px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+
+    background:
+        radial-gradient(
+            ellipse 24% 23% at 0% 49%,
+            rgba(255, 79, 65, 0.96) 0%,
+            rgba(255, 100, 83, 0.83) 32%,
+            rgba(255, 125, 106, 0.42) 57%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 29% 25% at 19% 66%,
+            rgba(54, 207, 148, 0.95) 0%,
+            rgba(77, 214, 157, 0.82) 38%,
+            rgba(107, 222, 174, 0.4) 65%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 27% 27% at 1% 85%,
+            rgba(29, 43, 139, 0.99) 0%,
+            rgba(38, 54, 151, 0.9) 38%,
+            rgba(51, 68, 158, 0.5) 64%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 25% 24% at 30% 95%,
+            rgba(255, 226, 91, 0.96) 0%,
+            rgba(255, 234, 131, 0.8) 40%,
+            rgba(255, 240, 174, 0.38) 68%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 27% 24% at 83% 5%,
+            rgba(255, 83, 69, 0.98) 0%,
+            rgba(255, 119, 74, 0.88) 38%,
+            rgba(255, 159, 91, 0.48) 66%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 27% 24% at 100% 5%,
+            rgba(255, 226, 91, 0.96) 0%,
+            rgba(255, 234, 131, 0.8) 40%,
+            rgba(255, 240, 174, 0.38) 68%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 23% 24% at 77% 25%,
+            rgba(26, 39, 132, 0.98) 0%,
+            rgba(35, 49, 144, 0.9) 38%,
+            rgba(45, 59, 148, 0.45) 65%,
+            transparent 100%
+        ),
+        radial-gradient(
+            ellipse 27% 26% at 100% 36%,
+            rgba(56, 205, 143, 0.95) 0%,
+            rgba(86, 215, 159, 0.78) 40%,
+            rgba(119, 224, 179, 0.38) 68%,
+            transparent 100%
+        ),
+        #f8f8f8;
+
+    filter: saturate(1.08);
+}
+
+/* =========================================
+   MAIN CONTENT
+========================================= */
+
+.main-content {
+    width: 100%;
+    min-height: calc(100vh - 82px);
+    padding: 40px 20px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================================
+   LOGIN CARD
+========================================= */
+
+.login-card {
+    width: 680px;
+    max-width: 100%;
+    min-height: 680px;
+    padding: 55px 58px;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(20, 27, 70, 0.07);
+    border-radius: 30px;
+    box-shadow: 0 5px 16px rgba(0, 0, 0, 0.13);
+}
+
+/* =========================================
+   LOGIN CARD LOGO
+========================================= */
+
+.card-brand {
+    color: var(--navy);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
+
+.card-brand .gdg-logo,
+.card-brand .gdg-top {
+    display: block;
+    width: 60px;
+    height: 52px;
+    object-fit: contain;
+    object-position: center;
+    flex-shrink: 0;
+}
+
+.card-brand .brand-copy {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.05;
+}
+
+.card-brand .brand-name {
+    color: var(--navy);
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.8px;
+}
+
+.card-brand .brand-location {
+    color: #2bbd79;
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: 3px;
+}
+
+/* =========================================
+   PAGE TITLE
+========================================= */
+
+h1 {
+    margin: 0;
+    text-align: center;
+    color: var(--navy);
+    font-size: 46px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -1px;
+}
+
+/* =========================================
+   SUBTITLE
+========================================= */
+
+.subtitle {
+    text-align: center;
+    font-size: 14px;
+    letter-spacing: 2.5px;
+    font-weight: 600;
+    margin: 17px 0 43px;
+}
+
+/* =========================================
+   FORM FIELDS
+========================================= */
+
+.field {
+    margin-bottom: 25px;
+}
+
+.field label {
+    display: block;
+    margin: 0 0 12px 15px;
+    font-size: 14px;
+    font-weight: 750;
+    letter-spacing: 1.5px;
+}
+
+.input-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.input-wrap input {
+    width: 100%;
+    height: 66px;
+    padding: 0 55px;
+
+    border: 1px solid var(--line);
+    border-radius: 14px;
+
+    background: #ffffff;
+    color: #20245f;
+    font-size: 18px;
+    outline: none;
+
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.input-wrap input:focus {
+    border-color: #18268e;
+    box-shadow: 0 0 0 3px rgba(17, 27, 120, 0.09);
+}
+
+/* =========================================
+   USERNAME AND PASSWORD ICONS
+========================================= */
+
+.field-icon {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 23px;
+    height: 23px;
+
+    display: grid;
+    place-items: center;
+
+    color: var(--navy);
+    pointer-events: none;
+}
+
+.field-icon svg,
+.toggle-password svg {
+    width: 23px;
+    height: 23px;
+}
+
+/* =========================================
+   SHOW / HIDE PASSWORD
+========================================= */
+
+.toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    padding: 6px;
+    border: 0;
+    background: transparent;
+    color: var(--navy);
+
+    display: grid;
+    place-items: center;
+
+    cursor: pointer;
+}
+
+/* =========================================
+   LOGIN BUTTON
+========================================= */
+
+.login-button {
+    display: block;
+    width: 82%;
+    height: 66px;
+    margin: 38px auto 0;
+
+    border: none;
+    border-radius: 13px;
+
+    color: #ffffff;
+    background: var(--navy);
+
+    font-size: 18px;
+    font-weight: 750;
+
+    cursor: pointer;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.login-button:hover {
+    background: #202d9a;
+}
+
+.login-button:active {
+    transform: scale(0.99);
+}
+
+/* =========================================
+   FORM MESSAGE
+========================================= */
+
+.form-message {
+    margin: 14px 0 0;
+    min-height: 18px;
+    text-align: center;
+    font-size: 14px;
+    color: #b3261e;
+}
+
+/* =========================================
+   FOOTER
+========================================= */
+
+footer {
+    margin-top: 20px;
+    text-align: center;
+    color: #707aa6;
+    font-size: 10px;
+    letter-spacing: 1.8px;
+    font-weight: 600;
+}
+
+/* =========================================
+   TABLET AND MOBILE
+========================================= */
+
+@media (max-width: 760px) {
+    .page,
+    .site-shell {
+        width: 100%;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    .site-shell::before {
+        top: 70px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        background:
+            radial-gradient(
+                ellipse 65% 18% at 0% 35%,
+                rgba(255, 78, 65, 0.9) 0%,
+                transparent 76%
+            ),
+            radial-gradient(
+                ellipse 75% 22% at 20% 53%,
+                rgba(54, 207, 148, 0.92) 0%,
+                transparent 78%
+            ),
+            radial-gradient(
+                ellipse 65% 22% at 10% 88%,
+                rgba(28, 43, 139, 0.98) 0%,
+                transparent 78%
+            ),
+            radial-gradient(
+                ellipse 70% 22% at 35% 100%,
+                rgba(255, 226, 91, 0.9) 0%,
+                transparent 78%
+            ),
+            radial-gradient(
+                ellipse 65% 20% at 100% 7%,
+                rgba(255, 82, 68, 0.95) 0%,
+                transparent 76%
+            ),
+            radial-gradient(
+                ellipse 65% 23% at 100% 30%,
+                rgba(54, 204, 143, 0.9) 0%,
+                transparent 78%
+            ),
+            #f8f8f8;
+    }
+
+    .main-content {
+        min-height: calc(100vh - 70px);
+        padding: 30px 18px;
+        justify-content: center;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 520px;
+        min-height: 0;
+        padding: 38px 28px 42px;
+        border-radius: 24px;
+    }
+
+    .card-brand {
+        margin-bottom: 24px;
+    }
+
+    .card-brand .gdg-logo,
+    .card-brand .gdg-top {
+        width: 48px;
+        height: 43px;
+    }
+
+    .card-brand .brand-name {
+        font-size: 28px;
+    }
+
+    .card-brand .brand-location {
+        font-size: 13px;
+    }
+
+    h1 {
+        font-size: clamp(28px, 6vw, 38px);
+        letter-spacing: -0.7px;
+    }
+
+    .subtitle {
+        font-size: 10px;
+        letter-spacing: 1.8px;
+        margin: 13px 0 32px;
+    }
+
+    .field {
+        margin-bottom: 22px;
+    }
+
+    .field label {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .input-wrap input {
+        height: 58px;
+        padding-left: 48px;
+        padding-right: 45px;
+        font-size: 16px;
+    }
+
+    .field-icon {
+        left: 15px;
+        width: 20px;
+        height: 20px;
+    }
+
+    .field-icon svg,
+    .toggle-password svg {
+        width: 20px;
+        height: 20px;
+    }
+
+    .login-button {
+        width: 88%;
+        height: 58px;
+        margin-top: 30px;
+        font-size: 16px;
+    }
+
+    footer {
+        max-width: 340px;
+        line-height: 1.8;
+        font-size: 9px;
+        letter-spacing: 1px;
+        margin-top: 18px;
+    }
+}
+
+/* =========================================
+   EXTRA-SMALL PHONES
+========================================= */
+
+@media (max-width: 400px) {
+    .main-content {
+        padding: 24px 13px;
+    }
+
+    .login-card {
+        padding: 30px 19px 34px;
+        border-radius: 21px;
+    }
+
+    .card-brand .gdg-logo,
+    .card-brand .gdg-top {
+        width: 42px;
+        height: 40px;
+    }
+
+    .card-brand .brand-name {
+        font-size: 24px;
+    }
+
+    .card-brand .brand-location {
+        font-size: 12px;
+    }
+
+    h1 {
+        font-size: clamp(25px, 7vw, 30px);
+    }
+
+    .subtitle {
+        font-size: 8px;
+        letter-spacing: 1.2px;
+    }
+
+    .field label {
+        font-size: 11px;
+    }
+
+    .input-wrap input {
+        height: 53px;
+    }
+
+    .login-button {
+        width: 92%;
+        height: 54px;
+        font-size: 15px;
+    }
+
+    footer {
+        font-size: 8px;
+        letter-spacing: 0.7px;
+    }
+}
+
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        transition: none !important;
+    }
+}
+
+
+/* =========================================
+   KEYFRAME ANIMATIONS
+========================================= */
+
+/* Smooth fade-and-glide entrance */
+@keyframes cardEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(26px) scale(0.985);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Subtle staggered fade for inner elements */
+@keyframes fadeSlideUp {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* =========================================
+   ANIMATED LOGIN & SUPERADMIN CARD
+========================================= */
+
+.login-card,
+.admin-card,
+footer {
+    /* Entrance on page load */
+    animation: cardEntrance 3.00s cubic-bezier(0.16, 1, 0.3, 1) both;
+
+    /* Smooth transition for mouse interactions */
+    transition: 
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+    will-change: transform, opacity;
+}
+
+/* Elegant lift effect on desktop hover */
+@media (hover: hover) {
+    .login-card:hover,
+    .admin-card:hover,
+    footer:hover{
+        transform: translateY(-4px);
+        box-shadow: 
+            0 16px 32px rgba(17, 27, 120, 0.12),
+            0 4px 12px rgba(0, 0, 0, 0.06);
+        border-color: rgba(17, 27, 120, 0.16);
+    }
+}
+
+
+
+/* =========================================
+   ACCESSIBILITY (REDUCED MOTION)
+========================================= */
+
+@media (prefers-reduced-motion: reduce) {
+    .login-card,
+    .admin-card,
+    footer,
+    .login-card *,
+    footer *,
+    .admin-card * {
+        animation: none !important;
+        transition: none !important;
+        transform: none !important;
+    }
+}
