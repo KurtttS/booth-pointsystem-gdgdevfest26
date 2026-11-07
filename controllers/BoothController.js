@@ -65,14 +65,39 @@ export class BoothController {
     }
 
     try {
-      // 1. Detect whether the entered username belongs to an active admin or staff account in Supabase
+      // 1. Detect whether the entered username belongs to an active admin account in Supabase
       const adminRecord = await Admin.findByUsername(username);
       if (adminRecord && Admin.isActive(adminRecord)) {
+        const auth = await Admin.authenticate(username, password);
+        if (auth.status === 'ok' && auth.admin) {
+          return req.session.regenerate((regenErr) => {
+            if (regenErr) console.error('[Session] Regenerate error:', regenErr);
+            const admin = auth.admin;
+            const displayName = admin.display_name && admin.display_name.trim()
+              ? admin.display_name.trim()
+              : admin.username;
+
+            req.session.isLoggedIn = true;
+            req.session.isAdmin = true;
+            req.session.role = 'admin';
+            req.session.adminUser = admin.username;
+            req.session.admin_name = displayName;
+            req.session.username = admin.username;
+            req.session.user = displayName;
+
+            const sid = req.sessionID;
+            return req.session.save((err) => {
+              if (err) console.error('[Session] Error saving admin session:', err);
+              const target = '/SuperAdmin.php?tab=overview' + (sid ? '&sid=' + encodeURIComponent(sid) : '');
+              return res.redirect(target);
+            });
+          });
+        }
+
         const isStaff = (adminRecord.role || '').toString().trim().toLowerCase() === 'staff';
         const roleError = isStaff
           ? 'Staff accounts cannot log in to the Booth Portal Terminal. Please use a booth account.'
-          : 'Admin accounts cannot log in to the Booth Portal Terminal. Please use a booth account.';
-        // Do not return 403 Forbidden; keep the user on the login page with the exact message
+          : 'Invalid administrator credentials. Please check your username and password.';
         return res.render('LoginBooth', {
           currentPage: 'LoginBooth.php',
           error: roleError,

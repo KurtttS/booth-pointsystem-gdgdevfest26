@@ -182,7 +182,7 @@ button {
 }
 
 .leaderboard::-webkit-scrollbar-thumb {
-    background: hidden;
+    background: #0C1570;
     border-radius: 10px;
 }
 
@@ -566,7 +566,7 @@ button {
 
 /* Expanded state */
 .more-rankings.open {
-    max-height: 480px; /* Ample room for rows 8 to 12 */
+    max-height: 5000px; /* Ample room for all attendees */
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;

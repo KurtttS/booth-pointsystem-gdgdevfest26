@@ -139,8 +139,8 @@
                     <span class="param-label">Selected Event</span>
                     <div class="param-event-action-wrap">
                         <span class="param-value param-value-context"><%= currentSelectedEventName || 'N/A' %></span>
-                        <a href="/EventChoices.php<%= sidParam %>" class="btn-change-event-profile" title="Switch or select a different event without logging out">
-                            Switch Event
+                        <a href="/EventChoices.php<%= sidParam %>" class="btn-change-event-profile" title="Change Event">
+                            Change Event
                         </a>
                     </div>
                 </div>
@@ -155,16 +155,6 @@
                         <polyline points="9 22 9 12 15 12 15 22"/>
                     </svg>
                     <span>Dashboard</span>
-                </a>
-
-                <a href="/EventChoices.php<%= sidParam %>" class="btn-events-action" title="Return to Event Selection">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                        <line x1="16" y1="2" x2="16" y2="6"/>
-                        <line x1="8" y1="2" x2="8" y2="6"/>
-                        <line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    <span>Switch Event</span>
                 </a>
 
                 <a href="/logout.php<%= sidParam %>" class="btn-logout" id="profileLogoutBtn">
