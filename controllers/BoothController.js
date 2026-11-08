@@ -5,6 +5,7 @@ import { Admin } from '../models/Admin.js';
 import { Event } from '../models/Event.js';
 import { ScanLog } from '../models/ScanLog.js';
 import { isSupabaseConfigured } from '../config/supabase.js';
+import { getEventTheme } from '../utils/eventLogos.js';
 
 
 export class BoothController {
@@ -13,8 +14,8 @@ export class BoothController {
    * If user is already logged in, prevent returning to login by redirecting forward.
    */
   static showLogin(req, res) {
-    // If arriving with logout message or error, ensure user stays on Booth Portal Terminal
-    if (req.query.message || req.query.logged_out) {
+    // If arriving with explicit logout or error, ensure user stays on Booth Portal Terminal
+    if (req.query.logged_out === '1' || req.query.logged_out === 'true' || req.query.error) {
       return res.render('LoginBooth', {
         currentPage: 'LoginBooth.php',
         error: req.query.error || null,
@@ -65,14 +66,39 @@ export class BoothController {
     }
 
     try {
-      // 1. Detect whether the entered username belongs to an active admin or staff account in Supabase
+      // 1. Detect whether the entered username belongs to an active admin account in Supabase
       const adminRecord = await Admin.findByUsername(username);
       if (adminRecord && Admin.isActive(adminRecord)) {
+        const auth = await Admin.authenticate(username, password);
+        if (auth.status === 'ok' && auth.admin) {
+          return req.session.regenerate((regenErr) => {
+            if (regenErr) console.error('[Session] Regenerate error:', regenErr);
+            const admin = auth.admin;
+            const displayName = admin.display_name && admin.display_name.trim()
+              ? admin.display_name.trim()
+              : admin.username;
+
+            req.session.isLoggedIn = true;
+            req.session.isAdmin = true;
+            req.session.role = 'admin';
+            req.session.adminUser = admin.username;
+            req.session.admin_name = displayName;
+            req.session.username = admin.username;
+            req.session.user = displayName;
+
+            const sid = req.sessionID;
+            return req.session.save((err) => {
+              if (err) console.error('[Session] Error saving admin session:', err);
+              const target = '/SuperAdmin.php?tab=overview' + (sid ? '&sid=' + encodeURIComponent(sid) : '');
+              return res.redirect(target);
+            });
+          });
+        }
+
         const isStaff = (adminRecord.role || '').toString().trim().toLowerCase() === 'staff';
         const roleError = isStaff
           ? 'Staff accounts cannot log in to the Booth Portal Terminal. Please use a booth account.'
-          : 'Admin accounts cannot log in to the Booth Portal Terminal. Please use a booth account.';
-        // Do not return 403 Forbidden; keep the user on the login page with the exact message
+          : 'Invalid administrator credentials. Please check your username and password.';
         return res.render('LoginBooth', {
           currentPage: 'LoginBooth.php',
           error: roleError,
@@ -103,6 +129,8 @@ export class BoothController {
           req.session.boothName = boothAuth.booth.name;
           req.session.boothSponsor = boothAuth.booth.sponsorName || boothAuth.booth.sponsor || '';
           req.session.boothLocation = boothAuth.booth.location || '';
+          req.session.booth_type = boothAuth.booth.booth_type || Booth.getBoothType(boothAuth.booth);
+          req.session.boothType = req.session.booth_type;
           req.session.isAdmin = false;
           req.session.event_id = null;
           req.session.eventId = null;
@@ -162,13 +190,21 @@ export class BoothController {
     const sid = req.sessionID || req.query.sid || '';
     const activeEvent = await Event.findById(eventId);
 
+    const enrichedEvents = events.map(ev => ({
+      ...ev,
+      theme: getEventTheme(ev.id, ev.event_name, events)
+    }));
+    const activeEventTheme = getEventTheme(eventId, activeEvent ? activeEvent.event_name : '', events);
+
     res.render('EventChoices', {
       currentPage: 'EventChoices.php',
       track,
       eventId,
       currentEventId: eventId,
       currentEventName: activeEvent ? activeEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day'),
-      events,
+      events: enrichedEvents,
+      getEventTheme,
+      activeEventTheme,
       boothId,
       boothName: req.session.boothName,
       user: req.session.username,
@@ -187,7 +223,7 @@ export class BoothController {
       return res.redirect('/LoginBooth.php?error=' + encodeURIComponent('Access denied. Please log in first.'));
     }
 
-    const rawEventId = req.body.event_id || req.body.eventId || (req.body.track === 'professionals' ? 2 : 1);
+    const rawEventId = req.body.event_id || req.body.eventId || req.body.track_id || (req.body.track === 'professionals' ? 2 : 1);
     const eventId = parseInt(rawEventId, 10) || 1;
     const selectedTrack = req.body.track ? req.body.track.trim() : (eventId === 2 ? 'professionals' : 'students');
 
@@ -265,6 +301,8 @@ export class BoothController {
       req.session.save(() => {});
     }
 
+    const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+    const boothType = Booth.getBoothType(booth);
     const initialScans = await ScanLog.getRecentScans(boothId, eventId);
     const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
 
@@ -274,7 +312,8 @@ export class BoothController {
       eventName,
       boothId,
       booth_IDs: boothId,
-      boothName: req.session.boothName || boothId,
+      boothName: req.session.boothName || booth.name || boothId,
+      boothType,
       eventId,
       event_id: eventId,
       initialScans,
@@ -304,8 +343,8 @@ export class BoothController {
     }
 
     const redirectUrl = isAdmin
-      ? '/SuperAdmin.php?message=' + encodeURIComponent('You have been logged out successfully.')
-      : '/LoginBooth.php?message=' + encodeURIComponent('You have been logged out successfully.');
+      ? '/SuperAdmin.php?logged_out=1&message=' + encodeURIComponent('You have been logged out successfully.')
+      : '/LoginBooth.php?logged_out=1&message=' + encodeURIComponent('You have been logged out successfully.');
 
     const finalizeLogout = () => {
       res.clearCookie('connect.sid', cookieOpts);
@@ -359,14 +398,15 @@ export class BoothController {
     const adminName = req.session.admin_name || req.session.username || req.session.adminUser || req.session.boothUser || 'Admin';
     const stationName = booth?.name || req.session.boothName || 'Active Station';
     const stationLocation = booth?.location || event?.venue || '';
+    const boothType = Booth.getBoothType(booth);
 
     // Calculate metrics using existing ScanLog methods
     let totalScans = 0;
     let scansToday = 0;
     let pointsDistributed = 0;
     let totalUniqueVisitors = 0;
-    let rewardRate = 100;
-    let tierInfo = ScanLog.calculatePointsForScanCount(0);
+    let tierInfo = ScanLog.calculatePointsForScanCount(0, boothType);
+    let rewardRate = tierInfo.points;
     let leaderboard = [];
 
     try {
@@ -391,7 +431,7 @@ export class BoothController {
       totalUniqueVisitors = uniqueAttendees.size;
 
       // Current reward rate
-      tierInfo = ScanLog.calculatePointsForScanCount(totalScans);
+      tierInfo = ScanLog.calculatePointsForScanCount(totalScans, boothType);
       rewardRate = tierInfo.points;
 
       // Leaderboard: top 5 from existing getLeaderboard logic
@@ -413,9 +453,9 @@ export class BoothController {
     if (totalUniqueVisitors === 0 && req.session.unique_visitors) totalUniqueVisitors = req.session.unique_visitors;
 
     const tierLabels = {
-      '1-10': 'First 1 - 10 (Early Bird)',
-      '11-50': 'Visits 11 - 50 (Prime Time)',
-      '51-90': 'Visits 51 - 90 (Rush Hour)',
+      '1-10': boothType === 'sponsor' ? 'Top 1 - 20 (Early Bird)' : 'First 1 - 10 (Early Bird)',
+      '11-50': boothType === 'sponsor' ? 'Visits 21 - 50 (Prime Time)' : 'Visits 11 - 50 (Prime Time)',
+      '51-90': boothType === 'gdg' ? 'GDG Rate (65 PTS Flat)' : 'Visits 51 - 90 (Rush Hour)',
       '91+': 'Visits 91+ (Standard)'
     };
 
@@ -424,10 +464,12 @@ export class BoothController {
       admin_name: adminName,
       station_name: stationName,
       station_location: stationLocation,
+      boothType,
+      eventId: eventId || 1,
       eventName: event ? event.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day'),
       total_unique_visitors: totalUniqueVisitors,
       current_reward_rate: rewardRate,
-      reward_tier_name: tierLabels[tierInfo.category] || 'First 1 - 10 (Early Bird)',
+      reward_tier_name: tierLabels[tierInfo.category] || tierInfo.label || 'Standard Tier',
       points_distributed: pointsDistributed,
       total_scans: totalScans,
       scans_today: scansToday,
@@ -486,11 +528,14 @@ export class BoothController {
     const sponsor = booth?.sponsorName || booth?.sponsor_name || booth?.sponsor || '';
     const venueLocation = booth?.location || (event?.venue || '');
     const selectedEventName = event?.event_name || (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
+    const boothType = Booth.getBoothType(booth);
 
     res.render('StationProfile', {
       currentPage: 'StationProfile.php',
       booth_name: boothName,
       boothName,
+      booth_type: boothType,
+      boothType,
       sponsor,
       sponsorName: sponsor,
       category: sponsor, // Backward compatibility alias
@@ -498,6 +543,7 @@ export class BoothController {
       venueLocation,
       selected_event: selectedEventName,
       selectedEventName,
+      eventId: eventId || 1,
       active_context: selectedEventName,
       activeContext: selectedEventName,
       upload_message: req.query.msg || '',

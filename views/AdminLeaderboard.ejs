@@ -31,8 +31,8 @@
 
 <div class="page-shell">
 
-    <!-- Shared navbar (matches Dashboard) -->
-    <%- include('partials/DashboardNav', { sid: sessionSid }) %>
+    <!-- Shared navbar -->
+    <%- include('partials/nav', { currentPage: 'AdminLeaderboard.php', isLoggedIn: true, sid: sessionSid }) %>
 
     <!-- LEADERBOARD CONTENT -->
     <main class="leaderboard">
@@ -46,8 +46,57 @@
 
             <div class="subtitle">
                 <span></span>
-                <p>TOP ATTENDEES PERFORMERS</p>
+                <p>TOP ATTENDEES PERFORMERS &middot; <%= (typeof trackName !== 'undefined' && trackName) ? trackName.toUpperCase() : 'EVENT STANDINGS' %></p>
                 <span></span>
+            </div>
+
+            <!-- EVENT SELECTION DROPDOWN -->
+            <% 
+            const adminEventsList = (typeof allEvents !== 'undefined' && Array.isArray(allEvents) && allEvents.length > 0)
+                ? allEvents
+                : [
+                    { id: 1, event_name: 'Student Dev Day' },
+                    { id: 2, event_name: 'Professional Dev Day' }
+                  ];
+            const currentAdminEventName = (adminEventsList.find(e => parseInt(e.id, 10) === parseInt(selectedEvId, 10))?.event_name) || 'Select Event';
+            %>
+            <div class="leaderboard-event-dropdown-container">
+                <div class="dropdown-menu-container leaderboard-event-custom-dropdown" id="adminLeaderboardDropdownContainer">
+                    <button type="button" class="leaderboard-event-btn-trigger" id="adminLeaderboardEventBtn" aria-expanded="false" aria-haspopup="true">
+                        <img src="/api/event-logo/<%= selectedEvId %>" alt="Event Logo" class="leaderboard-event-badge-logo" onerror="this.src='/IMG/test_green.png'">
+                        <span class="dropdown-event-label">Event:</span>
+                        <span class="dropdown-event-current-name"><%= currentAdminEventName %></span>
+                        <svg class="dropdown-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <div class="dropdown-popover leaderboard-event-popover" id="adminLeaderboardEventPopover" role="menu">
+                        <% adminEventsList.forEach(function(ev) { 
+                            const isCurrent = (parseInt(selectedEvId, 10) === parseInt(ev.id, 10));
+                        %>
+                        <a href="/AdminLeaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                           class="dropdown-item leaderboard-event-item <%= isCurrent ? 'is-selected' : '' %>"
+                           role="menuitem">
+                            <img src="/api/event-logo/<%= ev.id %>" alt="<%= ev.event_name %>" class="leaderboard-item-event-logo" onerror="this.src='/IMG/test_green.png'">
+                            <span class="leaderboard-item-event-text"><%= ev.event_name %></span>
+                            <% if (isCurrent) { %>
+                                <span class="leaderboard-item-check">✓</span>
+                            <% } %>
+                        </a>
+                        <% }); %>
+                    </div>
+
+                    <!-- Hidden native select for backwards compatibility and accessibility -->
+                    <select id="adminEventSelect" class="sr-only-select" aria-label="Select Event Leaderboard" onchange="if(this.value) window.location.href=this.value;">
+                        <% adminEventsList.forEach(function(ev) { %>
+                        <option value="/AdminLeaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                                <%= (parseInt(selectedEvId, 10) === parseInt(ev.id, 10)) ? 'selected' : '' %>>
+                            <%= ev.event_name %>
+                        </option>
+                        <% }); %>
+                    </select>
+                </div>
             </div>
 
             <!-- Optional locked event metadata for Leaderboard.js real-time live sync -->
@@ -217,5 +266,6 @@
 </div>
 
 <script src="/JAVASCRIPT/Leaderboard.js" defer></script>
+<script src="/JAVASCRIPT/nav.js" defer></script>
 </body>
 </html>
