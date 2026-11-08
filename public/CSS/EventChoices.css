@@ -274,23 +274,69 @@ html, body {
 }
 
 /* --------------------------------------------------------------------------
-   TRACK CARDS GRID
+   3D COVERFLOW HORIZONTAL CAROUSEL (LOOPING)
    -------------------------------------------------------------------------- */
-.track-selection-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
-  max-width: 590px;
-  margin: 0 auto 28px auto;
+.carousel-wrapper {
   position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto 28px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   z-index: 10;
 }
 
-.track-card {
+.coverflow-stage {
   position: relative;
+  width: 100%;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 1000px;
+  perspective-origin: 50% 50%;
+  overflow: visible;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ground shadow underneath stage matching reference */
+.coverflow-stage::after {
+  content: '';
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 250px;
+  height: 24px;
+  background: radial-gradient(ellipse at center, rgba(15, 23, 42, 0.35) 0%, rgba(15, 23, 42, 0) 72%);
+  border-radius: 50%;
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.coverflow-track {
+  position: relative;
+  width: 240px;
+  height: 310px;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.coverflow-track .track-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 240px;
+  height: 310px;
+  box-sizing: border-box;
   background: var(--white);
-  border-radius: 26px;
-  padding: 30px 24px;
+  border-radius: 20px;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -298,58 +344,201 @@ html, body {
   text-align: center;
   cursor: pointer;
   border: 2px solid transparent;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+  transition: transform 0.45s cubic-bezier(0.2, 0.85, 0.3, 1),
+              opacity 0.45s cubic-bezier(0.2, 0.85, 0.3, 1),
+              filter 0.45s cubic-bezier(0.2, 0.85, 0.3, 1),
+              box-shadow 0.45s cubic-bezier(0.2, 0.85, 0.3, 1),
+              border-color 0.3s ease;
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
   user-select: none;
 }
 
-/* Students Card Glow */
-.track-card-students {
-  box-shadow: 0 0 35px var(--green-glow);
+/* 3D Coverflow Positions Matching Reference Screenshot */
+.coverflow-track .track-card.coverflow-center {
+  transform: translateX(0) translateZ(45px) rotateY(0deg) scale(1);
+  z-index: 10;
+  opacity: 1;
+  filter: brightness(1);
+  box-shadow: 0 24px 48px -8px rgba(15, 23, 42, 0.38), 0 4px 12px rgba(15, 23, 42, 0.08);
+  cursor: default;
+  pointer-events: auto;
 }
 
-.track-card-students:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 45px rgba(34, 197, 94, 0.45);
+.coverflow-track .track-card.coverflow-left-1 {
+  transform: translateX(-125px) translateZ(-50px) rotateY(48deg) scale(0.86);
+  z-index: 7;
+  opacity: 0.92;
+  filter: brightness(0.8);
+  box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.3);
+  cursor: pointer;
+  pointer-events: auto;
 }
 
-.track-card-students.active {
-  border-color: #10b981;
-  box-shadow: 0 0 45px rgba(16, 185, 129, 0.5);
+.coverflow-track .track-card.coverflow-left-2 {
+  transform: translateX(-225px) translateZ(-130px) rotateY(58deg) scale(0.72);
+  z-index: 4;
+  opacity: 0.72;
+  filter: brightness(0.64);
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.28);
+  cursor: pointer;
+  pointer-events: auto;
 }
 
-/* Professionals Card Glow */
-.track-card-professionals {
-  box-shadow: 0 0 35px var(--coral-glow);
+.coverflow-track .track-card.coverflow-right-1 {
+  transform: translateX(125px) translateZ(-50px) rotateY(-48deg) scale(0.86);
+  z-index: 7;
+  opacity: 0.92;
+  filter: brightness(0.8);
+  box-shadow: 0 16px 36px -8px rgba(15, 23, 42, 0.3);
+  cursor: pointer;
+  pointer-events: auto;
 }
 
-.track-card-professionals:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 0 45px rgba(239, 68, 68, 0.42);
+.coverflow-track .track-card.coverflow-right-2 {
+  transform: translateX(225px) translateZ(-130px) rotateY(-58deg) scale(0.72);
+  z-index: 4;
+  opacity: 0.72;
+  filter: brightness(0.64);
+  box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.28);
+  cursor: pointer;
+  pointer-events: auto;
 }
 
-.track-card-professionals.active {
-  border-color: #f43f5e;
-  box-shadow: 0 0 45px rgba(244, 63, 94, 0.48);
+.coverflow-track .track-card.coverflow-hidden {
+  transform: translateX(0) translateZ(-350px) scale(0.4);
+  z-index: 1;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.track-icon-wrapper {
-  width: 112px;
-  height: 112px;
+/* Navigation Arrow Buttons */
+.carousel-nav-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #ffffff;
+  border: 1.5px solid rgba(10, 17, 100, 0.15);
+  color: var(--navy);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 4px 0 14px 0;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(10, 17, 100, 0.16);
+  z-index: 35;
+  transition: all 0.2s ease;
+}
+
+.carousel-nav-btn:hover {
+  background: var(--navy);
+  color: #ffffff;
+  border-color: var(--navy);
+  box-shadow: 0 6px 18px rgba(10, 17, 100, 0.28);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.carousel-nav-btn:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.carousel-nav-btn.carousel-prev {
+  left: -20px;
+}
+
+.carousel-nav-btn.carousel-next {
+  right: -20px;
+}
+
+.carousel-nav-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Dynamic Event Card Glow & Active States */
+.coverflow-track .track-card {
+  box-shadow: 0 0 35px var(--event-glow, rgba(35, 117, 57, 0.35));
+}
+
+.coverflow-track .track-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 45px var(--event-glow, rgba(35, 117, 57, 0.45));
+}
+
+.coverflow-track .track-card.active {
+  border-color: var(--event-color, #237539);
+  box-shadow: 0 0 45px var(--event-glow, rgba(35, 117, 57, 0.5));
+}
+
+/* Palette preset classes */
+.track-card-students {
+  --event-color: #237539;
+  --event-glow: rgba(35, 117, 57, 0.42);
+  --event-font-color: #237539;
+}
+
+.track-card-professionals {
+  --event-color: #e84432;
+  --event-glow: rgba(232, 68, 50, 0.42);
+  --event-font-color: #e84432;
+}
+
+.track-card-gdg {
+  --event-color: #1a73e8;
+  --event-glow: rgba(26, 115, 232, 0.42);
+  --event-font-color: #1a73e8;
+}
+
+.track-card-summit {
+  --event-color: #f9ab00;
+  --event-glow: rgba(249, 171, 0, 0.42);
+  --event-font-color: #b06000;
+}
+
+/* Logo container & neat image sizing within event card */
+.track-icon-wrapper {
+  width: 100%;
+  height: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 4px 0 12px 0;
   transition: transform 0.2s ease;
+}
+
+.track-standard-event-logo {
+  max-width: 96px;
+  max-height: 84px;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.08));
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.track-card:hover .track-standard-event-logo {
+  transform: scale(1.08);
+}
+
+.current-event-logo-mini {
+  width: 22px;
+  height: 18px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 6px;
 }
 
 .track-card:hover .track-icon-wrapper {
   transform: scale(1.04);
 }
 
-/* Typography Inside Cards */
+/* Typography Inside Cards - Dynamic Font Colors */
 .students-label {
-  color: var(--green-track);
-  font-size: 16px;
+  color: var(--event-font-color, var(--green-track));
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -357,8 +546,8 @@ html, body {
 }
 
 .students-sublabel {
-  color: var(--green-track);
-  font-size: 26px;
+  color: var(--event-font-color, var(--green-track));
+  font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.01em;
   text-transform: uppercase;
@@ -367,8 +556,8 @@ html, body {
 }
 
 .professionals-label {
-  color: var(--coral-track);
-  font-size: 16px;
+  color: var(--event-font-color, var(--coral-track));
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -376,7 +565,7 @@ html, body {
 }
 
 .professionals-sublabel {
-  color: var(--coral-track);
+  color: var(--event-font-color, var(--coral-track));
   font-size: 22px;
   font-weight: 900;
   letter-spacing: -0.01em;
@@ -404,14 +593,7 @@ html, body {
   color: #fff;
   font-size: 13px;
   font-weight: bold;
-}
-
-.track-card-students .selection-check {
-  background-color: #10b981;
-}
-
-.track-card-professionals .selection-check {
-  background-color: #f43f5e;
+  background-color: var(--event-color, #237539);
 }
 
 .track-card.active .selection-check {
@@ -567,10 +749,41 @@ html, body {
     padding: 24px 20px 28px 20px;
     border-radius: 24px;
   }
-  .track-selection-grid {
-    grid-template-columns: 1fr;
-    gap: 20px;
-    max-width: 320px;
+  .carousel-wrapper {
+    max-width: 100%;
+  }
+  .coverflow-stage {
+    height: 310px;
+    perspective: 650px;
+  }
+  .coverflow-track {
+    width: 200px;
+    height: 290px;
+  }
+  .coverflow-track .track-card {
+    width: 200px;
+    height: 290px;
+    padding: 18px 14px;
+  }
+  .coverflow-track .track-card.coverflow-left-1 {
+    transform: translateX(-95px) translateZ(-65px) rotateY(34deg) scale(0.85);
+  }
+  .coverflow-track .track-card.coverflow-right-1 {
+    transform: translateX(95px) translateZ(-65px) rotateY(-34deg) scale(0.85);
+  }
+  .coverflow-track .track-card.coverflow-left-2 {
+    transform: translateX(-165px) translateZ(-130px) rotateY(42deg) scale(0.7);
+    opacity: 0.55;
+  }
+  .coverflow-track .track-card.coverflow-right-2 {
+    transform: translateX(165px) translateZ(-130px) rotateY(-42deg) scale(0.7);
+    opacity: 0.55;
+  }
+  .carousel-nav-btn.carousel-prev {
+    left: -8px;
+  }
+  .carousel-nav-btn.carousel-next {
+    right: -8px;
   }
   .btn-proceed {
     width: 100%;

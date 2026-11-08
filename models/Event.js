@@ -42,4 +42,73 @@ export class Event {
       venue: 'Bacolod City College'
     };
   }
+
+  static async create({ event_name, venue, event_date }) {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+    const payload = {
+      event_name: (event_name || '').trim(),
+      venue: (venue || '').trim() || 'Bacolod City',
+      event_date: event_date || null
+    };
+    const { data, error } = await supabase
+      .from('events')
+      .insert(payload)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Supabase] Event.create error:', error.message);
+      throw error;
+    }
+    return data;
+  }
+
+  static async update(id, { event_name, venue, event_date }) {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+    const numId = parseInt(id, 10);
+    const payload = {};
+    if (event_name !== undefined) payload.event_name = (event_name || '').trim();
+    if (venue !== undefined) payload.venue = (venue || '').trim();
+    if (event_date !== undefined) payload.event_date = event_date || null;
+
+    const { data, error } = await supabase
+      .from('events')
+      .update(payload)
+      .eq('id', numId)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('[Supabase] Event.update error:', error.message);
+      throw error;
+    }
+    return data;
+  }
+
+  static async delete(id) {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+    const numId = parseInt(id, 10);
+
+    // Clean up dependent records first
+    await supabase.from('scan_logs').delete().or(`eventId.eq.${numId},eventid.eq.${numId}`);
+    await supabase.from('event_attendees').delete().eq('event_id', numId);
+
+    const { error } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', numId);
+
+    if (error) {
+      console.error('[Supabase] Event.delete error:', error.message);
+      throw error;
+    }
+    return true;
+  }
 }
+

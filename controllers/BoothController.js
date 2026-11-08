@@ -5,6 +5,7 @@ import { Admin } from '../models/Admin.js';
 import { Event } from '../models/Event.js';
 import { ScanLog } from '../models/ScanLog.js';
 import { isSupabaseConfigured } from '../config/supabase.js';
+import { getEventTheme } from '../utils/eventLogos.js';
 
 
 export class BoothController {
@@ -13,8 +14,8 @@ export class BoothController {
    * If user is already logged in, prevent returning to login by redirecting forward.
    */
   static showLogin(req, res) {
-    // If arriving with logout message or error, ensure user stays on Booth Portal Terminal
-    if (req.query.message || req.query.logged_out) {
+    // If arriving with explicit logout or error, ensure user stays on Booth Portal Terminal
+    if (req.query.logged_out === '1' || req.query.logged_out === 'true' || req.query.error) {
       return res.render('LoginBooth', {
         currentPage: 'LoginBooth.php',
         error: req.query.error || null,
@@ -189,13 +190,21 @@ export class BoothController {
     const sid = req.sessionID || req.query.sid || '';
     const activeEvent = await Event.findById(eventId);
 
+    const enrichedEvents = events.map(ev => ({
+      ...ev,
+      theme: getEventTheme(ev.id, ev.event_name, events)
+    }));
+    const activeEventTheme = getEventTheme(eventId, activeEvent ? activeEvent.event_name : '', events);
+
     res.render('EventChoices', {
       currentPage: 'EventChoices.php',
       track,
       eventId,
       currentEventId: eventId,
       currentEventName: activeEvent ? activeEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day'),
-      events,
+      events: enrichedEvents,
+      getEventTheme,
+      activeEventTheme,
       boothId,
       boothName: req.session.boothName,
       user: req.session.username,
@@ -214,7 +223,7 @@ export class BoothController {
       return res.redirect('/LoginBooth.php?error=' + encodeURIComponent('Access denied. Please log in first.'));
     }
 
-    const rawEventId = req.body.event_id || req.body.eventId || (req.body.track === 'professionals' ? 2 : 1);
+    const rawEventId = req.body.event_id || req.body.eventId || req.body.track_id || (req.body.track === 'professionals' ? 2 : 1);
     const eventId = parseInt(rawEventId, 10) || 1;
     const selectedTrack = req.body.track ? req.body.track.trim() : (eventId === 2 ? 'professionals' : 'students');
 
@@ -334,8 +343,8 @@ export class BoothController {
     }
 
     const redirectUrl = isAdmin
-      ? '/SuperAdmin.php?message=' + encodeURIComponent('You have been logged out successfully.')
-      : '/LoginBooth.php?message=' + encodeURIComponent('You have been logged out successfully.');
+      ? '/SuperAdmin.php?logged_out=1&message=' + encodeURIComponent('You have been logged out successfully.')
+      : '/LoginBooth.php?logged_out=1&message=' + encodeURIComponent('You have been logged out successfully.');
 
     const finalizeLogout = () => {
       res.clearCookie('connect.sid', cookieOpts);
@@ -456,6 +465,7 @@ export class BoothController {
       station_name: stationName,
       station_location: stationLocation,
       boothType,
+      eventId: eventId || 1,
       eventName: event ? event.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day'),
       total_unique_visitors: totalUniqueVisitors,
       current_reward_rate: rewardRate,
@@ -533,6 +543,7 @@ export class BoothController {
       venueLocation,
       selected_event: selectedEventName,
       selectedEventName,
+      eventId: eventId || 1,
       active_context: selectedEventName,
       activeContext: selectedEventName,
       upload_message: req.query.msg || '',

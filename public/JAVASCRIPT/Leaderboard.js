@@ -23,6 +23,32 @@ if (fullStandingsBtn && moreRankings) {
     });
 }
 
+// Dropdown menu toggle for Leaderboard event selection
+(function initLeaderboardEventDropdown() {
+    function setup(containerId, triggerId, popoverId) {
+        const container = document.getElementById(containerId);
+        const trigger = document.getElementById(triggerId);
+        const popover = document.getElementById(popoverId);
+        if (!container || !trigger || !popover) return;
+
+        trigger.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = container.classList.toggle('is-open');
+            trigger.setAttribute('aria-expanded', String(isOpen));
+        });
+
+        document.addEventListener('click', function (e) {
+            if (!container.contains(e.target)) {
+                container.classList.remove('is-open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        });
+    }
+
+    setup('leaderboardDropdownContainer', 'leaderboardEventBtn', 'leaderboardEventPopover');
+    setup('adminLeaderboardDropdownContainer', 'adminLeaderboardEventBtn', 'adminLeaderboardEventPopover');
+})();
+
 // Helper to escape HTML safely
 function escapeHtml(str) {
     if (!str) return '';

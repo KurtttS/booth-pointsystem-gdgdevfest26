@@ -6,8 +6,12 @@ document.addEventListener("DOMContentLoaded", function () {
     // --- Session Persistence across iFrames ---
     const urlParams = new URLSearchParams(window.location.search);
 
-    // If on LoginBooth with a message or logged_out flag, clear saved session tokens
-    if (urlParams.has('message') || urlParams.has('logged_out') || window.location.pathname.includes('logout')) {
+    // Only clear saved session tokens on explicit logout
+    const isLogout = urlParams.get('logged_out') === '1' || urlParams.get('logged_out') === 'true' ||
+                     urlParams.get('logout') === '1' || urlParams.get('logout') === 'true' ||
+                     window.location.pathname.toLowerCase().includes('logout');
+
+    if (isLogout) {
         try {
             sessionStorage.removeItem('devfest_sid');
             localStorage.removeItem('devfest_sid');
@@ -16,14 +20,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let sid = urlParams.get('sid');
 
-    if (sid && !urlParams.has('message') && !urlParams.has('logged_out')) {
+    if (sid && !isLogout) {
         try {
             sessionStorage.setItem('devfest_sid', sid);
             localStorage.setItem('devfest_sid', sid);
         } catch (e) {
             // Storage quota or restriction ignored
         }
-    } else if (!urlParams.has('message') && !urlParams.has('logged_out')) {
+    } else if (!isLogout) {
         try {
             sid = sessionStorage.getItem('devfest_sid') || localStorage.getItem('devfest_sid');
         } catch (e) {

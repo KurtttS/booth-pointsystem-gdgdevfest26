@@ -48,7 +48,7 @@
     <nav class="nav-links" id="navLinks" aria-label="Main navigation">
 
         <% if (loggedIn && adminMode) { %>
-            <!-- 1. SUPER ADMIN NAVIGATION (Screenshots 1, 2, 3, 4) -->
+            <!-- 1. SUPER ADMIN NAVIGATION -->
             <a href="/SuperAdmin.php?tab=overview<%= sidQuery %>"
                class="<%= tab === 'overview' ? 'active' : '' %>">
                 Overview
@@ -64,10 +64,21 @@
                 Booth
             </a>
 
+            <a href="/SuperAdmin.php?tab=points<%= sidQuery %>"
+               class="<%= tab === 'points' ? 'active' : '' %>">
+                Points
+            </a>
+
+            <a href="/SuperAdmin.php?tab=events<%= sidQuery %>"
+               class="<%= tab === 'events' ? 'active' : '' %>">
+                Events
+            </a>
+
             <a href="/logout.php?role=admin"
                class="superadmin-logout-btn">
                 Log Out
             </a>
+
 
         <% } else if (!loggedIn) { %>
             <!-- 2. UNAUTHENTICATED / GUEST: On leaderboard, only Login is in header; on login, show Leaderboard & Login -->

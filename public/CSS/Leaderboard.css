@@ -179,9 +179,169 @@ button {
 }
 
 /* =========================================
-   EVENT TRACK SWITCHER TABS
+   EVENT SELECTION DROPDOWN (LEADERBOARD)
 ========================================= */
 
+.leaderboard-event-dropdown-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 18px auto 14px;
+    position: relative;
+    z-index: 50;
+}
+
+.leaderboard-event-custom-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.leaderboard-event-btn-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #ffffff;
+    border: 1.5px solid rgba(10, 17, 100, 0.14);
+    border-radius: 9999px;
+    padding: 8px 20px 8px 14px;
+    box-shadow: 0 4px 16px rgba(10, 17, 100, 0.08);
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leaderboard-event-btn-trigger:hover {
+    border-color: #0a1164;
+    box-shadow: 0 6px 20px rgba(10, 17, 100, 0.14);
+    transform: translateY(-1px);
+}
+
+.leaderboard-event-btn-trigger:focus-visible {
+    outline: none;
+    border-color: #0a1164;
+    box-shadow: 0 0 0 3px rgba(10, 17, 100, 0.2);
+}
+
+.leaderboard-event-badge-logo {
+    width: 26px;
+    height: 16px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.1));
+}
+
+.dropdown-event-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.dropdown-event-current-name {
+    font-size: 14.5px;
+    font-weight: 850;
+    color: #0a1164;
+    letter-spacing: -0.01em;
+}
+
+.leaderboard-event-btn-trigger .dropdown-chevron-icon {
+    width: 16px;
+    height: 16px;
+    color: #0a1164;
+    margin-left: 2px;
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leaderboard-event-custom-dropdown.is-open .dropdown-chevron-icon {
+    transform: rotate(180deg);
+}
+
+.leaderboard-event-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-6px);
+    min-width: 280px;
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1.5px solid rgba(10, 17, 100, 0.1);
+    box-shadow: 0 16px 36px rgba(10, 17, 100, 0.18), 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 8px;
+    z-index: 100;
+    display: none;
+    backdrop-filter: blur(10px);
+}
+
+.leaderboard-event-custom-dropdown.is-open .leaderboard-event-popover {
+    display: block;
+    transform: translateX(-50%) translateY(0);
+    animation: popoverFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.leaderboard-event-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #0a1164;
+    font-size: 13.5px;
+    font-weight: 750;
+    transition: all 0.16s ease;
+}
+
+.leaderboard-event-item:hover {
+    background: #f1f5f9;
+    color: #1d4ed8;
+    transform: translateX(2px);
+}
+
+.leaderboard-event-item.is-selected {
+    background: rgba(10, 17, 100, 0.07);
+    color: #0a1164;
+    font-weight: 850;
+}
+
+.leaderboard-item-event-logo {
+    width: 24px;
+    height: 15px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+
+.leaderboard-item-event-text {
+    flex: 1;
+}
+
+.leaderboard-item-check {
+    font-weight: 800;
+    color: #0a1164;
+    font-size: 14px;
+}
+
+.locked-event-logo {
+    width: 22px;
+    height: 14px;
+    object-fit: contain;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+
+.sr-only-select {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Backwards compatibility for any tab views */
 .event-track-tabs {
     display: inline-flex;
     align-items: center;

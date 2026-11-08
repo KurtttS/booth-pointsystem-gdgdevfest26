@@ -89,6 +89,7 @@ export class LeaderboardController {
     const eventId = parseInt(rawEventId, 10) || 1;
 
     try {
+      const allEvents = await Event.getAll();
       const currentEvent = await Event.findById(eventId);
       const standings = await ScanLog.getLeaderboard(eventId);
       const eventName = currentEvent ? currentEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
@@ -97,6 +98,7 @@ export class LeaderboardController {
         currentPage: 'AdminLeaderboard.php',
         selectedEventId: eventId,
         currentEvent,
+        allEvents: allEvents || [],
         trackName: eventName,
         top1: standings[0] || null,
         top2: standings[1] || null,

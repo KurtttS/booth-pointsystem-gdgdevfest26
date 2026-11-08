@@ -25,6 +25,7 @@
     const currentBoothSponsor      = (typeof sponsor !== 'undefined' && sponsor) ? sponsor : ((typeof sponsorName !== 'undefined' && sponsorName) ? sponsorName : ((typeof category !== 'undefined' && category) ? category : ''));
     const currentVenueLocation     = (typeof venue_location !== 'undefined' && venue_location) ? venue_location : ((typeof venueLocation !== 'undefined' && venueLocation) ? venueLocation : '');
     const currentSelectedEventName = (typeof selected_event !== 'undefined' && selected_event) ? selected_event : ((typeof selectedEventName !== 'undefined' && selectedEventName) ? selectedEventName : ((typeof active_context !== 'undefined' && active_context) ? active_context : ''));
+    const currentEventId           = (typeof eventId !== 'undefined' && eventId) ? eventId : 1;
     const uploadMessage            = (typeof upload_message !== 'undefined' && upload_message) ? upload_message : '';
     const uploadStatus             = (typeof upload_status !== 'undefined' && upload_status) ? upload_status : 'success';
     const sessionSid               = (typeof sid !== 'undefined' && sid) ? sid : '';
@@ -138,7 +139,10 @@
                 <div class="param-row">
                     <span class="param-label">Selected Event</span>
                     <div class="param-event-action-wrap">
-                        <span class="param-value param-value-context"><%= currentSelectedEventName || 'N/A' %></span>
+                        <span class="param-value param-value-context" style="display: inline-flex; align-items: center; gap: 8px;">
+                            <img src="/api/event-logo/<%= currentEventId %>" alt="" style="width: 22px; height: 14px; object-fit: contain; vertical-align: middle;" onerror="this.src='/IMG/test_green.png'">
+                            <span><%= currentSelectedEventName || 'N/A' %></span>
+                        </span>
                         <a href="/EventChoices.php<%= sidParam %>" class="btn-change-event-profile" title="Change Event">
                             Change Event
                         </a>

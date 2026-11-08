@@ -58,37 +58,54 @@
                 <span></span>
             </div>
 
-            <!-- DUAL EVENT TRACK TABS (STUDENT DEV DAY VS. PROFESSIONAL DEV DAY) -->
-            <nav class="event-track-tabs" aria-label="Event leaderboards">
-                <% eventsList.forEach(function(ev) { %>
-                <a href="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
-                   class="event-tab-btn <%= (parseInt(selectedEvId, 10) === parseInt(ev.id, 10)) ? 'active' : '' %>">
-                    <span class="tab-badge-dot"></span>
-                    <span class="tab-text"><%= ev.event_name %></span>
-                </a>
-                <% }); %>
-            </nav>
+            <!-- EVENT SELECTION DROPDOWN -->
+            <div class="leaderboard-event-dropdown-container">
+                <div class="dropdown-menu-container leaderboard-event-custom-dropdown" id="leaderboardDropdownContainer">
+                    <button type="button" class="leaderboard-event-btn-trigger" id="leaderboardEventBtn" aria-expanded="false" aria-haspopup="true">
+                        <img src="/api/event-logo/<%= selectedEvId %>" alt="Event Logo" class="leaderboard-event-badge-logo" onerror="this.src='/IMG/test_green.png'">
+                        <span class="dropdown-event-label">Event:</span>
+                        <span class="dropdown-event-current-name"><%= currentEv ? currentEv.event_name : (eventsList.find(e => parseInt(e.id, 10) === parseInt(selectedEvId, 10))?.event_name || 'Select Event') %></span>
+                        <svg class="dropdown-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
 
-            <!-- LOCKED EVENT / TRACK BADGE (ONLY SHOWS THE CURRENT BOOTH EVENT) -->
+                    <div class="dropdown-popover leaderboard-event-popover" id="leaderboardEventPopover" role="menu">
+                        <% eventsList.forEach(function(ev) { 
+                            const isCurrent = (parseInt(selectedEvId, 10) === parseInt(ev.id, 10));
+                        %>
+                        <a href="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                           class="dropdown-item leaderboard-event-item <%= isCurrent ? 'is-selected' : '' %>"
+                           role="menuitem">
+                            <img src="/api/event-logo/<%= ev.id %>" alt="<%= ev.event_name %>" class="leaderboard-item-event-logo" onerror="this.src='/IMG/test_green.png'">
+                            <span class="leaderboard-item-event-text"><%= ev.event_name %></span>
+                            <% if (isCurrent) { %>
+                                <span class="leaderboard-item-check">✓</span>
+                            <% } %>
+                        </a>
+                        <% }); %>
+                    </div>
+
+                    <!-- Hidden native select for backwards compatibility and accessibility -->
+                    <select id="leaderboardEventSelect" class="sr-only-select" aria-label="Select Event Leaderboard" onchange="if(this.value) window.location.href=this.value;">
+                        <% eventsList.forEach(function(ev) { %>
+                        <option value="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                                <%= (parseInt(selectedEvId, 10) === parseInt(ev.id, 10)) ? 'selected' : '' %>>
+                            <%= ev.event_name %>
+                        </option>
+                        <% }); %>
+                    </select>
+                </div>
+            </div>
+
+            <!-- LOCKED EVENT / TRACK BADGE (REAL-TIME LIVE SYNC TARGET) -->
             <% if (currentEv) { %>
             <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEvId %>">
                 <div class="locked-event-chip">
+                    <img src="/api/event-logo/<%= selectedEvId %>" alt="Event Logo" class="locked-event-logo" onerror="this.src='/IMG/test_green.png'">
                     <span class="locked-event-dot"></span>
                     <span class="locked-event-name"><%= currentEv.event_name %></span>
                     <span class="locked-event-tag">Current Event</span>
-                    <% if (userIsLoggedIn) { %>
-                    <a href="/EventChoices.php<%= sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '' %>" class="locked-event-switch-btn" title="Switch or select a different event without logging out">
-                        ⇄ Switch Event
-                    </a>
-                    <% } else { %>
-                    <%
-                        const nextEvId = (parseInt(selectedEvId, 10) === 1) ? 2 : 1;
-                        const nextEvObj = eventsList.find(e => parseInt(e.id, 10) === nextEvId) || (nextEvId === 2 ? { event_name: 'Professional Dev Day' } : { event_name: 'Student Dev Day' });
-                    %>
-                    <a href="/Leaderboard.php?event_id=<%= nextEvId %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>" class="locked-event-switch-btn" title="Switch to <%= nextEvObj.event_name %>">
-                        ⇄ Switch Event
-                    </a>
-                    <% } %>
                 </div>
                 <% if (currentEv.venue || currentEv.event_date) { %>
                 <div class="locked-event-meta">

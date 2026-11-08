@@ -11,6 +11,7 @@ import { BoothController } from './controllers/BoothController.js';
 import { ScanController } from './controllers/ScanController.js';
 import { LeaderboardController } from './controllers/LeaderboardController.js';
 import { AdminController } from './controllers/AdminController.js';
+import { createEventLogoBuffer, initAllEventLogos, ensureEventLogoPng, getEventColor } from './utils/eventLogos.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -92,10 +93,15 @@ function sanitizeSid(raw) {
 
 // Fallback session recovery for iframes when third-party cookies are partitioned or restricted
 app.use((req, res, next) => {
-  // Never auto-recover sessions on logout or when viewing LoginBooth with a logout message
-  if (req.path === '/logout.php' || req.path === '/logout' || req.path === '/LogOutBooth.php' || req.path === '/logoutbooth' || (req.path === '/LoginBooth.php' && (req.query.message || req.query.logged_out))) {
+  // Only skip session recovery when the user has explicitly clicked logout
+  const isExplicitLogout = req.path === '/logout.php' || req.path === '/logout' ||
+    req.path === '/LogOutBooth.php' || req.path === '/logoutbooth' ||
+    req.query.logged_out === '1' || req.query.logged_out === 'true' ||
+    req.query.logout === '1' || req.query.logout === 'true';
+  if (isExplicitLogout) {
     return next();
   }
+
 
 
   let sid = sanitizeSid(req.query.sid || req.body?.sid || req.headers['x-session-id'] || req.cookies?.devfest_sid);
@@ -172,6 +178,7 @@ app.use((req, res, next) => {
 
 // Serve static assets
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/views', express.static(path.join(__dirname, 'public')));
 
 // --- Routes (MVC) ---
@@ -249,6 +256,24 @@ app.post('/SuperAdmin.php', (req, res, next) => {
   if (action === 'delete_booth') {
     return AdminController.deleteBooth(req, res, next);
   }
+  if (action === 'add_points') {
+    return AdminController.addPoints(req, res, next);
+  }
+  if (action === 'edit_points') {
+    return AdminController.editPoints(req, res, next);
+  }
+  if (action === 'delete_points') {
+    return AdminController.deletePoints(req, res, next);
+  }
+  if (action === 'add_event') {
+    return AdminController.addEvent(req, res, next);
+  }
+  if (action === 'edit_event') {
+    return AdminController.editEvent(req, res, next);
+  }
+  if (action === 'delete_event') {
+    return AdminController.deleteEvent(req, res, next);
+  }
   return AdminController.processLogin(req, res, next);
 });
 
@@ -260,6 +285,12 @@ app.post('/api/admin/attendees/delete', AdminController.deleteAttendee);
 app.post('/api/admin/booths/add', AdminController.addBooth);
 app.post('/api/admin/booths/edit', AdminController.editBooth);
 app.post('/api/admin/booths/delete', AdminController.deleteBooth);
+app.post('/api/admin/points/add', AdminController.addPoints);
+app.post('/api/admin/points/edit', AdminController.editPoints);
+app.post('/api/admin/points/delete', AdminController.deletePoints);
+app.post('/api/admin/events/add', AdminController.addEvent);
+app.post('/api/admin/events/edit', AdminController.editEvent);
+app.post('/api/admin/events/delete', AdminController.deleteEvent);
 
 // SuperAdmin Navigation Aliases
 app.get('/superadmin', (req, res) => res.redirect('/SuperAdmin.php'));
@@ -271,6 +302,15 @@ app.get('/SuperAdminBooths.php', (req, res) => {
   const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
   res.redirect(`/SuperAdmin.php?tab=booths${sid}`);
 });
+app.get('/SuperAdminPoints.php', (req, res) => {
+  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
+  res.redirect(`/SuperAdmin.php?tab=points${sid}`);
+});
+app.get('/SuperAdminEvents.php', (req, res) => {
+  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
+  res.redirect(`/SuperAdmin.php?tab=events${sid}`);
+});
+
 
 // Dashboard (Controller: BoothController)
 app.get('/Dashboard.php', BoothController.showDashboard);
@@ -288,6 +328,27 @@ app.get('/adminleaderboard', (req, res) => res.redirect('/AdminLeaderboard.php')
 // Logout aliases matching uploaded files
 app.get('/LogOutBooth.php', BoothController.logout);
 app.get('/logoutbooth', BoothController.logout);
+
+// Standardized Single-Color Event Logo endpoint
+app.get(['/api/event-logo/:eventId', '/IMG/event-logo-:eventId.png'], (req, res) => {
+  try {
+    const rawId = req.params.eventId ? req.params.eventId.replace('.png', '') : '1';
+    const eventId = parseInt(rawId, 10) || 1;
+    const pngBuf = createEventLogoBuffer(eventId);
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return res.send(pngBuf);
+  } catch (e) {
+    const fallbackGreen = path.join(__dirname, 'public', 'assets', 'aistudio', 'Frame_4_b83932ab.png');
+    if (fs.existsSync(fallbackGreen)) {
+      return res.sendFile(fallbackGreen);
+    }
+    return res.sendFile(path.join(__dirname, 'public', 'IMG', 'event-student-green.png'));
+  }
+});
+
+// Initialize standardized single-color event logos
+initAllEventLogos();
 
 // Start Server
 app.listen(PORT, HOST, () => {
