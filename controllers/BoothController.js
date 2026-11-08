@@ -214,7 +214,7 @@ export class BoothController {
       return res.redirect('/LoginBooth.php?error=' + encodeURIComponent('Access denied. Please log in first.'));
     }
 
-    const rawEventId = req.body.event_id || req.body.eventId || (req.body.track === 'professionals' ? 2 : 1);
+    const rawEventId = req.body.event_id || req.body.eventId || req.body.track_id || (req.body.track === 'professionals' ? 2 : 1);
     const eventId = parseInt(rawEventId, 10) || 1;
     const selectedTrack = req.body.track ? req.body.track.trim() : (eventId === 2 ? 'professionals' : 'students');
 

@@ -1595,3 +1595,259 @@ h1.login-title {
         justify-content: center;
     }
 }
+
+/* =========================================
+   POINTS & EVENTS TABLE STYLES
+   ========================================= */
+
+.table-header-green {
+    display: grid;
+    grid-template-columns: 2.2fr 1.6fr 1.4fr 1.2fr 1.6fr 1.2fr;
+    align-items: center;
+    background-color: #0b6534;
+    color: #ffffff;
+    padding: 18px 24px;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.table-header-purple {
+    display: grid;
+    grid-template-columns: 0.8fr 2fr 1.8fr 1.4fr 1.2fr 1.2fr 1.2fr;
+    align-items: center;
+    background-color: #4338ca;
+    color: #ffffff;
+    padding: 18px 24px;
+    font-size: 13.5px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border-top-left-radius: 20px;
+    border-top-right-radius: 20px;
+}
+
+.table-row-points-item {
+    display: grid;
+    grid-template-columns: 2.2fr 1.6fr 1.4fr 1.2fr 1.6fr 1.2fr;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13.5px;
+    transition: background-color 0.15s ease;
+}
+
+.table-row-points-item:hover {
+    background-color: #f8fafc;
+}
+
+.table-row-events-item {
+    display: grid;
+    grid-template-columns: 0.8fr 2fr 1.8fr 1.4fr 1.2fr 1.2fr 1.2fr;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 13.5px;
+    transition: background-color 0.15s ease;
+}
+
+.table-row-events-item:hover {
+    background-color: #f8fafc;
+}
+
+/* Clickable table row */
+.table-row-clickable {
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.1s ease;
+}
+
+.table-row-clickable:hover {
+    background-color: #f1f5f9 !important;
+}
+
+/* Points badge pill */
+.points-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-weight: 800;
+    font-size: 12.5px;
+}
+
+.points-pill-green {
+    background: #ecfdf5;
+    color: #047857;
+    border: 1px solid #a7f3d0;
+}
+
+.points-pill-blue {
+    background: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+
+.points-pill-amber {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+/* Summary metrics cards bar */
+.points-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.point-stat-card {
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 20px 22px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 20px rgba(13, 27, 84, 0.04);
+}
+
+.point-stat-title {
+    font-size: 12px;
+    font-weight: 750;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+}
+
+.point-stat-number {
+    font-size: 26px;
+    font-weight: 900;
+    color: #0d1b54;
+    line-height: 1.1;
+}
+
+.point-stat-subtext {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #94a3b8;
+    margin-top: 4px;
+}
+
+/* Real-time scan feed in Overview */
+.scan-feed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid #f1f5f9;
+    transition: background 0.15s ease;
+}
+
+.scan-feed-item:hover {
+    background: #f8fafc;
+}
+
+.scan-feed-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.scan-user-main {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.scan-user-name {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0d1b54;
+}
+
+.scan-qr-badge {
+    background: #f1f5f9;
+    color: #475569;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.scan-booth-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+}
+
+.scan-event-tag {
+    background: #eef2ff;
+    color: #4338ca;
+    padding: 1px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.scan-feed-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+}
+
+.scan-points-badge {
+    background: #ecfdf5;
+    color: #047857;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 9999px;
+    border: 1px solid #a7f3d0;
+}
+
+.scan-time-ago {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #94a3b8;
+}
+
+/* Sorting selector styling in action bar */
+.sort-select-pill {
+    appearance: none;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    padding: 9px 36px 9px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #0d1b54;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230d1b54' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.sort-select-pill:focus {
+    border-color: #0d1b54;
+    box-shadow: 0 0 0 3px rgba(13, 27, 84, 0.1);
+}
+
+@media (max-width: 900px) {
+    .points-stats-row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .table-header-green,
+    .table-row-points-item,
+    .table-header-purple,
+    .table-row-events-item {
+        min-width: 820px;
+    }
+}

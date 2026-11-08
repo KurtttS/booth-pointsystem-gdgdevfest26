@@ -531,4 +531,200 @@ export class ScanLog {
       return [];
     }
   }
+
+  /**
+   * Update an existing points/scan log record
+   */
+  static async update(id, { attendeeId, boothId, eventId, points, category }) {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+    const cleanId = (id || '').trim();
+    if (!cleanId) throw new Error('Scan log ID is required.');
+
+    const updatePayload = {};
+    if (attendeeId !== undefined) {
+      updatePayload.attendeeId = parseInt(attendeeId, 10);
+      updatePayload.attendeeid = parseInt(attendeeId, 10);
+    }
+    if (boothId !== undefined) {
+      updatePayload.boothId = (boothId || '').trim();
+      updatePayload.boothid = (boothId || '').trim();
+    }
+    if (eventId !== undefined) {
+      updatePayload.eventId = parseInt(eventId, 10);
+      updatePayload.eventid = parseInt(eventId, 10);
+    }
+    if (points !== undefined) {
+      updatePayload.points = parseInt(points, 10);
+    }
+    if (category !== undefined) {
+      updatePayload.category = category;
+    }
+
+    // Try standard camelCase columns first
+    const camelPayload = {
+      ...(attendeeId !== undefined ? { attendeeId: parseInt(attendeeId, 10) } : {}),
+      ...(boothId !== undefined ? { boothId: (boothId || '').trim() } : {}),
+      ...(eventId !== undefined ? { eventId: parseInt(eventId, 10) } : {}),
+      ...(points !== undefined ? { points: parseInt(points, 10) } : {}),
+      ...(category !== undefined ? { category } : {})
+    };
+
+    let { data, error } = await supabase
+      .from('scan_logs')
+      .update(camelPayload)
+      .eq('id', cleanId)
+      .select()
+      .single();
+
+    if (error) {
+      // Fallback to lowercase column names
+      const lowerPayload = {
+        ...(attendeeId !== undefined ? { attendeeid: parseInt(attendeeId, 10) } : {}),
+        ...(boothId !== undefined ? { boothid: (boothId || '').trim() } : {}),
+        ...(eventId !== undefined ? { eventid: parseInt(eventId, 10) } : {}),
+        ...(points !== undefined ? { points: parseInt(points, 10) } : {}),
+        ...(category !== undefined ? { category } : {})
+      };
+
+      const retry = await supabase
+        .from('scan_logs')
+        .update(lowerPayload)
+        .eq('id', cleanId)
+        .select()
+        .single();
+
+      if (retry.error) {
+        console.error('[Supabase] ScanLog.update error:', retry.error.message);
+        throw retry.error;
+      }
+      data = retry.data;
+    }
+    return data;
+  }
+
+  /**
+   * Delete a scan log / points record
+   */
+  static async delete(id) {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error('Supabase is not configured.');
+    }
+    const cleanId = (id || '').trim();
+    if (!cleanId) throw new Error('Scan log ID is required.');
+
+    const { error } = await supabase
+      .from('scan_logs')
+      .delete()
+      .eq('id', cleanId);
+
+    if (error) {
+      console.error('[Supabase] ScanLog.delete error:', error.message);
+      throw error;
+    }
+    return true;
+  }
+
+  /**
+   * Get all scan logs enriched with attendee, booth, and event details
+   * specifically formatted for Points Table & Recent Scans
+   */
+  static async getAllDetailedLogs({ eventId = null, boothId = null, limit = 2000 } = {}) {
+    if (!isSupabaseConfigured() || !supabase) return [];
+
+    let query = supabase
+      .from('scan_logs')
+      .select('*')
+      .order('timestamp', { ascending: false })
+      .limit(limit);
+
+    if (eventId) {
+      query = query.or(`eventId.eq.${eventId},eventid.eq.${eventId}`);
+    }
+    if (boothId && boothId !== 'all') {
+      query = query.or(`boothId.ilike.${boothId},boothid.ilike.${boothId}`);
+    }
+
+    let { data: logs, error } = await query;
+    if (error || !logs) {
+      const retry = await supabase
+        .from('scan_logs')
+        .select('*')
+        .order('timestamp', { ascending: false })
+        .limit(limit);
+      logs = retry.data || [];
+    }
+    logs = logs || [];
+
+    // Pre-fetch all attendees, booths, and events to enrich logs without N+1 queries
+    const [attendees, booths, events] = await Promise.all([
+      Attendee.getAll(),
+      Booth.getAll(),
+      supabase.from('events').select('*').then(res => res.data || [])
+    ]);
+
+    const attendeeMap = new Map();
+    (attendees || []).forEach(a => attendeeMap.set(a.id, a));
+
+    const boothMap = new Map();
+    (booths || []).forEach(b => boothMap.set(b.id.toString().toLowerCase(), b));
+
+    const eventMap = new Map();
+    (events || []).forEach(e => eventMap.set(e.id, e.event_name));
+
+    return logs.map(log => {
+      const aId = parseInt(log.attendeeId ?? log.attendeeid ?? 0, 10);
+      const bId = (log.boothId ?? log.boothid ?? '').toString();
+      const eId = parseInt(log.eventId ?? log.eventid ?? 1, 10);
+
+      const attendee = attendeeMap.get(aId);
+      const booth = boothMap.get(bId.toLowerCase());
+      const eventName = eventMap.get(eId) || (eId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
+
+      const rawTime = log.timestamp || log.created_at || log.createdAt;
+      const dateObj = rawTime ? new Date(rawTime) : new Date();
+
+      const timeFormatted = dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const dateFormatted = dateObj.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+
+      // Calculate time ago (e.g. 2m ago, 1h ago)
+      const diffMs = Date.now() - dateObj.getTime();
+      const diffMins = Math.floor(diffMs / (1000 * 60));
+      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      let timeAgo = 'Just now';
+      if (diffMins > 0 && diffMins < 60) {
+        timeAgo = `${diffMins}m ago`;
+      } else if (diffHours >= 1 && diffHours < 24) {
+        timeAgo = `${diffHours}h ago`;
+      } else if (diffHours >= 24) {
+        timeAgo = `${Math.floor(diffHours / 24)}d ago`;
+      }
+
+      const attendeeName = attendee ? Attendee.getFullName(attendee) : `Attendee #${aId}`;
+      const qrCodeToken = attendee?.qr_code_token || `QR-${String(aId).padStart(3, '0')}`;
+      const attendeeEmail = attendee?.email || '';
+
+      return {
+        id: log.id,
+        attendeeDbId: aId,
+        attendeeName,
+        qrCodeToken,
+        attendeeEmail,
+        attendeeCompany: attendee?.company || 'Bacolod City',
+        boothId: bId,
+        boothName: booth ? booth.name : bId,
+        boothType: booth ? (booth.booth_type || 'standard') : 'standard',
+        eventId: eId,
+        eventName,
+        points: parseInt(log.points ?? 0, 10),
+        category: log.category || '1-10',
+        timestamp: rawTime,
+        timeFormatted,
+        dateFormatted,
+        timeAgo
+      };
+    });
+  }
 }
+

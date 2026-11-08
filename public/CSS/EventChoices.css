@@ -278,9 +278,10 @@ html, body {
    -------------------------------------------------------------------------- */
 .track-selection-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 28px;
-  max-width: 590px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 24px;
+  max-width: 680px;
+  width: 100%;
   margin: 0 auto 28px auto;
   position: relative;
   z-index: 10;
@@ -331,6 +332,33 @@ html, body {
   border-color: #f43f5e;
   box-shadow: 0 0 45px rgba(244, 63, 94, 0.48);
 }
+
+/* GDG Community Card Glow */
+.track-card-gdg {
+  box-shadow: 0 0 35px rgba(26, 115, 232, 0.35);
+}
+.track-card-gdg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 45px rgba(26, 115, 232, 0.48);
+}
+.track-card-gdg.active {
+  border-color: #1a73e8;
+  box-shadow: 0 0 45px rgba(26, 115, 232, 0.5);
+}
+
+/* Summit & Workshop Card Glow */
+.track-card-summit {
+  box-shadow: 0 0 35px rgba(249, 171, 0, 0.35);
+}
+.track-card-summit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 45px rgba(249, 171, 0, 0.48);
+}
+.track-card-summit.active {
+  border-color: #f9ab00;
+  box-shadow: 0 0 45px rgba(249, 171, 0, 0.5);
+}
+
 
 .track-icon-wrapper {
   width: 112px;

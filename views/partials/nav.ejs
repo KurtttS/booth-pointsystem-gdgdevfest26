@@ -21,7 +21,7 @@
 %>
 <header class="topbar">
 
-    <a class="brand" href="<%= loggedIn ? ('/Dashboard.php' + sidParam) : '/LoginBooth.php' %>"
+    <a class="brand" href="<%= homeUrl %>"
        aria-label="DevFest Bacolod 2026 home">
 
         <img src="/IMG/GDG_LOGO.png"
@@ -47,12 +47,55 @@
 
     <nav class="nav-links" id="navLinks" aria-label="Main navigation">
 
-        <% if (isLogin || !loggedIn) { %>
-            <!-- 1. LOGIN / UNAUTHENTICATED: Cannot access Scanner and Leaderboard -->
-            <a href="/LoginBooth.php<%= sidParam %>"
-               class="<%= isLogin ? 'active' : '' %>">
-                Booth Portal
+        <% if (loggedIn && adminMode) { %>
+            <!-- 1. SUPER ADMIN NAVIGATION -->
+            <a href="/SuperAdmin.php?tab=overview<%= sidQuery %>"
+               class="<%= tab === 'overview' ? 'active' : '' %>">
+                Overview
             </a>
+
+            <a href="/SuperAdmin.php?tab=attendees<%= sidQuery %>"
+               class="<%= tab === 'attendees' ? 'active' : '' %>">
+                Attendees
+            </a>
+
+            <a href="/SuperAdmin.php?tab=booths<%= sidQuery %>"
+               class="<%= tab === 'booths' ? 'active' : '' %>">
+                Booth
+            </a>
+
+            <a href="/SuperAdmin.php?tab=points<%= sidQuery %>"
+               class="<%= tab === 'points' ? 'active' : '' %>">
+                Points
+            </a>
+
+            <a href="/SuperAdmin.php?tab=events<%= sidQuery %>"
+               class="<%= tab === 'events' ? 'active' : '' %>">
+                Events
+            </a>
+
+            <a href="/logout.php?role=admin"
+               class="superadmin-logout-btn">
+                Log Out
+            </a>
+
+
+        <% } else if (!loggedIn) { %>
+            <!-- 2. UNAUTHENTICATED / GUEST: On leaderboard, only Login is in header; on login, show Leaderboard & Login -->
+            <% if (isLeaderboard) { %>
+                <a href="/LoginBooth.php<%= sidParam %>">
+                    Login
+                </a>
+            <% } else { %>
+                <a href="/Leaderboard.php<%= sidParam %>"
+                   class="<%= isLeaderboard ? 'active' : '' %>">
+                    Leaderboard
+                </a>
+
+                <a href="/LoginBooth.php<%= sidParam %>"
+                   class="<%= isLogin ? 'active' : '' %>">
+                    Login
+                </a>
 
                 <a href="/SuperAdmin.php<%= sidParam %>"
                    class="<%= isSuperAdmin ? 'active' : '' %>">
