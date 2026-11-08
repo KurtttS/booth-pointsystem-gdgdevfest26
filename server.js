@@ -224,10 +224,53 @@ app.get('/Leaderboard.php', LeaderboardController.showLeaderboard);
 app.get('/leaderboard', (req, res) => res.redirect('/Leaderboard.php'));
 app.get('/api/leaderboard', LeaderboardController.getLeaderboardApi);
 
-// SuperAdmin Terminal (Controller: AdminController)
+// SuperAdmin Terminal & Pages (Controller: AdminController)
 app.get('/SuperAdmin.php', AdminController.showAdmin);
-app.post('/SuperAdmin.php', AdminController.processLogin);
+app.post('/SuperAdmin.php', (req, res, next) => {
+  const action = req.body.action;
+  if (action === 'change_password') {
+    return AdminController.changePassword(req, res, next);
+  }
+  if (action === 'add_attendee') {
+    return AdminController.addAttendee(req, res, next);
+  }
+  if (action === 'edit_attendee') {
+    return AdminController.editAttendee(req, res, next);
+  }
+  if (action === 'delete_attendee') {
+    return AdminController.deleteAttendee(req, res, next);
+  }
+  if (action === 'add_booth') {
+    return AdminController.addBooth(req, res, next);
+  }
+  if (action === 'edit_booth') {
+    return AdminController.editBooth(req, res, next);
+  }
+  if (action === 'delete_booth') {
+    return AdminController.deleteBooth(req, res, next);
+  }
+  return AdminController.processLogin(req, res, next);
+});
+
+// Direct SuperAdmin API Endpoints
+app.post('/api/admin/change-password', AdminController.changePassword);
+app.post('/api/admin/attendees/add', AdminController.addAttendee);
+app.post('/api/admin/attendees/edit', AdminController.editAttendee);
+app.post('/api/admin/attendees/delete', AdminController.deleteAttendee);
+app.post('/api/admin/booths/add', AdminController.addBooth);
+app.post('/api/admin/booths/edit', AdminController.editBooth);
+app.post('/api/admin/booths/delete', AdminController.deleteBooth);
+
+// SuperAdmin Navigation Aliases
 app.get('/superadmin', (req, res) => res.redirect('/SuperAdmin.php'));
+app.get('/SuperAdminAttendees.php', (req, res) => {
+  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
+  res.redirect(`/SuperAdmin.php?tab=attendees${sid}`);
+});
+app.get('/SuperAdminBooths.php', (req, res) => {
+  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
+  res.redirect(`/SuperAdmin.php?tab=booths${sid}`);
+});
 
 // Dashboard (Controller: BoothController)
 app.get('/Dashboard.php', BoothController.showDashboard);

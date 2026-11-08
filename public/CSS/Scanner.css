@@ -763,16 +763,15 @@ body {
 }
 
 .scans-list::-webkit-scrollbar {
-    width: 6px;
+    width: 7px;
 }
 
 .scans-list::-webkit-scrollbar-track {
-    background: #f0f2fa;
-    border-radius: 10px;
+    background: transparent;
 }
 
 .scans-list::-webkit-scrollbar-thumb {
-    background: #cbd2eb;
+    background: #0C1570;
     border-radius: 10px;
 }
 
@@ -782,7 +781,7 @@ body {
 
 .scans-list {
     scrollbar-width: thin;
-    scrollbar-color: #cbd2eb #f0f2fa;
+    scrollbar-color: #0C1570 transparent;
 }
 
 .scan-item {
