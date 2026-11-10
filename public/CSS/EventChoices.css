@@ -185,8 +185,19 @@ html, body {
 }
 
 /* --------------------------------------------------------------------------
-   CENTRAL FROSTED GLASS CARD
+   CENTRAL FROSTED GLASS CARD (Standardized)
    -------------------------------------------------------------------------- */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .frosted-modal {
   position: relative;
   z-index: 10;
@@ -200,6 +211,27 @@ html, body {
   box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
   padding: 34px 44px 38px 44px;
   overflow: hidden;
+  animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: 
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+  will-change: transform, opacity;
+}
+
+@media (hover: hover) {
+  .frosted-modal:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 26px 60px rgba(15, 23, 42, 0.12), 0 4px 14px rgba(0, 0, 0, 0.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .frosted-modal {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* Interior decorative organic blobs in top-right of frosted card */
@@ -665,6 +697,19 @@ html, body {
   transform: translateY(-1px);
 }
 
+.btn-cancel-return.btn-cancel-disabled,
+.btn-cancel-return:disabled,
+.btn-cancel-return[aria-disabled="true"] {
+  opacity: 0.45;
+  cursor: not-allowed !important;
+  pointer-events: none !important;
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
+  color: #94a3b8 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
 /* Active Session Event Status Box */
 .active-event-indicator-box {
   margin: -10px auto 24px auto;
@@ -708,6 +753,24 @@ html, body {
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
   70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.current-event-pill.pill-no-event {
+  background: rgba(148, 163, 184, 0.14);
+  border: 1px solid #cbd5e1;
+  color: #64748b;
+}
+
+.current-event-pill.pill-no-event strong {
+  color: #334155;
+}
+
+.neutral-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #94a3b8;
+  display: inline-block;
 }
 
 .current-event-guide {

@@ -40,7 +40,7 @@
 <div class="page-shell">
 
     <!-- Shared navbar -->
-    <%- include('partials/nav', { currentPage: 'Leaderboard.php', isLoggedIn: userIsLoggedIn, sid: sessionSid }) %>
+    <%- include('partials/nav', { currentPage: 'Leaderboard.php', isLoggedIn: userIsLoggedIn, isAdmin: (typeof isAdmin !== 'undefined' ? isAdmin : false), sid: sessionSid }) %>
 
     <!-- LEADERBOARD CONTENT -->
     <main class="leaderboard">
@@ -181,7 +181,6 @@
 
         <!-- EMPTY STATE NOTICE -->
         <div class="no-scans-notice<%= (currentTop1) ? ' is-hidden' : '' %>" id="noScansNotice">
-            <div class="no-scans-icon">🏆</div>
             <h3>No Attendee Points Recorded Yet</h3>
             <p>Scans recorded at booth terminals for <strong><%= currentTrackName %></strong> will appear on this leaderboard in real time.</p>
         </div>

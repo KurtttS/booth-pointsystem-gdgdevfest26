@@ -38,6 +38,7 @@ export class LeaderboardController {
         ranks8to12: standings.slice(7),
         totalAttendees: standings.length,
         isLoggedIn,
+        isAdmin: !!(req.session && req.session.isAdmin),
         sid
       });
     } catch (err) {

@@ -312,6 +312,17 @@ svg {
 
 /* Central Card */
 
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .station-card {
   width: 100%;
   max-width: 630px;
@@ -325,7 +336,30 @@ svg {
   flex-direction: column;
   flex-shrink: 0;
   overflow: visible;
-  transition: box-shadow 0.2s ease;
+  animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: 
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease,
+    border-color 0.4s ease;
+  will-change: transform, opacity;
+}
+
+@media (hover: hover) {
+  .station-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 
+      0 20px 48px rgba(10, 17, 100, 0.14),
+      0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(17, 27, 120, 0.16);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .station-card {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
 }
 
 /* Header Row: Icon and Title */

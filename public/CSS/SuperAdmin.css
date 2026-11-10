@@ -223,6 +223,20 @@ body {
     gap: 24px;
 }
 
+/* =========================================
+   CARD ENTRANCE ANIMATIONS (Standardized)
+========================================= */
+@keyframes cardEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(26px) scale(0.985);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
 /* Generic White Rounded Card */
 .superadmin-card {
     background: #ffffff;
@@ -232,6 +246,19 @@ body {
     box-shadow: 0 4px 18px rgba(13, 27, 84, 0.05);
     position: relative;
     overflow: hidden;
+    animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: 
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+    will-change: transform, opacity;
+}
+
+@media (hover: hover) {
+    .superadmin-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px rgba(13, 27, 84, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    }
 }
 
 .card-heading {
@@ -777,86 +804,210 @@ body {
 }
 
 /* Table Pagination Bar */
+/* Table Pagination Bar - Matching Reference Layout */
 .table-pagination-bar {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 28px;
+    flex-direction: column;
+    gap: 16px;
+    padding: 22px 28px 20px;
     background: #ffffff;
     border-top: 1.5px solid #f1f5f9;
     border-radius: 0 0 28px 28px;
-    flex-wrap: wrap;
-    gap: 14px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    position: sticky;
+    left: 0;
 }
 
-.pagination-info {
-    font-size: 13px;
+/* Top Row: Page Navigation Buttons (< 1 2 [3] 4 5 ... 22 >) */
+.pagination-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.pagination-nav-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Chevron navigation buttons (< and >) */
+.btn-page-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.btn-page-nav svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-page-nav:hover:not(:disabled) {
+    background: #f1f5f9;
+    color: var(--navy);
+    border-color: #cbd5e1;
+}
+
+.btn-page-nav:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+}
+
+/* Page Numbers Group */
+.pagination-pages {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Individual Page Number Button */
+.btn-page-num {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    min-width: 38px;
+    height: 38px;
+    padding: 0 8px;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.btn-page-num:hover:not(.active) {
+    background: #f1f5f9;
+    color: var(--navy);
+}
+
+/* Active Page Button (matches solid block [ 3 ] in screenshot) */
+.btn-page-num.active {
+    background: var(--navy);
+    color: #ffffff !important;
+    font-weight: 750;
+    box-shadow: 0 3px 8px rgba(13, 27, 84, 0.28);
+    cursor: default;
+}
+
+/* Ellipsis (...) */
+.pagination-ellipsis {
+    min-width: 26px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #94a3b8;
+    font-weight: 800;
+    font-size: 15px;
+    letter-spacing: 1px;
+    user-select: none;
+}
+
+/* Bottom Row: [ 10 v ] on left, Results on right */
+.pagination-bottom-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding-top: 6px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Page Size Selector (matches [ 10 v ] in screenshot) */
+.pagination-size-wrap {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+}
+
+.pagination-size-select {
+    appearance: none;
+    -webkit-appearance: none;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    padding: 8px 36px 8px 14px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--navy);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    outline: none;
+}
+
+.pagination-size-select:hover {
+    border-color: #94a3b8;
+}
+
+.pagination-size-select:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(13, 27, 84, 0.12);
+}
+
+/* Results text (matches 'Results: 1 - 15 of 324' in screenshot) */
+.pagination-results-text {
+    font-size: 14px;
     font-weight: 600;
     color: #64748b;
 }
 
-.pagination-info span {
+.pagination-results-text span {
     font-weight: 750;
     color: var(--navy);
 }
 
-.pagination-controls {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+@media (max-width: 680px) {
+    .table-pagination-bar {
+        padding: 16px 16px 14px;
+        gap: 14px;
+    }
 
-.btn-pagination {
-    background: #ffffff;
-    border: 1.5px solid #cbd5e1;
-    color: var(--navy);
-    padding: 6px 14px;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
+    .pagination-bottom-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+    }
 
-.btn-pagination:hover:not(:disabled) {
-    background: #f1f5f9;
-    border-color: #94a3b8;
-}
+    .btn-page-nav {
+        width: 34px;
+        height: 34px;
+    }
 
-.btn-pagination:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-.pagination-pages {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.btn-page-num {
-    background: transparent;
-    border: 1px solid transparent;
-    color: #475569;
-    min-width: 32px;
-    height: 32px;
-    padding: 0 6px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.btn-page-num:hover {
-    background: #f1f5f9;
-    color: var(--navy);
-}
-
-.btn-page-num.active {
-    background: var(--navy);
-    color: #ffffff;
-    border-color: var(--navy);
+    .btn-page-num {
+        min-width: 34px;
+        height: 34px;
+        font-size: 13.5px;
+    }
 }
 
 .table-cell-id {
@@ -1442,6 +1593,20 @@ body {
     border: 1px solid rgba(20, 27, 70, 0.07);
     border-radius: 30px;
     box-shadow: 0 5px 16px rgba(0, 0, 0, 0.13);
+    animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+    transition: 
+        transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.4s ease,
+        border-color 0.4s ease;
+    will-change: transform, opacity;
+}
+
+@media (hover: hover) {
+    .login-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 32px rgba(17, 27, 120, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+        border-color: rgba(17, 27, 120, 0.16);
+    }
 }
 
 .card-brand {

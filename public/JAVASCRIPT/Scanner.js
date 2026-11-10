@@ -301,11 +301,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.warn('Native requestFullscreen denied or restricted:', err);
             }
 
-            // Always activate CSS overlay if native wasn't granted or for seamless viewport fill
-            if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-                videoContainer.classList.add('is-fullscreen');
-                document.body.classList.add('camera-fullscreen-active');
-            }
+            // Activate CSS overlay for seamless edge-to-edge viewport fill
+            videoContainer.classList.add('is-fullscreen');
+            document.body.classList.add('camera-fullscreen-active');
             updateFullscreenUI(true);
         }
     }

@@ -262,6 +262,18 @@ svg {
   margin-top: 4px;
 }
 
+/* ---------- Card Entrance Animation (Standardized across app) ---------- */
+@keyframes cardEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* ---------- Hero Booth Card ---------- */
 
 .hero-station-card {
@@ -274,7 +286,9 @@ svg {
   overflow: hidden;
   box-shadow: 0 16px 36px rgba(10, 17, 100, 0.12);
   background-color: #1e293b;
-  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  will-change: transform, opacity;
   z-index: 1;
 }
 
@@ -291,20 +305,25 @@ svg {
 
 @media (hover: hover) {
   .hero-station-card:hover {
-    transform: translateY(-6px) scale(1.015);
-    box-shadow: 0 28px 55px rgba(10, 17, 100, 0.28);
+    transform: translateY(-4px) scale(1.008);
+    box-shadow: 0 24px 48px rgba(10, 17, 100, 0.22);
     z-index: 5;
   }
 
   .hero-station-card:hover .hero-station-img {
-    transform: scale(1.08);
+    transform: scale(1.05);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-station-card,
-  .hero-station-img {
-    transition: none;
+  .hero-station-img,
+  .metric-card,
+  .leaderboard-card,
+  .stat-banner-card {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
   }
 }
 
@@ -375,12 +394,17 @@ svg {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  will-change: transform, opacity;
 }
 
-.metric-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 14px 30px rgba(10, 17, 100, 0.1);
+@media (hover: hover) {
+  .metric-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(10, 17, 100, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(17, 27, 120, 0.16);
+  }
 }
 
 .metric-icon-wrap {
@@ -451,6 +475,17 @@ svg {
   display: flex;
   flex-direction: column;
   overflow: visible;
+  animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  will-change: transform, opacity;
+}
+
+@media (hover: hover) {
+  .leaderboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(10, 17, 100, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(17, 27, 120, 0.16);
+  }
 }
 
 .card-link {
@@ -465,11 +500,40 @@ svg {
   margin-bottom: 22px;
 }
 
+.leaderboard-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
 .leaderboard-title {
   font-size: 22px;
   font-weight: 800;
   color: var(--navy-text);
   letter-spacing: -0.02em;
+}
+
+.leaderboard-see-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 750;
+  color: #1a73e8;
+  text-decoration: none;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(26, 115, 232, 0.08);
+  border: 1px solid rgba(26, 115, 232, 0.2);
+  transition: all 0.2s ease;
+  position: relative;
+  z-index: 5;
+}
+
+.leaderboard-see-all-btn:hover {
+  background: #1a73e8;
+  color: #ffffff;
 }
 
 .leaderboard-subtitle {
@@ -562,6 +626,17 @@ svg {
   display: flex;
   flex-direction: column;
   overflow: visible;
+  animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.4s ease;
+  will-change: transform, opacity;
+}
+
+@media (hover: hover) {
+  .stat-banner-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 32px rgba(10, 17, 100, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06);
+    border-color: rgba(17, 27, 120, 0.16);
+  }
 }
 
 .stat-card-header {

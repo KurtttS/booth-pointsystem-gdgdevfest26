@@ -619,10 +619,9 @@ footer {
 ========================================= */
 
 .login-card,
-.admin-card,
-footer {
+.admin-card {
     /* Entrance on page load */
-    animation: cardEntrance 3.00s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
 
     /* Smooth transition for mouse interactions */
     transition: 
@@ -635,8 +634,7 @@ footer {
 /* Elegant lift effect on desktop hover */
 @media (hover: hover) {
     .login-card:hover,
-    .admin-card:hover,
-    footer:hover{
+    .admin-card:hover {
         transform: translateY(-4px);
         box-shadow: 
             0 16px 32px rgba(17, 27, 120, 0.12),

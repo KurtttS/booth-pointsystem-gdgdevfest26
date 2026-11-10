@@ -32,7 +32,7 @@
 <div class="page-shell">
 
     <!-- Shared navbar -->
-    <%- include('partials/nav', { currentPage: 'AdminLeaderboard.php', isLoggedIn: true, sid: sessionSid }) %>
+    <%- include('partials/nav', { currentPage: 'AdminLeaderboard.php', isLoggedIn: true, isAdmin: (typeof isAdmin !== 'undefined' ? isAdmin : true), sid: sessionSid }) %>
 
     <!-- LEADERBOARD CONTENT -->
     <main class="leaderboard">

@@ -185,23 +185,25 @@ export class BoothController {
     }
 
     const events = await Event.getAll();
-    const eventId = parseInt(req.session.event_id || req.session.eventId || 1, 10);
-    const track = req.session.selected_track || (eventId === 2 ? 'professionals' : 'students');
+    const hasCurrentEvent = Boolean(req.session.event_id || req.session.eventId);
+    const eventId = hasCurrentEvent ? parseInt(req.session.event_id || req.session.eventId, 10) : null;
+    const track = req.session.selected_track || (eventId === 2 ? 'professionals' : (eventId === 1 ? 'students' : ''));
     const sid = req.sessionID || req.query.sid || '';
-    const activeEvent = await Event.findById(eventId);
+    const activeEvent = eventId ? await Event.findById(eventId) : null;
 
     const enrichedEvents = events.map(ev => ({
       ...ev,
       theme: getEventTheme(ev.id, ev.event_name, events)
     }));
-    const activeEventTheme = getEventTheme(eventId, activeEvent ? activeEvent.event_name : '', events);
+    const activeEventTheme = eventId ? getEventTheme(eventId, activeEvent ? activeEvent.event_name : '', events) : null;
 
     res.render('EventChoices', {
       currentPage: 'EventChoices.php',
       track,
       eventId,
+      hasCurrentEvent,
       currentEventId: eventId,
-      currentEventName: activeEvent ? activeEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day'),
+      currentEventName: activeEvent ? activeEvent.event_name : (hasCurrentEvent ? (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day') : null),
       events: enrichedEvents,
       getEventTheme,
       activeEventTheme,

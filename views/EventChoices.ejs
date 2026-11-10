@@ -23,11 +23,12 @@
 <body>
 
 <%
-    const activeEvId = (typeof eventId !== 'undefined' && eventId) ? parseInt(eventId, 10) : ((typeof track !== 'undefined' && track === 'professionals') ? 2 : 1);
-    const activeTrack = (typeof track !== 'undefined' && track) ? track : (activeEvId === 2 ? 'professionals' : 'students');
+    const isEventActive = (typeof hasCurrentEvent !== 'undefined') ? Boolean(hasCurrentEvent) : Boolean(typeof eventId !== 'undefined' && eventId);
+    const activeEvId = (isEventActive && typeof eventId !== 'undefined' && eventId) ? parseInt(eventId, 10) : null;
+    const activeTrack = (typeof track !== 'undefined' && track) ? track : (activeEvId === 2 ? 'professionals' : (activeEvId === 1 ? 'students' : ''));
     const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
     const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
-    const activeName = (typeof currentEventName !== 'undefined' && currentEventName) ? currentEventName : (activeEvId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
+    const activeName = (typeof currentEventName !== 'undefined' && currentEventName) ? currentEventName : (isEventActive ? (activeEvId === 2 ? 'Professional Dev Day' : 'Student Dev Day') : null);
 %>
 <div class="devfest-page">
     
@@ -65,17 +66,25 @@
 
             <!-- Current Active Event Status -->
             <div class="active-event-indicator-box">
-                <span class="current-event-pill" style="border-color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.hex : '#237539' %>; color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.fontColor : '#237539' %>;">
-                    <img src="<%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.logoUrl : ('/api/event-logo/' + activeEvId) %>" alt="Current Event Logo" class="current-event-logo-mini" onerror="this.src='/assets/aistudio/Frame_4_b83932ab.png'; this.onerror=function(){this.src='/IMG/event-student-green.png'};">
-                    <span class="pulse-dot" style="background-color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.hex : '#237539' %>;"></span>
-                    Current Session Event: <strong><%= activeName %></strong>
-                </span>
-                <p class="current-event-guide">Select an event below to switch your booth terminal's active session without logging out.</p>
+                <% if (isEventActive && activeName) { %>
+                    <span class="current-event-pill" style="border-color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.hex : '#237539' %>; color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.fontColor : '#237539' %>;">
+                        <img src="<%= (typeof activeEventTheme !== 'undefined' && activeEventTheme && activeEventTheme.logoUrl) ? activeEventTheme.logoUrl : ('/api/event-logo/' + activeEvId) %>" alt="Current Event Logo" class="current-event-logo-mini" onerror="this.src='/assets/aistudio/Frame_4_b83932ab.png'; this.onerror=function(){this.src='/IMG/event-student-green.png'};">
+                        <span class="pulse-dot" style="background-color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.hex : '#237539' %>;"></span>
+                        Current Session Event: <strong><%= activeName %></strong>
+                    </span>
+                    <p class="current-event-guide">Select an event below to switch your booth terminal's active session without logging out.</p>
+                <% } else { %>
+                    <span class="current-event-pill pill-no-event">
+                        <span class="neutral-dot"></span>
+                        Current Session Event: <strong>None (No Event Selected)</strong>
+                    </span>
+                    <p class="current-event-guide">Select an event below to activate this booth terminal for scanning attendees.</p>
+                <% } %>
             </div>
 
             <!-- Track Selection Form -->
             <form method="POST" action="/scanner.php" id="eventChoicesForm">
-                <input type="hidden" name="event_id" id="selectedEventId" value="<%= activeEvId %>">
+                <input type="hidden" name="event_id" id="selectedEventId" value="<%= activeEvId || (typeof events !== 'undefined' && events && events[0] ? events[0].id : 1) %>">
                 <input type="hidden" name="sid" value="<%= sessionSid %>">
                 
                 <div class="carousel-wrapper">
@@ -160,8 +169,12 @@
 
                 <!-- Action Buttons: PROCEED / SELECT & CANCEL -->
                 <div class="proceed-btn-wrapper">
-                    <button type="submit" class="btn-proceed" id="proceedBtn">UPDATE SELECTED EVENT</button>
-                    <a href="/scanner.php<%= sidParam %>" class="btn-cancel-return">Keep Current Event</a>
+                    <button type="submit" class="btn-proceed" id="proceedBtn"><%= isEventActive ? 'UPDATE SELECTED EVENT' : 'SELECT EVENT & PROCEED' %></button>
+                    <% if (isEventActive) { %>
+                        <a href="/scanner.php<%= sidParam %>" class="btn-cancel-return">Keep Current Event</a>
+                    <% } else { %>
+                        <button type="button" class="btn-cancel-return btn-cancel-disabled" disabled aria-disabled="true" title="No event is currently active in this session. Please select an event to proceed.">Keep Current Event</button>
+                    <% } %>
                 </div>
 
             </form>

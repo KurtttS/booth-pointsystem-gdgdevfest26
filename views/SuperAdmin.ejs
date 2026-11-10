@@ -385,15 +385,35 @@
                                     <% } %>
                                 </div>
 
-                                <!-- Pagination Bar -->
+                                <!-- Pagination Bar (Matches Reference Layout) -->
                                 <div class="table-pagination-bar" id="attendeesPaginationBar">
-                                    <div class="pagination-info">
-                                        Showing <span id="pagStart">1</span> to <span id="pagEnd">10</span> of <span id="pagTotal"><%= attendees ? attendees.length : 0 %></span> attendees
+                                    <div class="pagination-top-row">
+                                        <div class="pagination-nav-group">
+                                            <button type="button" class="btn-page-nav" id="pagPrevBtn" aria-label="Previous Page">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="pagination-pages" id="pagPageNumbers"></div>
+                                            <button type="button" class="btn-page-nav" id="pagNextBtn" aria-label="Next Page">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="pagination-controls">
-                                        <button type="button" class="btn-pagination" id="pagPrevBtn" aria-label="Previous Page">‹ Previous</button>
-                                        <div class="pagination-pages" id="pagPageNumbers"></div>
-                                        <button type="button" class="btn-pagination" id="pagNextBtn" aria-label="Next Page">Next ›</button>
+                                    <div class="pagination-bottom-row">
+                                        <div class="pagination-size-wrap">
+                                            <select class="pagination-size-select" id="attendeesPageSizeSelect" aria-label="Items per page">
+                                                <option value="10" selected>10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
+                                        <div class="pagination-results-text">
+                                            Results: <span id="pagStart">1</span> - <span id="pagEnd">10</span> of <span id="pagTotal"><%= attendees ? attendees.length : 0 %></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -857,15 +877,35 @@
                                     <% } %>
                                 </div>
 
-                                <!-- Pagination Bar -->
+                                <!-- Pagination Bar (Matches Reference Layout) -->
                                 <div class="table-pagination-bar" id="pointsPaginationBar">
-                                    <div class="pagination-info">
-                                        Showing <span id="ptsPagStart">1</span> to <span id="ptsPagEnd">10</span> of <span id="ptsPagTotal"><%= pointsList ? pointsList.length : 0 %></span> records
+                                    <div class="pagination-top-row">
+                                        <div class="pagination-nav-group">
+                                            <button type="button" class="btn-page-nav" id="ptsPagPrevBtn" aria-label="Previous Page">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="pagination-pages" id="ptsPagPageNumbers"></div>
+                                            <button type="button" class="btn-page-nav" id="ptsPagNextBtn" aria-label="Next Page">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="pagination-controls">
-                                        <button type="button" class="btn-pagination" id="ptsPagPrevBtn" aria-label="Previous Page">‹ Previous</button>
-                                        <div class="pagination-pages" id="ptsPagPageNumbers"></div>
-                                        <button type="button" class="btn-pagination" id="ptsPagNextBtn" aria-label="Next Page">Next ›</button>
+                                    <div class="pagination-bottom-row">
+                                        <div class="pagination-size-wrap">
+                                            <select class="pagination-size-select" id="pointsPageSizeSelect" aria-label="Items per page">
+                                                <option value="10" selected>10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
+                                        <div class="pagination-results-text">
+                                            Results: <span id="ptsPagStart">1</span> - <span id="ptsPagEnd">10</span> of <span id="ptsPagTotal"><%= pointsList ? pointsList.length : 0 %></span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1676,22 +1716,47 @@
     setupDropdown('pointsBoothFilterToggle', 'pointsBoothFilterPopover');
     setupDropdown('eventsFilterToggle', 'eventsFilterPopover');
 
+    // Sliding window pagination algorithm matching reference screenshot (< 1 2 [3] 4 5 ... 22 >)
+    function buildPaginationItems(current, total) {
+        if (total <= 7) {
+            const pages = [];
+            for (let i = 1; i <= total; i++) pages.push(i);
+            return pages;
+        }
+        if (current <= 4) {
+            return [1, 2, 3, 4, 5, '...', total];
+        }
+        if (current >= total - 3) {
+            return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+        }
+        return [1, '...', current - 1, current, current + 1, '...', total];
+    }
+
     // ==========================================
     // ATTENDEE PAGINATION & REAL-TIME SEARCH
     // ==========================================
     const allAttendeeRows = Array.from(document.querySelectorAll('.table-row-attendee'));
-    const PAGE_SIZE = 10;
+    let attendeePageSize = 10;
     let currentPageNum = 1;
     let visibleAttendeeRows = [...allAttendeeRows];
 
+    const attendeesPageSizeSelect = document.getElementById('attendeesPageSizeSelect');
+    if (attendeesPageSizeSelect) {
+        attendeesPageSizeSelect.addEventListener('change', (e) => {
+            attendeePageSize = parseInt(e.target.value, 10) || 10;
+            currentPageNum = 1;
+            renderAttendeePagination();
+        });
+    }
+
     function renderAttendeePagination() {
         const total = visibleAttendeeRows.length;
-        const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+        const totalPages = Math.max(1, Math.ceil(total / attendeePageSize));
         if (currentPageNum > totalPages) currentPageNum = totalPages;
         if (currentPageNum < 1) currentPageNum = 1;
 
-        const startIndex = (currentPageNum - 1) * PAGE_SIZE;
-        const endIndex = Math.min(startIndex + PAGE_SIZE, total);
+        const startIndex = (currentPageNum - 1) * attendeePageSize;
+        const endIndex = Math.min(startIndex + attendeePageSize, total);
 
         // Hide all rows, show only rows for this page
         allAttendeeRows.forEach(row => row.style.display = 'none');
@@ -1701,7 +1766,7 @@
             }
         }
 
-        // Update pagination counter text
+        // Update pagination counter text (Results: 1 - 10 of 324)
         const pagStartEl = document.getElementById('pagStart');
         const pagEndEl = document.getElementById('pagEnd');
         const pagTotalEl = document.getElementById('pagTotal');
@@ -1715,21 +1780,33 @@
         if (prevBtn) prevBtn.disabled = (currentPageNum <= 1);
         if (nextBtn) nextBtn.disabled = (currentPageNum >= totalPages);
 
-        // Render page buttons
+        // Render page buttons matching screenshot
         const pagesContainer = document.getElementById('pagPageNumbers');
         if (pagesContainer) {
             pagesContainer.innerHTML = '';
-            for (let p = 1; p <= totalPages; p++) {
-                const pBtn = document.createElement('button');
-                pBtn.type = 'button';
-                pBtn.className = `btn-page-num ${p === currentPageNum ? 'active' : ''}`;
-                pBtn.textContent = p;
-                pBtn.addEventListener('click', () => {
-                    currentPageNum = p;
-                    renderAttendeePagination();
-                });
-                pagesContainer.appendChild(pBtn);
-            }
+            const items = buildPaginationItems(currentPageNum, totalPages);
+            items.forEach(item => {
+                if (item === '...') {
+                    const el = document.createElement('span');
+                    el.className = 'pagination-ellipsis';
+                    el.textContent = '...';
+                    pagesContainer.appendChild(el);
+                } else {
+                    const pBtn = document.createElement('button');
+                    pBtn.type = 'button';
+                    pBtn.className = `btn-page-num ${item === currentPageNum ? 'active' : ''}`;
+                    pBtn.textContent = item;
+                    pBtn.setAttribute('aria-label', `Page ${item}`);
+                    if (item === currentPageNum) {
+                        pBtn.setAttribute('aria-current', 'page');
+                    }
+                    pBtn.addEventListener('click', () => {
+                        currentPageNum = item;
+                        renderAttendeePagination();
+                    });
+                    pagesContainer.appendChild(pBtn);
+                }
+            });
         }
     }
 
@@ -1873,12 +1950,21 @@
     // POINTS REAL-TIME SEARCH, FILTER & PAGINATION
     // ==========================================
     const allPointsRows = Array.from(document.querySelectorAll('.table-row-points-item'));
-    const POINTS_PAGE_SIZE = 15;
+    let pointsPageSize = 10;
     let currentPointsPage = 1;
     let currentPointsEvent = 'all';
     let currentPointsBooth = 'all';
     let currentPointsQuery = '';
     let visiblePointsRows = [...allPointsRows];
+
+    const pointsPageSizeSelect = document.getElementById('pointsPageSizeSelect');
+    if (pointsPageSizeSelect) {
+        pointsPageSizeSelect.addEventListener('change', (e) => {
+            pointsPageSize = parseInt(e.target.value, 10) || 10;
+            currentPointsPage = 1;
+            renderPointsPagination();
+        });
+    }
 
     function applyPointsFilterAndPagination() {
         visiblePointsRows = allPointsRows.filter(row => {
@@ -1899,12 +1985,12 @@
 
     function renderPointsPagination() {
         const total = visiblePointsRows.length;
-        const totalPages = Math.max(1, Math.ceil(total / POINTS_PAGE_SIZE));
+        const totalPages = Math.max(1, Math.ceil(total / pointsPageSize));
         if (currentPointsPage > totalPages) currentPointsPage = totalPages;
         if (currentPointsPage < 1) currentPointsPage = 1;
 
-        const startIndex = (currentPointsPage - 1) * POINTS_PAGE_SIZE;
-        const endIndex = Math.min(startIndex + POINTS_PAGE_SIZE, total);
+        const startIndex = (currentPointsPage - 1) * pointsPageSize;
+        const endIndex = Math.min(startIndex + pointsPageSize, total);
 
         allPointsRows.forEach(row => row.style.display = 'none');
         for (let i = startIndex; i < endIndex; i++) {
@@ -1913,6 +1999,7 @@
             }
         }
 
+        // Update results counter (Results: 1 - 10 of 324)
         const startEl = document.getElementById('ptsPagStart');
         const endEl = document.getElementById('ptsPagEnd');
         const totalEl = document.getElementById('ptsPagTotal');
@@ -1928,17 +2015,29 @@
         const pagesContainer = document.getElementById('ptsPagPageNumbers');
         if (pagesContainer) {
             pagesContainer.innerHTML = '';
-            for (let p = 1; p <= totalPages; p++) {
-                const pBtn = document.createElement('button');
-                pBtn.type = 'button';
-                pBtn.className = `btn-page-num ${p === currentPointsPage ? 'active' : ''}`;
-                pBtn.textContent = p;
-                pBtn.addEventListener('click', () => {
-                    currentPointsPage = p;
-                    renderPointsPagination();
-                });
-                pagesContainer.appendChild(pBtn);
-            }
+            const items = buildPaginationItems(currentPointsPage, totalPages);
+            items.forEach(item => {
+                if (item === '...') {
+                    const el = document.createElement('span');
+                    el.className = 'pagination-ellipsis';
+                    el.textContent = '...';
+                    pagesContainer.appendChild(el);
+                } else {
+                    const pBtn = document.createElement('button');
+                    pBtn.type = 'button';
+                    pBtn.className = `btn-page-num ${item === currentPointsPage ? 'active' : ''}`;
+                    pBtn.textContent = item;
+                    pBtn.setAttribute('aria-label', `Page ${item}`);
+                    if (item === currentPointsPage) {
+                        pBtn.setAttribute('aria-current', 'page');
+                    }
+                    pBtn.addEventListener('click', () => {
+                        currentPointsPage = item;
+                        renderPointsPagination();
+                    });
+                    pagesContainer.appendChild(pBtn);
+                }
+            });
         }
     }
 
