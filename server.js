@@ -4,6 +4,7 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import fs from 'fs';
+import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import multer from 'multer';
 
@@ -50,10 +51,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
+const SESSION_SECRET = process.env.SESSION_SECRET || 'devfest-bacolod-2026-secret';
+
 // Session setup supporting both local HTTP (localhost) and cross-origin HTTPS iframes
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'devfest-bacolod-2026-secret',
+    secret: SESSION_SECRET,
     resave: true,
     saveUninitialized: false,
     proxy: true,
@@ -91,7 +94,61 @@ function sanitizeSid(raw) {
   return clean;
 }
 
-// Fallback session recovery for iframes when third-party cookies are partitioned or restricted
+function signSessionPayload(sessObj) {
+  const clean = {};
+  for (const [k, v] of Object.entries(sessObj)) {
+    if (k !== 'cookie' && typeof v !== 'function') {
+      clean[k] = v;
+    }
+  }
+  const data = Buffer.from(JSON.stringify(clean), 'utf8').toString('base64url');
+  const sig = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
+  return `${data}.${sig}`;
+}
+
+function verifySessionPayload(token) {
+  if (!token || typeof token !== 'string') return null;
+  const dotIdx = token.indexOf('.');
+  if (dotIdx === -1) return null;
+  const data = token.slice(0, dotIdx);
+  const sig = token.slice(dotIdx + 1);
+  if (!data || !sig) return null;
+
+  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expectedSig);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
+    return parsed && typeof parsed === 'object' ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function syncSignedSessionCookie(req, res) {
+  if (res.headersSent) return;
+  const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
+  const cookieOpts = {
+    httpOnly: true,
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000,
+    secure: isHttps,
+    sameSite: isHttps ? 'none' : 'lax'
+  };
+
+  if (req.session && req.session.isLoggedIn) {
+    const token = signSessionPayload(req.session);
+    if (req.cookies?.devfest_session !== token) {
+      res.cookie('devfest_session', token, cookieOpts);
+    }
+  }
+}
+
+// Fallback session recovery for Vercel serverless instances (stateless HMAC cookie) and iframes (?sid=)
 app.use((req, res, next) => {
   // Only skip session recovery when the user has explicitly clicked logout
   const isExplicitLogout = req.path === '/logout.php' || req.path === '/logout' ||
@@ -102,7 +159,24 @@ app.use((req, res, next) => {
     return next();
   }
 
+  // Ensure signed cookie is synced whenever headers are written on logged-in requests
+  const origWriteHead = res.writeHead;
+  res.writeHead = function (...args) {
+    syncSignedSessionCookie(req, res);
+    return origWriteHead.apply(this, args);
+  };
 
+  // 1. Restore from HMAC-signed cookie if MemoryStore on this serverless instance doesn't have the session
+  if (!req.session || !req.session.isLoggedIn) {
+    const cookieData = verifySessionPayload(req.cookies?.devfest_session);
+    if (cookieData && cookieData.isLoggedIn) {
+      Object.assign(req.session, cookieData);
+      if (req.sessionID && req.sessionStore) {
+        req.sessionStore.set(req.sessionID, req.session, () => {});
+      }
+      return next();
+    }
+  }
 
   let sid = sanitizeSid(req.query.sid || req.body?.sid || req.headers['x-session-id'] || req.cookies?.devfest_sid);
 

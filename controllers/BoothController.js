@@ -351,6 +351,7 @@ export class BoothController {
     const finalizeLogout = () => {
       res.clearCookie('connect.sid', cookieOpts);
       res.clearCookie('devfest_sid', cookieOpts);
+      res.clearCookie('devfest_session', cookieOpts);
       res.redirect(redirectUrl);
     };
 
