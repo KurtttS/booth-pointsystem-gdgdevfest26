@@ -154,11 +154,15 @@ export class AdminController {
           const email = att.email || `${(att.first_name || 'attendee').toLowerCase()}.${(att.last_name || '').toLowerCase()}@devfestbacolod.org`.replace(/\.\@/, '@');
           const displayId = att.qr_code_token || (reg ? reg.ticket_number : `QR-Attendee-${String(att.id).padStart(3, '0')}`);
           const fullName = Attendee.getFullName(att);
+          const displayName = (fullName && fullName.length >= 15)
+            ? (fullName.slice(0, 15).trimEnd() + '...')
+            : fullName;
 
           return {
             id: att.id,
             qrId: displayId,
             fullName,
+            displayName,
             firstName: att.first_name || '',
             lastName: att.last_name || '',
             email,

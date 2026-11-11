@@ -24,6 +24,16 @@
     const safeBooths = (typeof booths !== 'undefined' && Array.isArray(booths)) ? booths : [];
     const safeEvents = (typeof events !== 'undefined' && Array.isArray(events)) ? events : [];
     const safeSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+
+    // If attendee name is 15 letters or longer, format with ellipsis (...) so UI does not overflow
+    function formatAttendeeName(name) {
+        if (!name) return '';
+        const str = String(name).trim();
+        if (str.length >= 15) {
+            return str.substring(0, 15).trimEnd() + '...';
+        }
+        return str;
+    }
 %>
 
     <div class="page <%= !safeLoggedIn ? 'page-login' : '' %>">
@@ -269,7 +279,7 @@
                                                 <div class="scan-feed-item">
                                                     <div class="scan-feed-left">
                                                         <div class="scan-user-main">
-                                                            <strong class="scan-user-name"><%= scan.attendeeName || scan.name || 'Attendee' %></strong>
+                                                            <strong class="scan-user-name" title="<%= scan.attendeeName || scan.name || 'Attendee' %>"><%= formatAttendeeName(scan.attendeeName || scan.name || 'Attendee') %></strong>
                                                             <span class="scan-qr-badge"><%= scan.qrCodeToken || scan.id %></span>
                                                         </div>
                                                         <div class="scan-booth-meta">
@@ -354,7 +364,7 @@
                                         <% attendees.forEach(function(att, idx) { %>
                                             <div class="table-row-item table-row-attendee" data-id="<%= att.id %>" data-index="<%= idx %>" data-search="<%= ((att.qrId || '') + ' ' + (att.fullName || '') + ' ' + (att.email || '') + ' ' + (att.eventName || '')).toLowerCase() %>">
                                                 <span class="table-cell-id"><%= att.qrId %></span>
-                                                <span><%= att.fullName %></span>
+                                                <span class="attendee-name" title="<%= att.fullName %>"><%= formatAttendeeName(att.fullName) %></span>
                                                 <span style="font-size: 13px; font-weight: 600; color: #334155; word-break: break-all;"><%= att.email %></span>
                                                 <span><%= att.eventName %></span>
                                                 <div class="table-cell-actions">
@@ -613,7 +623,7 @@
                                                 <% visitors.forEach(function(v) { %>
                                                     <div class="visitor-row-item">
                                                         <span class="table-cell-id"><%= v.userId %></span>
-                                                        <span><%= v.username %></span>
+                                                        <span class="visitor-username" title="<%= v.username %>"><%= formatAttendeeName(v.username) %></span>
                                                     </div>
                                                 <% }); %>
                                             <% } %>
@@ -814,7 +824,7 @@
                                                  data-search="<%= ((p.attendeeName || '') + ' ' + (p.qrCodeToken || '') + ' ' + (p.attendeeEmail || '') + ' ' + (p.boothName || '') + ' ' + (p.eventName || '')).toLowerCase() %>">
                                                 <!-- Attendee Information (display kay sino na ang points) -->
                                                 <div>
-                                                    <div style="font-weight: 800; color: #0d1b54; font-size: 14px;"><%= p.attendeeName %></div>
+                                                    <div class="points-attendee-name" style="font-weight: 800; color: #0d1b54; font-size: 14px;" title="<%= p.attendeeName %>"><%= formatAttendeeName(p.attendeeName) %></div>
                                                     <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
                                                         <span class="scan-qr-badge"><%= p.qrCodeToken %></span>
                                                         <span style="font-size: 11.5px; color: #64748b;"><%= p.attendeeEmail %></span>

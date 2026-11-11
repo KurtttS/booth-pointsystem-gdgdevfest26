@@ -814,6 +814,25 @@ body {
     grid-template-columns: 1.4fr 1.5fr 2fr 1.5fr 140px;
 }
 
+.table-row-attendee .attendee-name,
+.table-row-attendee > span:nth-child(2) {
+    display: inline-block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
+
+.visitor-username,
+.points-attendee-name {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .table-row-booth {
     grid-template-columns: 1.2fr 2fr 1.3fr 1.6fr 1.8fr 140px;
 }
