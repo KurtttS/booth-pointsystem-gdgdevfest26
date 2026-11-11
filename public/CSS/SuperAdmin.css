@@ -245,7 +245,7 @@ body {
     padding: 26px 30px;
     box-shadow: 0 4px 18px rgba(13, 27, 84, 0.05);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition: 
         transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
@@ -440,6 +440,16 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: visible !important;
+    position: relative;
+    z-index: 25;
+}
+
+.overview-right-card.has-open-dropdown,
+.overview-right-card:has(.dropdown-popover.is-open),
+.superadmin-card.has-open-dropdown,
+.superadmin-card:has(.dropdown-popover.is-open) {
+    z-index: 100;
 }
 
 .attendees-card-header {
@@ -668,8 +678,13 @@ body {
 }
 
 .superadmin-action-bar .event-filter-btn svg,
-.action-bar-left .event-filter-btn svg {
+.action-bar-left .event-filter-btn svg,
+.attendees-card-header .event-filter-btn svg {
     flex-shrink: 0;
+}
+
+.attendees-card-header .event-filter-btn {
+    height: 42px;
 }
 
 /* Dropdown Pill Button (e.g. All Booths v, Game Booth v) */
@@ -1386,6 +1401,30 @@ body {
     letter-spacing: 0.4px;
 }
 
+.field-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 4px;
+}
+
+.field-header-row label {
+    margin-bottom: 0;
+}
+
+.field-char-limit {
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.2px;
+}
+
+.field-char-limit.is-max {
+    color: #dc2626;
+    font-weight: 800;
+}
+
 .modal-form-group input,
 .modal-form-group select,
 .modal-form-group textarea {
@@ -1485,22 +1524,35 @@ body {
 .dropdown-menu-container {
     position: relative;
     display: inline-block;
+    z-index: 30;
+}
+
+.dropdown-menu-container.is-active,
+.dropdown-menu-container:has(.dropdown-popover.is-open) {
+    z-index: 120;
 }
 
 .dropdown-popover {
     position: absolute;
     top: calc(100% + 8px);
     left: 0;
-    min-width: 260px;
+    min-width: 270px;
     background: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 14px 34px rgba(13, 27, 84, 0.16), 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 16px 36px rgba(13, 27, 84, 0.16), 0 4px 14px rgba(0, 0, 0, 0.06);
     border: 1px solid rgba(13, 27, 84, 0.08);
     padding: 8px;
-    z-index: 100;
+    z-index: 1000;
     display: none;
     max-height: 380px;
     overflow-y: auto;
+}
+
+#overviewFilterPopover {
+    top: calc(100% + 8px);
+    left: 0;
+    min-width: 270px;
+    z-index: 1000;
 }
 
 .dropdown-popover.is-open {

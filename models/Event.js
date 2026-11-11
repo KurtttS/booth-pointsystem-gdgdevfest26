@@ -47,9 +47,20 @@ export class Event {
     if (!isSupabaseConfigured() || !supabase) {
       throw new Error('Supabase is not configured.');
     }
+    const cleanName = (event_name || '').trim();
+    if (!cleanName) {
+      throw new Error('Event name is required.');
+    }
+    if (cleanName.length > 100) {
+      throw new Error('Event name cannot exceed 100 characters.');
+    }
+    const cleanVenue = (venue || '').trim() || 'Bacolod City';
+    if (cleanVenue.length > 150) {
+      throw new Error('Venue cannot exceed 150 characters.');
+    }
     const payload = {
-      event_name: (event_name || '').trim(),
-      venue: (venue || '').trim() || 'Bacolod City',
+      event_name: cleanName,
+      venue: cleanVenue,
       event_date: event_date || null
     };
     const { data, error } = await supabase
@@ -71,8 +82,23 @@ export class Event {
     }
     const numId = parseInt(id, 10);
     const payload = {};
-    if (event_name !== undefined) payload.event_name = (event_name || '').trim();
-    if (venue !== undefined) payload.venue = (venue || '').trim();
+    if (event_name !== undefined) {
+      const cleanName = (event_name || '').trim();
+      if (!cleanName) {
+        throw new Error('Event name is required.');
+      }
+      if (cleanName.length > 100) {
+        throw new Error('Event name cannot exceed 100 characters.');
+      }
+      payload.event_name = cleanName;
+    }
+    if (venue !== undefined) {
+      const cleanVenue = (venue || '').trim();
+      if (cleanVenue.length > 150) {
+        throw new Error('Venue cannot exceed 150 characters.');
+      }
+      payload.venue = cleanVenue;
+    }
     if (event_date !== undefined) payload.event_date = event_date || null;
 
     const { data, error } = await supabase

@@ -54,6 +54,23 @@ export class ScanController {
         });
       }
 
+      const cleanCode = qrCode ? String(qrCode).trim() : '';
+      const cleanName = attendeeName ? String(attendeeName).trim() : '';
+
+      if (cleanCode && cleanCode.length > 64) {
+        return res.status(400).json({
+          success: false,
+          message: 'QR code or Attendee ID cannot exceed 64 characters.'
+        });
+      }
+
+      if (cleanName && cleanName.length > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Attendee name cannot exceed 100 characters.'
+        });
+      }
+
       // Retrieve booth details from Supabase
       const booth = (await Booth.findById(boothId)) || Booth.getDefault();
       const boothType = Booth.getBoothType(booth);

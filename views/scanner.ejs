@@ -180,6 +180,7 @@
                             <input
                                 type="text"
                                 id="scanSearchInput"
+                                maxlength="100"
                                 placeholder="Search e.g Attendees 001"
                                 aria-label="Search attendees"
                             >
@@ -375,8 +376,11 @@
 
         <form id="manualScanForm">
             <div class="modal-field">
-                <label for="manualAttendeeId">Ticket / Attendee ID *</label>
-                <input type="text" id="manualAttendeeId" placeholder="e.g. TKT-2026-001 or QR-JUAN-001" required autocomplete="off">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                    <label for="manualAttendeeId" style="margin-bottom: 0;">Ticket / Attendee ID *</label>
+                    <span id="manualAttendeeCharCount" style="font-size: 11px; font-weight: 700; color: #64748b; font-variant-numeric: tabular-nums;">0/64</span>
+                </div>
+                <input type="text" id="manualAttendeeId" maxlength="64" placeholder="e.g. TKT-2026-001 or QR-JUAN-001" required autocomplete="off">
             </div>
 
             <div class="modal-field">

@@ -127,7 +127,7 @@
                                  SCREENSHOT 1: OVERVIEW PAGE
                                  ============================================================== -->
                             <div class="superadmin-header">
-                                <h1 class="superadmin-title">Welcome, Super Admin <%= displayName %>!</h1>
+                                <h1 class="superadmin-title">Welcome, Super Admin!</h1>
                                 <p class="superadmin-subtitle">DevFest Bacolod 2026 - Google Developer Groups</p>
                             </div>
 
@@ -302,7 +302,7 @@
                                             <circle cx="11" cy="11" r="7"></circle>
                                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                                         </svg>
-                                        <input type="text" id="attendeeSearchInput" placeholder="Search Attendee" value="<%= (typeof searchQuery !== 'undefined') ? searchQuery : '' %>">
+                                        <input type="text" id="attendeeSearchInput" maxlength="100" placeholder="Search Attendee" value="<%= (typeof searchQuery !== 'undefined') ? searchQuery : '' %>">
                                     </div>
 
                                     <!-- Funnel filter -->
@@ -433,7 +433,7 @@
                                                 <circle cx="11" cy="11" r="7"></circle>
                                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                                             </svg>
-                                            <input type="text" id="boothSearchInput" placeholder="Search Booth (name, username, location)..." value="<%= (typeof boothSearch !== 'undefined') ? boothSearch : '' %>">
+                                            <input type="text" id="boothSearchInput" maxlength="100" placeholder="Search Booth (name, username, location)..." value="<%= (typeof boothSearch !== 'undefined') ? boothSearch : '' %>">
                                         </div>
 
                                         <!-- Filter by Booth Type Dropdown -->
@@ -732,7 +732,7 @@
                                             <circle cx="11" cy="11" r="7"></circle>
                                             <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                                         </svg>
-                                        <input type="text" id="pointsSearchInput" placeholder="Search Points (Attendee, QR, Booth, Event)..." value="<%= (typeof searchQuery !== 'undefined') ? searchQuery : '' %>">
+                                        <input type="text" id="pointsSearchInput" maxlength="100" placeholder="Search Points (Attendee, QR, Booth, Event)..." value="<%= (typeof searchQuery !== 'undefined') ? searchQuery : '' %>">
                                     </div>
 
                                     <!-- Filter by Event Dropdown -->
@@ -1041,21 +1041,33 @@
                             <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
                             <div class="modal-body">
                                 <div class="modal-form-group">
-                                    <label for="newAttendeeId">Create QR Code Token</label>
-                                    <input id="newAttendeeId" name="attendeeId" type="text" placeholder="e.g. QR-Kurt-2026 (Leave blank to auto-generate)">
-                                    <small style="display: block; margin-top: 4px; font-size: 11px; color: #64748b;">Enter a custom token or leave blank to automatically generate one.</small>
+                                    <div class="field-header-row">
+                                        <label for="newAttendeeId">Create QR Code Token</label>
+                                        <span class="field-char-limit" id="newAttendeeIdCount">0/64</span>
+                                    </div>
+                                    <input id="newAttendeeId" name="attendeeId" type="text" maxlength="64" placeholder="e.g. QR-Kurt-2026 (Leave blank to auto-generate)">
+                                    <small style="display: block; margin-top: 4px; font-size: 11px; color: #64748b;">Enter a custom token (max 64 characters) or leave blank to automatically generate one.</small>
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="newFirstName">First Name *</label>
-                                    <input id="newFirstName" name="firstName" type="text" required placeholder="e.g. Kurt">
+                                    <div class="field-header-row">
+                                        <label for="newFirstName">First Name *</label>
+                                        <span class="field-char-limit" id="newFirstNameCount">0/50</span>
+                                    </div>
+                                    <input id="newFirstName" name="firstName" type="text" maxlength="50" required placeholder="e.g. Kurt">
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="newLastName">Last Name</label>
-                                    <input id="newLastName" name="lastName" type="text" placeholder="e.g. Satumbaga">
+                                    <div class="field-header-row">
+                                        <label for="newLastName">Last Name</label>
+                                        <span class="field-char-limit" id="newLastNameCount">0/50</span>
+                                    </div>
+                                    <input id="newLastName" name="lastName" type="text" maxlength="50" placeholder="e.g. Satumbaga">
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="newAttendeeEmail">Email Address</label>
-                                    <input id="newAttendeeEmail" name="email" type="email" placeholder="e.g. kurt.satumbaga@devfestbacolod.org">
+                                    <div class="field-header-row">
+                                        <label for="newAttendeeEmail">Email Address</label>
+                                        <span class="field-char-limit" id="newAttendeeEmailCount">0/100</span>
+                                    </div>
+                                    <input id="newAttendeeEmail" name="email" type="email" maxlength="100" placeholder="e.g. kurt.satumbaga@devfestbacolod.org">
                                 </div>
                                 <div class="modal-form-group">
                                     <label for="newEventId">Event Attended</label>
@@ -1087,20 +1099,32 @@
                             <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
                             <div class="modal-body">
                                 <div class="modal-form-group">
-                                    <label for="editAttendeeQrId">QR Code Token *</label>
-                                    <input id="editAttendeeQrId" name="attendeeId" type="text" required>
+                                    <div class="field-header-row">
+                                        <label for="editAttendeeQrId">QR Code Token *</label>
+                                        <span class="field-char-limit" id="editAttendeeQrIdCount">0/64</span>
+                                    </div>
+                                    <input id="editAttendeeQrId" name="attendeeId" type="text" maxlength="64" required>
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="editAttendeeFirstName">First Name *</label>
-                                    <input id="editAttendeeFirstName" name="firstName" type="text" required>
+                                    <div class="field-header-row">
+                                        <label for="editAttendeeFirstName">First Name *</label>
+                                        <span class="field-char-limit" id="editAttendeeFirstNameCount">0/50</span>
+                                    </div>
+                                    <input id="editAttendeeFirstName" name="firstName" type="text" maxlength="50" required>
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="editAttendeeLastName">Last Name</label>
-                                    <input id="editAttendeeLastName" name="lastName" type="text">
+                                    <div class="field-header-row">
+                                        <label for="editAttendeeLastName">Last Name</label>
+                                        <span class="field-char-limit" id="editAttendeeLastNameCount">0/50</span>
+                                    </div>
+                                    <input id="editAttendeeLastName" name="lastName" type="text" maxlength="50">
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="editAttendeeEmail">Email Address</label>
-                                    <input id="editAttendeeEmail" name="email" type="email" required>
+                                    <div class="field-header-row">
+                                        <label for="editAttendeeEmail">Email Address *</label>
+                                        <span class="field-char-limit" id="editAttendeeEmailCount">0/100</span>
+                                    </div>
+                                    <input id="editAttendeeEmail" name="email" type="email" maxlength="100" required>
                                 </div>
                                 <div class="modal-form-group">
                                     <label for="editAttendeeEventId">Event Attended</label>
@@ -1436,12 +1460,18 @@
                             <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
                             <div class="modal-body">
                                 <div class="modal-form-group">
-                                    <label for="newEventName">Event Name *</label>
-                                    <input id="newEventName" name="event_name" type="text" required placeholder="e.g. Student Dev Day">
+                                    <div class="field-header-row">
+                                        <label for="newEventName">Event Name *</label>
+                                        <span class="field-char-limit" id="newEventNameCount">0/100</span>
+                                    </div>
+                                    <input id="newEventName" name="event_name" type="text" maxlength="100" required placeholder="e.g. Student Dev Day">
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="newEventVenue">Venue / Location</label>
-                                    <input id="newEventVenue" name="venue" type="text" placeholder="e.g. Bacolod City College">
+                                    <div class="field-header-row">
+                                        <label for="newEventVenue">Venue / Location</label>
+                                        <span class="field-char-limit" id="newEventVenueCount">0/150</span>
+                                    </div>
+                                    <input id="newEventVenue" name="venue" type="text" maxlength="150" placeholder="e.g. Bacolod City College">
                                 </div>
                                 <div class="modal-form-group">
                                     <label for="newEventDate">Event Date</label>
@@ -1469,12 +1499,18 @@
                             <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
                             <div class="modal-body">
                                 <div class="modal-form-group">
-                                    <label for="editEventName">Event Name *</label>
-                                    <input id="editEventName" name="event_name" type="text" required>
+                                    <div class="field-header-row">
+                                        <label for="editEventName">Event Name *</label>
+                                        <span class="field-char-limit" id="editEventNameCount">0/100</span>
+                                    </div>
+                                    <input id="editEventName" name="event_name" type="text" maxlength="100" required>
                                 </div>
                                 <div class="modal-form-group">
-                                    <label for="editEventVenue">Venue / Location</label>
-                                    <input id="editEventVenue" name="venue" type="text">
+                                    <div class="field-header-row">
+                                        <label for="editEventVenue">Venue / Location</label>
+                                        <span class="field-char-limit" id="editEventVenueCount">0/150</span>
+                                    </div>
+                                    <input id="editEventVenue" name="venue" type="text" maxlength="150">
                                 </div>
                                 <div class="modal-form-group">
                                     <label for="editEventDate">Event Date</label>
@@ -1556,19 +1592,71 @@
         });
     });
 
+    // Helper to wire up real-time character limit counters
+    function setupCharCounter(inputId, counterId, maxLen) {
+        const inputEl = document.getElementById(inputId);
+        const counterEl = document.getElementById(counterId);
+        if (!inputEl || !counterEl) return;
+        const update = () => {
+            const len = inputEl.value.length;
+            counterEl.textContent = `${len}/${maxLen}`;
+            if (len >= maxLen) {
+                counterEl.classList.add('is-max');
+            } else {
+                counterEl.classList.remove('is-max');
+            }
+        };
+        inputEl.addEventListener('input', update);
+        update();
+    }
+
+    // Initialize character counters for attendee and event fields
+    setupCharCounter('newAttendeeId', 'newAttendeeIdCount', 64);
+    setupCharCounter('newFirstName', 'newFirstNameCount', 50);
+    setupCharCounter('newLastName', 'newLastNameCount', 50);
+    setupCharCounter('newAttendeeEmail', 'newAttendeeEmailCount', 100);
+
+    setupCharCounter('editAttendeeQrId', 'editAttendeeQrIdCount', 64);
+    setupCharCounter('editAttendeeFirstName', 'editAttendeeFirstNameCount', 50);
+    setupCharCounter('editAttendeeLastName', 'editAttendeeLastNameCount', 50);
+    setupCharCounter('editAttendeeEmail', 'editAttendeeEmailCount', 100);
+
+    setupCharCounter('newEventName', 'newEventNameCount', 100);
+    setupCharCounter('newEventVenue', 'newEventVenueCount', 150);
+
+    setupCharCounter('editEventName', 'editEventNameCount', 100);
+    setupCharCounter('editEventVenue', 'editEventVenueCount', 150);
+
     // Attendees Add Modal Button
     const openAddAttendeeBtn = document.getElementById('openAddAttendeeModal');
     if (openAddAttendeeBtn) {
-        openAddAttendeeBtn.addEventListener('click', () => openModal('addAttendeeModal'));
+        openAddAttendeeBtn.addEventListener('click', () => {
+            document.querySelectorAll('#addAttendeeModal input[type="text"], #addAttendeeModal input[type="email"]').forEach(inp => {
+                inp.value = '';
+                inp.dispatchEvent(new Event('input'));
+            });
+            openModal('addAttendeeModal');
+        });
     }
 
     // Edit Attendee Modal Handler
     function openEditAttendee(btn) {
         document.getElementById('editAttendeeDbId').value = btn.dataset.id;
-        document.getElementById('editAttendeeQrId').value = btn.dataset.qrid || '';
-        document.getElementById('editAttendeeFirstName').value = btn.dataset.firstname || '';
-        document.getElementById('editAttendeeLastName').value = btn.dataset.lastname || '';
-        document.getElementById('editAttendeeEmail').value = btn.dataset.email || '';
+        const qrInput = document.getElementById('editAttendeeQrId');
+        const firstInput = document.getElementById('editAttendeeFirstName');
+        const lastInput = document.getElementById('editAttendeeLastName');
+        const emailInput = document.getElementById('editAttendeeEmail');
+
+        qrInput.value = btn.dataset.qrid || '';
+        firstInput.value = btn.dataset.firstname || '';
+        lastInput.value = btn.dataset.lastname || '';
+        emailInput.value = btn.dataset.email || '';
+
+        qrInput.dispatchEvent(new Event('input'));
+        firstInput.dispatchEvent(new Event('input'));
+        lastInput.dispatchEvent(new Event('input'));
+        emailInput.dispatchEvent(new Event('input'));
+
         if (btn.dataset.eventid) {
             document.getElementById('editAttendeeEventId').value = btn.dataset.eventid;
         }
@@ -1646,14 +1734,27 @@
     // Events Add Modal Button
     const openAddEventBtn = document.getElementById('openAddEventModal');
     if (openAddEventBtn) {
-        openAddEventBtn.addEventListener('click', () => openModal('addEventModal'));
+        openAddEventBtn.addEventListener('click', () => {
+            const nameInp = document.getElementById('newEventName');
+            const venueInp = document.getElementById('newEventVenue');
+            if (nameInp) { nameInp.value = ''; nameInp.dispatchEvent(new Event('input')); }
+            if (venueInp) { venueInp.value = ''; venueInp.dispatchEvent(new Event('input')); }
+            openModal('addEventModal');
+        });
     }
 
     // Edit Event Modal Handler
     function openEditEvent(btn) {
         document.getElementById('editEventId').value = btn.dataset.id;
-        document.getElementById('editEventName').value = btn.dataset.name || '';
-        document.getElementById('editEventVenue').value = btn.dataset.venue || '';
+        const nameInp = document.getElementById('editEventName');
+        const venueInp = document.getElementById('editEventVenue');
+
+        nameInp.value = btn.dataset.name || '';
+        venueInp.value = btn.dataset.venue || '';
+
+        nameInp.dispatchEvent(new Event('input'));
+        venueInp.dispatchEvent(new Event('input'));
+
         if (btn.dataset.date) {
             // Format to YYYY-MM-DD if date contains time
             const dateStr = btn.dataset.date.split('T')[0];
@@ -1676,6 +1777,8 @@
         document.querySelectorAll('.dropdown-popover.is-open').forEach(p => {
             if (p !== exceptPopover) {
                 p.classList.remove('is-open');
+                p.closest('.superadmin-card')?.classList.remove('has-open-dropdown');
+                p.closest('.dropdown-menu-container')?.classList.remove('is-active');
             }
         });
     }
@@ -1692,8 +1795,12 @@
                 closeAllDropdowns(willOpen ? popover : null);
                 if (willOpen) {
                     popover.classList.add('is-open');
+                    popover.closest('.superadmin-card')?.classList.add('has-open-dropdown');
+                    popover.closest('.dropdown-menu-container')?.classList.add('is-active');
                 } else {
                     popover.classList.remove('is-open');
+                    popover.closest('.superadmin-card')?.classList.remove('has-open-dropdown');
+                    popover.closest('.dropdown-menu-container')?.classList.remove('is-active');
                 }
             });
         }

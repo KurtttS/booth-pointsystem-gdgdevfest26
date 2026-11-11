@@ -630,6 +630,12 @@ export class AdminController {
    * Helper to redirect within SuperAdmin while strictly preserving the authenticated session and flushing to store
    */
   static redirectWithAdmin(req, res, tab, msgType, message) {
+    if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+      return res.status(msgType === 'error' ? 400 : 200).json({
+        success: msgType !== 'error',
+        message
+      });
+    }
     const sid = req.body?.sid || req.query?.sid || req.sessionID || req.session?.id || '';
     const sidQuery = sid ? `&sid=${encodeURIComponent(sid)}` : '';
     const param = msgType === 'error' ? 'error' : 'message';
@@ -653,20 +659,36 @@ export class AdminController {
     }
 
     try {
-      const { attendeeId, firstName, lastName, address, eventId } = req.body;
+      const { attendeeId, firstName, lastName, email: inputEmail, address, eventId } = req.body;
       const cleanFirst = (firstName || '').trim();
       const cleanLast = (lastName || '').trim();
       const cleanAddress = (address || '').trim() || 'Bacolod City';
+      const cleanInputEmail = (inputEmail || req.body.email || '').trim();
       const parsedEventId = parseInt(eventId, 10) || 1;
 
       if (!cleanFirst) {
         return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'First name is required.');
       }
+      if (cleanFirst.length > 50) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'First name cannot exceed 50 characters.');
+      }
+      if (cleanLast.length > 50) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Last name cannot exceed 50 characters.');
+      }
+      if (cleanAddress.length > 100) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Address / Company cannot exceed 100 characters.');
+      }
+      if (attendeeId && attendeeId.trim().length > 64) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'QR Code Token cannot exceed 64 characters.');
+      }
+      if (cleanInputEmail && cleanInputEmail.length > 100) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Email address cannot exceed 100 characters.');
+      }
 
       // Generate unique email and QR token if not explicitly provided
       const slug = `${cleanFirst.toLowerCase().replace(/[^a-z0-9]/g, '')}.${(cleanLast || 'attendee').toLowerCase().replace(/[^a-z0-9]/g, '')}`;
       const uniqueSuffix = Date.now().toString().slice(-4);
-      const email = `${slug}.${uniqueSuffix}@devfestbacolod.org`;
+      const email = cleanInputEmail || `${slug}.${uniqueSuffix}@devfestbacolod.org`;
       const qrToken = (attendeeId && attendeeId.trim()) ? attendeeId.trim() : `QR-Attendee-${uniqueSuffix}`;
 
       // 1. Insert into attendees table
@@ -734,15 +756,38 @@ export class AdminController {
       const cleanQr = (attendeeId || '').trim();
       const parsedEventId = parseInt(eventId, 10) || 1;
 
+      if (!cleanFirst) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'First name is required.');
+      }
+      if (cleanFirst.length > 50) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'First name cannot exceed 50 characters.');
+      }
+      if (cleanLast.length > 50) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Last name cannot exceed 50 characters.');
+      }
+      if (!cleanQr) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'QR Code Token is required.');
+      }
+      if (cleanQr.length > 64) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'QR Code Token cannot exceed 64 characters.');
+      }
+      if (!cleanEmail) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Email address is required.');
+      }
+      if (cleanEmail.length > 100) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Email address cannot exceed 100 characters.');
+      }
+      if (cleanAddress.length > 100) {
+        return AdminController.redirectWithAdmin(req, res, 'attendees', 'error', 'Address / Company cannot exceed 100 characters.');
+      }
+
       const updatePayload = {
         first_name: cleanFirst,
         last_name: cleanLast,
         company: cleanAddress,
-        qr_code_token: cleanQr
+        qr_code_token: cleanQr,
+        email: cleanEmail
       };
-      if (cleanEmail) {
-        updatePayload.email = cleanEmail;
-      }
 
       // Update attendee
       const { error: attError } = await supabase
@@ -1144,6 +1189,15 @@ export class AdminController {
       if (!cleanName) {
         return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Event name is required.');
       }
+      if (cleanName.length > 100) {
+        return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Event name cannot exceed 100 characters.');
+      }
+      if (cleanVenue.length > 150) {
+        return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Venue cannot exceed 150 characters.');
+      }
+      if (event_date && String(event_date).trim().length > 10) {
+        return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Event date is invalid.');
+      }
 
       const createdEvent = await Event.create({
         event_name: cleanName,
@@ -1178,6 +1232,15 @@ export class AdminController {
 
       if (!numId || !cleanName) {
         return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Event ID and Name are required.');
+      }
+      if (cleanName.length > 100) {
+        return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Event name cannot exceed 100 characters.');
+      }
+      if (cleanVenue.length > 150) {
+        return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Venue cannot exceed 150 characters.');
+      }
+      if (event_date && String(event_date).trim().length > 10) {
+        return AdminController.redirectWithAdmin(req, res, 'events', 'error', 'Event date is invalid.');
       }
 
       await Event.update(numId, {

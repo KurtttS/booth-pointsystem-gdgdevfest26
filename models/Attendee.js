@@ -178,6 +178,15 @@ export class Attendee {
     const cleanCode = identifier ? identifier.trim() : '';
     const cleanName = name ? name.trim() : '';
 
+    if ((cleanCode && cleanCode.length > 64) || (cleanName && cleanName.length > 100)) {
+      return {
+        status: 'not_found',
+        attendee: null,
+        eventAttendee: null,
+        boothEventId
+      };
+    }
+
     let attendee = null;
     let eventAttendee = null;
 

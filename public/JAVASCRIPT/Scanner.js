@@ -789,18 +789,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Manual Entry Modal ---
+    const manualCharCount = document.getElementById('manualAttendeeCharCount');
+    const manualIdInput = document.getElementById('manualAttendeeId');
+
+    function updateManualCharCount() {
+        if (!manualIdInput || !manualCharCount) return;
+        const len = manualIdInput.value.length;
+        manualCharCount.textContent = `${len}/64`;
+        if (len >= 64) {
+            manualCharCount.style.color = '#dc2626';
+        } else {
+            manualCharCount.style.color = '#64748b';
+        }
+    }
+
+    if (manualIdInput) {
+        manualIdInput.addEventListener('input', updateManualCharCount);
+    }
+
     if (manualBtn && modal) {
         manualBtn.addEventListener('click', () => {
             modal.hidden = false;
             if (manualAttendeePointsInput) manualAttendeePointsInput.value = getCurrentTierPoints();
-            const idInput = document.getElementById('manualAttendeeId');
-            if (idInput) idInput.focus();
+            if (manualIdInput) {
+                manualIdInput.value = '';
+                updateManualCharCount();
+                manualIdInput.focus();
+            }
         });
     }
 
     const closeModal = () => {
         if (modal) modal.hidden = true;
         if (manualForm) manualForm.reset();
+        updateManualCharCount();
     };
 
     if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
@@ -813,6 +835,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = idInput ? idInput.value.trim() : '';
 
             if (!id) return;
+
+            if (id.length > 64) {
+                showScanBanner('✕ Attendee / Ticket ID cannot exceed 64 characters.', 'error');
+                return;
+            }
 
             sendScanToBackend(id);
             closeModal();

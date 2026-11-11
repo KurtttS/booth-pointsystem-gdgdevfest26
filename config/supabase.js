@@ -9,18 +9,11 @@ if (typeof dns.setDefaultResultOrder === 'function') {
   dns.setDefaultResultOrder('ipv4first');
 }
 
-const DEFAULT_SUPABASE_URL = 'https://kdtnnbclochynndvnlym.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'sb_publishable_r7O49RMN-Mg6f7tTLcC_8A_ikgKKN5s';
-
 function loadEnvWithWindowsFallback() {
   dotenv.config();
   if (!process.env.SUPABASE_URL && fs.existsSync('.env.txt')) {
     console.warn('[Supabase] Found .env.txt instead of .env (Windows hidden file extension). Loading .env.txt...');
     dotenv.config({ path: '.env.txt' });
-  }
-  if (!process.env.SUPABASE_URL && fs.existsSync('.env.example')) {
-    console.warn('[Supabase] Loading .env.example fallback...');
-    dotenv.config({ path: '.env.example' });
   }
 }
 
@@ -33,8 +26,8 @@ function initSupabaseIfNeeded() {
   if (supabase) return true;
 
   loadEnvWithWindowsFallback();
-  const rawUrl = (process.env.SUPABASE_URL || DEFAULT_SUPABASE_URL).trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '');
-  const rawKey = (process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || DEFAULT_SUPABASE_ANON_KEY).trim().replace(/^['"]|['"]$/g, '');
+  const rawUrl = (process.env.SUPABASE_URL || '').trim().replace(/^['"]|['"]$/g, '').replace(/\/+$/, '');
+  const rawKey = (process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim().replace(/^['"]|['"]$/g, '');
   const supabaseUrl = rawUrl;
   const supabaseKey = rawKey;
 
