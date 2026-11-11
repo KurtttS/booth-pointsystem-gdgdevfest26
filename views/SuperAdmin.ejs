@@ -34,6 +34,16 @@
         }
         return str;
     }
+
+    // If attendee email is 15 letters or longer, format with ellipsis (...) so UI does not overflow
+    function formatAttendeeEmail(email) {
+        if (!email) return '';
+        const str = String(email).trim();
+        if (str.length >= 15) {
+            return str.substring(0, 15).trimEnd() + '...';
+        }
+        return str;
+    }
 %>
 
     <div class="page <%= !safeLoggedIn ? 'page-login' : '' %>">
@@ -169,16 +179,18 @@
                                                 <span>0</span>
                                             </div>
 
-                                            <div class="chart-bars-wrap">
-                                                <% (attendeesPerBooth || []).slice(0, 8).forEach(function(booth) {
-                                                    const barHeightPct = Math.min(100, Math.max(3, Math.round((booth.count / yMax) * 100)));
-                                                %>
-                                                    <div class="chart-bar-group" title="<%= booth.name %>: <%= booth.count %> attendees">
-                                                        <div class="chart-bar-tooltip"><%= booth.name %>: <%= booth.count %></div>
-                                                        <div class="chart-bar" style="height: <%= barHeightPct %>%;"></div>
-                                                        <div class="chart-bar-label"><%= booth.name %></div>
-                                                    </div>
-                                                <% }); %>
+                                            <div class="chart-bars-scroll">
+                                                <div class="chart-bars-wrap">
+                                                    <% (attendeesPerBooth || []).slice(0, 8).forEach(function(booth) {
+                                                        const barHeightPct = Math.min(100, Math.max(3, Math.round((booth.count / yMax) * 100)));
+                                                    %>
+                                                        <div class="chart-bar-group" title="<%= booth.name %>: <%= booth.count %> attendees">
+                                                            <div class="chart-bar-tooltip"><%= booth.name %>: <%= booth.count %></div>
+                                                            <div class="chart-bar" style="height: <%= barHeightPct %>%;"></div>
+                                                            <div class="chart-bar-label"><%= booth.name %></div>
+                                                        </div>
+                                                    <% }); %>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -361,11 +373,19 @@
                                             No attendee records found matching your filters.
                                         </div>
                                     <% } else { %>
-                                        <% attendees.forEach(function(att, idx) { %>
+                                        <% attendees.forEach(function(att, idx) {
+                                            const isOver15 = (att.fullName && att.fullName.trim().length > 15);
+                                        %>
                                             <div class="table-row-item table-row-attendee" data-id="<%= att.id %>" data-index="<%= idx %>" data-search="<%= ((att.qrId || '') + ' ' + (att.fullName || '') + ' ' + (att.email || '') + ' ' + (att.eventName || '')).toLowerCase() %>">
                                                 <span class="table-cell-id"><%= att.qrId %></span>
-                                                <span class="attendee-name" title="<%= att.fullName %>"><%= formatAttendeeName(att.fullName) %></span>
-                                                <span style="font-size: 13px; font-weight: 600; color: #334155; word-break: break-all;"><%= att.email %></span>
+                                                <span class="attendee-name <%= isOver15 ? 'attendee-name-hoverable' : '' %>"
+                                                      <% if (isOver15) { %>
+                                                        data-full-name="<%= att.fullName %>"
+                                                        data-full-email="<%= att.email %>"
+                                                      <% } else { %>
+                                                        title="<%= att.fullName %>"
+                                                      <% } %>><%= formatAttendeeName(att.fullName) %></span>
+                                                <span class="attendee-email" title="<%= att.email %>" style="font-size: 13px; font-weight: 600; color: #334155;"><%= formatAttendeeEmail(att.email) %></span>
                                                 <span><%= att.eventName %></span>
                                                 <div class="table-cell-actions">
                                                     <button class="btn-action-edit" type="button"
@@ -824,10 +844,18 @@
                                                  data-search="<%= ((p.attendeeName || '') + ' ' + (p.qrCodeToken || '') + ' ' + (p.attendeeEmail || '') + ' ' + (p.boothName || '') + ' ' + (p.eventName || '')).toLowerCase() %>">
                                                 <!-- Attendee Information (display kay sino na ang points) -->
                                                 <div>
-                                                    <div class="points-attendee-name" style="font-weight: 800; color: #0d1b54; font-size: 14px;" title="<%= p.attendeeName %>"><%= formatAttendeeName(p.attendeeName) %></div>
+                                                    <% const pointsIsOver15 = (p.attendeeName && p.attendeeName.trim().length > 15); %>
+                                                    <div class="points-attendee-name <%= pointsIsOver15 ? 'attendee-name-hoverable' : '' %>"
+                                                         style="font-weight: 800; color: #0d1b54; font-size: 14px;"
+                                                         <% if (pointsIsOver15) { %>
+                                                            data-full-name="<%= p.attendeeName %>"
+                                                            data-full-email="<%= p.attendeeEmail %>"
+                                                         <% } else { %>
+                                                            title="<%= p.attendeeName %>"
+                                                         <% } %>><%= formatAttendeeName(p.attendeeName) %></div>
                                                     <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
                                                         <span class="scan-qr-badge"><%= p.qrCodeToken %></span>
-                                                        <span style="font-size: 11.5px; color: #64748b;"><%= p.attendeeEmail %></span>
+                                                        <span class="points-attendee-email" title="<%= p.attendeeEmail %>" style="font-size: 11.5px; color: #64748b;"><%= formatAttendeeEmail(p.attendeeEmail) %></span>
                                                     </div>
                                                 </div>
 
@@ -1055,7 +1083,7 @@
                                         <label for="newAttendeeId">Create QR Code Token</label>
                                         <span class="field-char-limit" id="newAttendeeIdCount">0/64</span>
                                     </div>
-                                    <input id="newAttendeeId" name="attendeeId" type="text" maxlength="64" placeholder="e.g. QR-Kurt-2026 (Leave blank to auto-generate)">
+                                    <input id="newAttendeeId" name="attendeeId" type="text" maxlength="64" placeholder="e.g. QR-John-2026 (Leave blank to auto-generate)">
                                     <small style="display: block; margin-top: 4px; font-size: 11px; color: #64748b;">Enter a custom token (max 64 characters) or leave blank to automatically generate one.</small>
                                 </div>
                                 <div class="modal-form-group">
@@ -1063,21 +1091,21 @@
                                         <label for="newFirstName">First Name *</label>
                                         <span class="field-char-limit" id="newFirstNameCount">0/50</span>
                                     </div>
-                                    <input id="newFirstName" name="firstName" type="text" maxlength="50" required placeholder="e.g. Kurt">
+                                    <input id="newFirstName" name="firstName" type="text" maxlength="50" required placeholder="e.g. John">
                                 </div>
                                 <div class="modal-form-group">
                                     <div class="field-header-row">
                                         <label for="newLastName">Last Name</label>
                                         <span class="field-char-limit" id="newLastNameCount">0/50</span>
                                     </div>
-                                    <input id="newLastName" name="lastName" type="text" maxlength="50" placeholder="e.g. Satumbaga">
+                                    <input id="newLastName" name="lastName" type="text" maxlength="50" placeholder="e.g. Doe">
                                 </div>
                                 <div class="modal-form-group">
                                     <div class="field-header-row">
                                         <label for="newAttendeeEmail">Email Address</label>
                                         <span class="field-char-limit" id="newAttendeeEmailCount">0/100</span>
                                     </div>
-                                    <input id="newAttendeeEmail" name="email" type="email" maxlength="100" placeholder="e.g. kurt.satumbaga@devfestbacolod.org">
+                                    <input id="newAttendeeEmail" name="email" type="email" maxlength="100" placeholder="e.g. john.doe@devfestbacolod.org">
                                 </div>
                                 <div class="modal-form-group">
                                     <label for="newEventId">Event Attended</label>
@@ -1565,6 +1593,20 @@
             <% } %>
 
 
+        </div>
+    </div>
+
+    <!-- Floating Hover Card Container for Attendees with > 15 letter names -->
+    <div id="attendeeHoverCard" class="attendee-hover-card" aria-hidden="true" style="display: none;">
+        <div class="hover-card-arrow"></div>
+        <div class="hover-card-badge">Attendee Details</div>
+        <div class="hover-card-item">
+            <span class="hover-card-label">Complete Name</span>
+            <div class="hover-card-val hover-card-name" id="hoverCardFullName"></div>
+        </div>
+        <div class="hover-card-item">
+            <span class="hover-card-label">Email Address</span>
+            <div class="hover-card-val hover-card-email" id="hoverCardFullEmail"></div>
         </div>
     </div>
 
@@ -2226,6 +2268,97 @@
 
     if (allPointsRows.length > 0) {
         renderPointsPagination();
+    }
+
+    // ==========================================
+    // FLOATING HOVER CARD FOR ATTENDEES (> 15 LETTERS)
+    // ==========================================
+    const hoverCard = document.getElementById('attendeeHoverCard');
+    const hoverNameEl = document.getElementById('hoverCardFullName');
+    const hoverEmailEl = document.getElementById('hoverCardFullEmail');
+    let hoverHideTimeout = null;
+
+    if (hoverCard && hoverNameEl && hoverEmailEl) {
+        document.addEventListener('mouseover', (e) => {
+            const trigger = e.target.closest('.attendee-name-hoverable');
+            if (!trigger) return;
+
+            const fullName = trigger.dataset.fullName;
+            const fullEmail = trigger.dataset.fullEmail;
+            // Strictly applicable only to users with names over 15 letters
+            if (!fullName || fullName.trim().length <= 15) return;
+
+            clearTimeout(hoverHideTimeout);
+
+            hoverNameEl.textContent = fullName;
+            hoverEmailEl.textContent = fullEmail || 'No email registered';
+
+            // Show hidden to calculate real layout dimensions
+            hoverCard.style.display = 'block';
+            hoverCard.style.visibility = 'hidden';
+
+            const rect = trigger.getBoundingClientRect();
+            const cardRect = hoverCard.getBoundingClientRect();
+
+            // Prefer placing above the element; flip below if close to viewport top
+            let top = rect.top - cardRect.height - 10;
+            let showBelow = false;
+
+            if (top < 12) {
+                top = rect.bottom + 10;
+                showBelow = true;
+            }
+
+            let left = rect.left + (rect.width / 2) - (cardRect.width / 2);
+            const maxLeft = window.innerWidth - cardRect.width - 15;
+            if (left < 15) left = 15;
+            if (left > maxLeft) left = maxLeft;
+
+            const arrowEl = hoverCard.querySelector('.hover-card-arrow');
+            if (arrowEl) {
+                const triggerCenter = rect.left + (rect.width / 2);
+                const arrowLeft = Math.max(16, Math.min(cardRect.width - 24, triggerCenter - left));
+                arrowEl.style.left = `${arrowLeft}px`;
+            }
+
+            hoverCard.classList.toggle('is-below', showBelow);
+            hoverCard.style.top = `${top + window.scrollY}px`;
+            hoverCard.style.left = `${left + window.scrollX}px`;
+            hoverCard.style.visibility = 'visible';
+            hoverCard.classList.add('is-visible');
+        });
+
+        document.addEventListener('mouseout', (e) => {
+            const trigger = e.target.closest('.attendee-name-hoverable');
+            if (!trigger) return;
+
+            const toEl = e.relatedTarget;
+            if (toEl && hoverCard.contains(toEl)) return;
+
+            hoverHideTimeout = setTimeout(() => {
+                hoverCard.classList.remove('is-visible');
+                setTimeout(() => {
+                    if (!hoverCard.classList.contains('is-visible')) {
+                        hoverCard.style.display = 'none';
+                    }
+                }, 160);
+            }, 120);
+        });
+
+        hoverCard.addEventListener('mouseenter', () => {
+            clearTimeout(hoverHideTimeout);
+        });
+
+        hoverCard.addEventListener('mouseleave', () => {
+            hoverHideTimeout = setTimeout(() => {
+                hoverCard.classList.remove('is-visible');
+                setTimeout(() => {
+                    if (!hoverCard.classList.contains('is-visible')) {
+                        hoverCard.style.display = 'none';
+                    }
+                }, 160);
+            }, 120);
+        });
     }
     </script>
     <script src="/JAVASCRIPT/nav.js" defer></script>

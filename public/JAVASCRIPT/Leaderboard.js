@@ -60,15 +60,27 @@ function escapeHtml(str) {
         .replace(/'/g, '&#039;');
 }
 
+// Truncate name if exceeding character limit and append '...'
+function truncateText(str, maxLen = 15) {
+    if (!str) return '';
+    const trimmed = String(str).trim();
+    if (trimmed.length > maxLen) {
+        return trimmed.substring(0, maxLen).trimEnd() + '...';
+    }
+    return trimmed;
+}
+
 // Build rank row element
 function createRankRowHtml(item) {
-    const displayName = escapeHtml(item.name || item.id);
+    const rawName = item.name || item.id || '';
+    const displayName = escapeHtml(truncateText(rawName, 15));
+    const fullTitle = escapeHtml(rawName);
     const subToken = (item.name && item.id) ? `<span class="rank-sub-id">${escapeHtml(item.id)}</span>` : '';
     return `
         <article class="rank-row" data-rank-id="${escapeHtml(item.id)}">
             <span class="rank-number">${item.rank}</span>
             <div class="rank-user-info">
-                <strong>${displayName}</strong>
+                <strong title="${fullTitle}">${displayName}</strong>
                 ${subToken}
             </div>
             <span class="row-points">${item.points} PTS</span>
@@ -153,7 +165,10 @@ function createRankRowHtml(item) {
                 const subidEl = document.getElementById('top1Subid');
                 const ptsEl = document.getElementById('top1Points');
 
-                if (nameEl) nameEl.textContent = top1.name || top1.id;
+                if (nameEl) {
+                    nameEl.textContent = truncateText(top1.name || top1.id, 15);
+                    nameEl.title = top1.name || top1.id || '';
+                }
                 if (subidEl) subidEl.textContent = (top1.name && top1.id) ? top1.id : '';
                 if (ptsEl) {
                     const newPtsText = `${top1.points} PTS`;
@@ -172,7 +187,10 @@ function createRankRowHtml(item) {
                 const subidEl = document.getElementById('top2Subid');
                 const ptsEl = document.getElementById('top2Points');
 
-                if (nameEl) nameEl.textContent = top2.name || top2.id;
+                if (nameEl) {
+                    nameEl.textContent = truncateText(top2.name || top2.id, 15);
+                    nameEl.title = top2.name || top2.id || '';
+                }
                 if (subidEl) subidEl.textContent = (top2.name && top2.id) ? top2.id : '';
                 if (ptsEl) {
                     const newPtsText = `${top2.points} PTS`;
@@ -191,7 +209,10 @@ function createRankRowHtml(item) {
                 const subidEl = document.getElementById('top3Subid');
                 const ptsEl = document.getElementById('top3Points');
 
-                if (nameEl) nameEl.textContent = top3.name || top3.id;
+                if (nameEl) {
+                    nameEl.textContent = truncateText(top3.name || top3.id, 15);
+                    nameEl.title = top3.name || top3.id || '';
+                }
                 if (subidEl) subidEl.textContent = (top3.name && top3.id) ? top3.id : '';
                 if (ptsEl) {
                     const newPtsText = `${top3.points} PTS`;

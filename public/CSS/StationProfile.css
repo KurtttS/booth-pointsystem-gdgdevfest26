@@ -33,51 +33,27 @@
    GLOBAL RESET AND HIDDEN SCROLLBARS
    ========================================================================== */
 
-/* FORCE REMOVE THE VISIBLE SCROLLBAR */
-
-/* Hide the browser's main scrollbar */
+/* Browser scroll settings - allowing vertical scroll across all viewports */
 html {
-  overflow: hidden !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 116, 139, 0.25) transparent;
 }
 
-html::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-/* Hide body scrollbar */
 body {
-  overflow: hidden !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  min-height: 100vh;
 }
 
-body::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
-
-/* Prevent nested containers from showing scrollbars */
+/* Maintain clean styling for inner containers without blocking scroll */
 .station-page,
 .station-stage,
 .station-card,
 .station-params-box {
-  overflow: visible !important;
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
-
-.station-page::-webkit-scrollbar,
-.station-stage::-webkit-scrollbar,
-.station-card::-webkit-scrollbar,
-.station-params-box::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
+  overflow: visible;
 }
 
 * {
@@ -607,7 +583,9 @@ svg {
   }
 
   .station-stage {
-    padding: 28px 16px 30px;
+    padding: 24px 16px 36px;
+    min-height: auto;
+    justify-content: flex-start;
   }
 
   .station-footer {

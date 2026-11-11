@@ -35,6 +35,16 @@
             { id: 1, event_name: 'Student Dev Day' },
             { id: 2, event_name: 'Professional Dev Day' }
           ];
+
+    // Truncate name if exceeding character limit and append '...'
+    function truncateText(str, maxLen = 15) {
+        if (!str) return '';
+        const trimmed = String(str).trim();
+        if (trimmed.length > maxLen) {
+            return trimmed.substring(0, maxLen).trimEnd() + '...';
+        }
+        return trimmed;
+    }
 %>
 
 <div class="page-shell">
@@ -133,7 +143,7 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2 id="top2Name"><%= (currentTop2 && currentTop2.name) ? currentTop2.name : (currentTop2 ? currentTop2.id : 'No Attendee') %></h2>
+                    <h2 id="top2Name" title="<%= (currentTop2 && currentTop2.name) ? currentTop2.name : (currentTop2 ? currentTop2.id : '') %>"><%= (currentTop2 && currentTop2.name) ? truncateText(currentTop2.name, 15) : (currentTop2 ? truncateText(currentTop2.id, 15) : 'No Attendee') %></h2>
                     <span class="podium-subid" id="top2Subid"><%= (currentTop2 && currentTop2.name && currentTop2.id) ? currentTop2.id : '' %></span>
                     <p class="rank-label">TOP 2</p>
                     <span class="points" id="top2Points"><%= currentTop2 ? currentTop2.points : 0 %> PTS</span>
@@ -152,7 +162,7 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2 id="top1Name"><%= currentTop1 ? (currentTop1.name || currentTop1.id) : 'No Attendee' %></h2>
+                    <h2 id="top1Name" title="<%= currentTop1 ? (currentTop1.name || currentTop1.id) : '' %>"><%= currentTop1 ? truncateText(currentTop1.name || currentTop1.id, 15) : 'No Attendee' %></h2>
                     <span class="podium-subid" id="top1Subid"><%= (currentTop1 && currentTop1.name && currentTop1.id) ? currentTop1.id : '' %></span>
                     <p class="rank-label">TOP 1</p>
                     <span class="points" id="top1Points"><%= currentTop1 ? currentTop1.points : 0 %> PTS</span>
@@ -169,7 +179,7 @@
                 </div>
 
                 <div class="podium-info">
-                    <h2 id="top3Name"><%= (currentTop3 && currentTop3.name) ? currentTop3.name : (currentTop3 ? currentTop3.id : 'No Attendee') %></h2>
+                    <h2 id="top3Name" title="<%= (currentTop3 && currentTop3.name) ? currentTop3.name : (currentTop3 ? currentTop3.id : '') %>"><%= (currentTop3 && currentTop3.name) ? truncateText(currentTop3.name, 15) : (currentTop3 ? truncateText(currentTop3.id, 15) : 'No Attendee') %></h2>
                     <span class="podium-subid" id="top3Subid"><%= (currentTop3 && currentTop3.name && currentTop3.id) ? currentTop3.id : '' %></span>
                     <p class="rank-label">TOP 3</p>
                     <span class="points" id="top3Points"><%= currentTop3 ? currentTop3.points : 0 %> PTS</span>
@@ -194,7 +204,7 @@
                     <article class="rank-row" data-rank-id="<%= item.id %>">
                         <span class="rank-number"><%= item.rank %></span>
                         <div class="rank-user-info">
-                            <strong><%= item.name || item.id %></strong>
+                            <strong title="<%= item.name || item.id %>"><%= truncateText(item.name || item.id, 15) %></strong>
                             <% if (item.name && item.id) { %>
                                 <span class="rank-sub-id"><%= item.id %></span>
                             <% } %>
@@ -212,7 +222,7 @@
                     <article class="rank-row" data-rank-id="<%= item.id %>">
                         <span class="rank-number"><%= item.rank %></span>
                         <div class="rank-user-info">
-                            <strong><%= item.name || item.id %></strong>
+                            <strong title="<%= item.name || item.id %>"><%= truncateText(item.name || item.id, 15) %></strong>
                             <% if (item.name && item.id) { %>
                                 <span class="rank-sub-id"><%= item.id %></span>
                             <% } %>

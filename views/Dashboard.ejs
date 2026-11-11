@@ -33,17 +33,21 @@
     const scansToday = (typeof scans_today !== 'undefined') ? scans_today : 5;
     const pointsAwarded = (typeof points_awarded !== 'undefined') ? points_awarded : 100;
     const boothImage = (typeof booth_image !== 'undefined' && booth_image) ? booth_image : '/IMG/booth-banner.jpg';
-    const leaderboardItems = (typeof leaderboard !== 'undefined' && Array.isArray(leaderboard) && leaderboard.length > 0)
+    const leaderboardItems = (typeof leaderboard !== 'undefined' && Array.isArray(leaderboard))
         ? leaderboard
-        : [
-            { id: 'ID: 025', points: 55, active: true },
-            { id: 'ID: 011', points: 45, active: false },
-            { id: 'ID: 067', points: 35, active: false },
-            { id: 'ID: 001', points: 15, active: false },
-            { id: 'ID: 014', points: 12, active: false }
-        ];
+        : [];
     const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
     const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+
+    // Truncate name if exceeding character limit and append '...'
+    function formatLeaderName(name, limit = 15) {
+        if (!name) return '';
+        const str = String(name).trim();
+        if (str.length > limit) {
+            return str.substring(0, limit).trimEnd() + '...';
+        }
+        return str;
+    }
 %>
 
 <div class="dashboard-page">
@@ -176,11 +180,15 @@
 
                 <div class="leaderboard-list">
                     <% leaderboardItems.slice(0, 5).forEach((item, index) => { %>
-                        <% const rank = index + 1; %>
+                        <% 
+                            const rank = index + 1; 
+                            const rawDisplayName = item.name || item.id || '';
+                            const formattedName = formatLeaderName(rawDisplayName, 15);
+                        %>
                         <div class="leaderboard-item <%= (rank === 1) ? 'rank-gold' : '' %>">
                             <div class="leader-left">
                                 <span class="rank-circle"><%= rank %></span>
-                                <span class="booth-id-text"><%= item.id || item.name %></span>
+                                <span class="booth-id-text" title="<%= rawDisplayName %>"><%= formattedName %></span>
                             </div>
                             <span class="pts-pill"><%= item.points %> PTS</span>
                         </div>

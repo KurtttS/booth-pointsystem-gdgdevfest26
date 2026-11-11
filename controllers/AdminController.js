@@ -152,6 +152,9 @@ export class AdminController {
           const eventName = eventMap.get(eventId) || (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
           const address = att.company || att.address || 'Bacolod City';
           const email = att.email || `${(att.first_name || 'attendee').toLowerCase()}.${(att.last_name || '').toLowerCase()}@devfestbacolod.org`.replace(/\.\@/, '@');
+          const displayEmail = (email && email.length >= 15)
+            ? (email.slice(0, 15).trimEnd() + '...')
+            : email;
           const displayId = att.qr_code_token || (reg ? reg.ticket_number : `QR-Attendee-${String(att.id).padStart(3, '0')}`);
           const fullName = Attendee.getFullName(att);
           const displayName = (fullName && fullName.length >= 15)
@@ -166,6 +169,7 @@ export class AdminController {
             firstName: att.first_name || '',
             lastName: att.last_name || '',
             email,
+            displayEmail,
             address,
             eventId,
             eventName

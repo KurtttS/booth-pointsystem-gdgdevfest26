@@ -441,7 +441,8 @@ export class BoothController {
       const standings = await ScanLog.getLeaderboard(eventId);
       if (standings && standings.length > 0) {
         leaderboard = standings.slice(0, 5).map((s, idx) => ({
-          id: s.name ? `${s.name} (${s.id})` : s.id,
+          id: s.id,
+          name: s.name || s.id,
           points: s.points,
           active: idx === 0
         }));

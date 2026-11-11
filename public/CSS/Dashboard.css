@@ -571,7 +571,9 @@ svg {
 .leader-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
 }
 
 .rank-circle {
@@ -593,6 +595,10 @@ svg {
   font-weight: 800;
   color: var(--navy-text);
   letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
 }
 
 .pts-pill {

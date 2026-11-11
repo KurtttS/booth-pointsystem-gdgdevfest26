@@ -560,9 +560,13 @@ button {
 }
 
 .podium-info h2 {
-    margin: 0;
+    margin: 0 auto;
     font-size: 15px;
     font-weight: 900;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .rank-label {
@@ -639,6 +643,10 @@ button {
 .rank-row strong {
     font-size: 15px;
     font-weight: 900;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 380px;
 }
 
 .row-points {
