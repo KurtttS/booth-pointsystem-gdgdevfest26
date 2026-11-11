@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DevFest Bacolod 2026 - Leaderboard</title>
+
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="/IMG/GDGTOP.png">
+
+    <!-- Page stylesheet -->
+    <link rel="stylesheet" href="/CSS/Leaderboard.css">
+    <link rel="stylesheet" href="/CSS/nav.css">
+</head>
+
+<body>
+
+<%
+    // Safe initialization to prevent undefined variable errors in IDE linters
+    const currentTop1 = (typeof top1 !== 'undefined') ? top1 : null;
+    const currentTop2 = (typeof top2 !== 'undefined') ? top2 : null;
+    const currentTop3 = (typeof top3 !== 'undefined') ? top3 : null;
+    const currentRanks4to7 = (typeof ranks4to7 !== 'undefined' && Array.isArray(ranks4to7)) ? ranks4to7 : [];
+    const currentRanks8plus = (typeof ranks8to12 !== 'undefined' && Array.isArray(ranks8to12)) ? ranks8to12 : [];
+    const currentTrackName = (typeof trackName !== 'undefined' && trackName) ? trackName : 'EVENT STANDINGS';
+    const currentEv = (typeof currentEvent !== 'undefined') ? currentEvent : null;
+    const selectedEvId = (typeof selectedEventId !== 'undefined') ? selectedEventId : 1;
+    const userIsLoggedIn = (typeof isLoggedIn !== 'undefined') ? !!isLoggedIn : false;
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const eventsList = (typeof allEvents !== 'undefined' && Array.isArray(allEvents) && allEvents.length > 0)
+        ? allEvents
+        : [
+            { id: 1, event_name: 'Student Dev Day' },
+            { id: 2, event_name: 'Professional Dev Day' }
+          ];
+%>
+
+<div class="page-shell">
+
+    <!-- Shared navbar -->
+    <%- include('partials/nav', { currentPage: 'Leaderboard.php', isLoggedIn: userIsLoggedIn, isAdmin: (typeof isAdmin !== 'undefined' ? isAdmin : false), sid: sessionSid }) %>
+
+    <!-- LEADERBOARD CONTENT -->
+    <main class="leaderboard">
+
+        <div class="ambient ambient-top"></div>
+        <div class="ambient ambient-bottom"></div>
+
+        <!-- TITLE -->
+        <section class="page-heading">
+            <h1>LEADERBOARD</h1>
+
+            <div class="subtitle">
+                <span></span>
+                <p>TOP ATTENDEES PERFORMERS &middot; <%= currentTrackName.toUpperCase() %></p>
+                <span></span>
+            </div>
+
+            <!-- EVENT SELECTION DROPDOWN -->
+            <div class="leaderboard-event-dropdown-container">
+                <div class="dropdown-menu-container leaderboard-event-custom-dropdown" id="leaderboardDropdownContainer">
+                    <button type="button" class="leaderboard-event-btn-trigger" id="leaderboardEventBtn" aria-expanded="false" aria-haspopup="true">
+                        <img src="/api/event-logo/<%= selectedEvId %>" alt="Event Logo" class="leaderboard-event-badge-logo" onerror="this.src='/IMG/test_green.png'">
+                        <span class="dropdown-event-label">Event:</span>
+                        <span class="dropdown-event-current-name"><%= currentEv ? currentEv.event_name : (eventsList.find(e => parseInt(e.id, 10) === parseInt(selectedEvId, 10))?.event_name || 'Select Event') %></span>
+                        <svg class="dropdown-chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <div class="dropdown-popover leaderboard-event-popover" id="leaderboardEventPopover" role="menu">
+                        <% eventsList.forEach(function(ev) { 
+                            const isCurrent = (parseInt(selectedEvId, 10) === parseInt(ev.id, 10));
+                        %>
+                        <a href="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                           class="dropdown-item leaderboard-event-item <%= isCurrent ? 'is-selected' : '' %>"
+                           role="menuitem">
+                            <img src="/api/event-logo/<%= ev.id %>" alt="<%= ev.event_name %>" class="leaderboard-item-event-logo" onerror="this.src='/IMG/test_green.png'">
+                            <span class="leaderboard-item-event-text"><%= ev.event_name %></span>
+                            <% if (isCurrent) { %>
+                                <span class="leaderboard-item-check">✓</span>
+                            <% } %>
+                        </a>
+                        <% }); %>
+                    </div>
+
+                    <!-- Hidden native select for backwards compatibility and accessibility -->
+                    <select id="leaderboardEventSelect" class="sr-only-select" aria-label="Select Event Leaderboard" onchange="if(this.value) window.location.href=this.value;">
+                        <% eventsList.forEach(function(ev) { %>
+                        <option value="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
+                                <%= (parseInt(selectedEvId, 10) === parseInt(ev.id, 10)) ? 'selected' : '' %>>
+                            <%= ev.event_name %>
+                        </option>
+                        <% }); %>
+                    </select>
+                </div>
+            </div>
+
+            <!-- LOCKED EVENT / TRACK BADGE (REAL-TIME LIVE SYNC TARGET) -->
+            <% if (currentEv) { %>
+            <div class="locked-event-banner" id="lockedEventBanner" data-event-id="<%= selectedEvId %>">
+                <div class="locked-event-chip">
+                    <img src="/api/event-logo/<%= selectedEvId %>" alt="Event Logo" class="locked-event-logo" onerror="this.src='/IMG/test_green.png'">
+                    <span class="locked-event-dot"></span>
+                    <span class="locked-event-name"><%= currentEv.event_name %></span>
+                    <span class="locked-event-tag">Current Event</span>
+                </div>
+                <% if (currentEv.venue || currentEv.event_date) { %>
+                <div class="locked-event-meta">
+                    <% if (currentEv.venue) { %>
+                        <span class="meta-tag meta-venue">📍 <%= currentEv.venue %></span>
+                    <% } %>
+                    <% if (currentEv.event_date) { %>
+                        <span class="meta-tag meta-date">📅 <%= currentEv.event_date %></span>
+                    <% } %>
+                </div>
+                <% } %>
+            </div>
+            <% } %>
+        </section>
+
+        <!-- TOP THREE PODIUM -->
+        <section class="podium<%= (!currentTop1) ? ' is-hidden' : '' %>" id="podiumSection">
+
+            <!-- SECOND PLACE -->
+            <article class="podium-card second-place">
+
+                <div class="avatar">
+                    <span class="avatar-head"></span>
+                    <span class="avatar-body"></span>
+                </div>
+
+                <div class="podium-info">
+                    <h2 id="top2Name"><%= (currentTop2 && currentTop2.name) ? currentTop2.name : (currentTop2 ? currentTop2.id : 'No Attendee') %></h2>
+                    <span class="podium-subid" id="top2Subid"><%= (currentTop2 && currentTop2.name && currentTop2.id) ? currentTop2.id : '' %></span>
+                    <p class="rank-label">TOP 2</p>
+                    <span class="points" id="top2Points"><%= currentTop2 ? currentTop2.points : 0 %> PTS</span>
+                </div>
+
+            </article>
+
+            <!-- FIRST PLACE -->
+            <article class="podium-card first-place">
+
+                <div class="crown">&#9819;</div>
+
+                <div class="avatar avatar-first">
+                    <span class="avatar-head"></span>
+                    <span class="avatar-body"></span>
+                </div>
+
+                <div class="podium-info">
+                    <h2 id="top1Name"><%= currentTop1 ? (currentTop1.name || currentTop1.id) : 'No Attendee' %></h2>
+                    <span class="podium-subid" id="top1Subid"><%= (currentTop1 && currentTop1.name && currentTop1.id) ? currentTop1.id : '' %></span>
+                    <p class="rank-label">TOP 1</p>
+                    <span class="points" id="top1Points"><%= currentTop1 ? currentTop1.points : 0 %> PTS</span>
+                </div>
+
+            </article>
+
+            <!-- THIRD PLACE -->
+            <article class="podium-card third-place">
+
+                <div class="avatar">
+                    <span class="avatar-head"></span>
+                    <span class="avatar-body"></span>
+                </div>
+
+                <div class="podium-info">
+                    <h2 id="top3Name"><%= (currentTop3 && currentTop3.name) ? currentTop3.name : (currentTop3 ? currentTop3.id : 'No Attendee') %></h2>
+                    <span class="podium-subid" id="top3Subid"><%= (currentTop3 && currentTop3.name && currentTop3.id) ? currentTop3.id : '' %></span>
+                    <p class="rank-label">TOP 3</p>
+                    <span class="points" id="top3Points"><%= currentTop3 ? currentTop3.points : 0 %> PTS</span>
+                </div>
+
+            </article>
+
+        </section>
+
+        <!-- EMPTY STATE NOTICE -->
+        <div class="no-scans-notice<%= (currentTop1) ? ' is-hidden' : '' %>" id="noScansNotice">
+            <h3>No Attendee Points Recorded Yet</h3>
+            <p>Scans recorded at booth terminals for <strong><%= currentTrackName %></strong> will appear on this leaderboard in real time.</p>
+        </div>
+
+        <!-- RANKINGS LIST (TOP 4+) -->
+        <section class="rank-list<%= (currentRanks4to7.length === 0) ? ' is-hidden' : '' %>" id="rankListSection">
+
+            <div id="ranks4to7List">
+                <% if (currentRanks4to7.length > 0) { %>
+                    <% currentRanks4to7.forEach(function(item) { %>
+                    <article class="rank-row" data-rank-id="<%= item.id %>">
+                        <span class="rank-number"><%= item.rank %></span>
+                        <div class="rank-user-info">
+                            <strong><%= item.name || item.id %></strong>
+                            <% if (item.name && item.id) { %>
+                                <span class="rank-sub-id"><%= item.id %></span>
+                            <% } %>
+                        </div>
+                        <span class="row-points"><%= item.points %> PTS</span>
+                    </article>
+                    <% }); %>
+                <% } %>
+            </div>
+
+            <!-- CONTINUATION (RANKS 8+) HIDDEN BY DEFAULT -->
+            <div class="more-rankings" id="moreRankings">
+                <% if (currentRanks8plus.length > 0) { %>
+                    <% currentRanks8plus.forEach(function(item) { %>
+                    <article class="rank-row" data-rank-id="<%= item.id %>">
+                        <span class="rank-number"><%= item.rank %></span>
+                        <div class="rank-user-info">
+                            <strong><%= item.name || item.id %></strong>
+                            <% if (item.name && item.id) { %>
+                                <span class="rank-sub-id"><%= item.id %></span>
+                            <% } %>
+                        </div>
+                        <span class="row-points"><%= item.points %> PTS</span>
+                    </article>
+                    <% }); %>
+                <% } %>
+            </div>
+
+        </section>
+
+        <!-- VIEW MORE / SHOW LESS BUTTON -->
+        <button
+            class="full-standings-btn<%= (currentRanks8plus.length === 0) ? ' is-hidden' : '' %>"
+            id="fullStandingsBtn"
+            type="button"
+            aria-expanded="false"
+            aria-controls="moreRankings"
+        >
+            View More Rankings (<%= currentRanks8plus.length %> more) <span>&darr;</span>
+        </button>
+
+        <!-- FOOTER -->
+        <footer>
+            &copy; 2026 GDG BACOLOD - AI Innovations Team. All Rights Reserved
+        </footer>
+
+    </main>
+
+</div>
+
+<script src="/JAVASCRIPT/Leaderboard.js" defer></script>
+<script src="/JAVASCRIPT/nav.js" defer></script>
+</body>
+</html>

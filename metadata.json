@@ -1,0 +1,10 @@
+{
+  "name": "Remix Remix SuperAdmin Edited (Recent)",
+  "description": "Imported from GitHub",
+  "permissions": [
+    "camera"
+  ],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

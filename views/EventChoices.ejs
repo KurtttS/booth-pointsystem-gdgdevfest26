@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DevFest Bacolod 2026 - Event Choices</title>
+
+    <!-- Browser tab icon -->
+    <link rel="icon" type="image/png" href="/IMG/GDGTOP.png?v=2">
+
+    <!-- Google Fonts for DevFest Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Page stylesheets -->
+    <link rel="stylesheet" href="/CSS/EventChoices.css">
+    <link rel="stylesheet" href="/CSS/nav.css">
+</head>
+
+<body>
+
+<%
+    const isEventActive = (typeof hasCurrentEvent !== 'undefined') ? Boolean(hasCurrentEvent) : Boolean(typeof eventId !== 'undefined' && eventId);
+    const activeEvId = (isEventActive && typeof eventId !== 'undefined' && eventId) ? parseInt(eventId, 10) : null;
+    const activeTrack = (typeof track !== 'undefined' && track) ? track : (activeEvId === 2 ? 'professionals' : (activeEvId === 1 ? 'students' : ''));
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
+    const activeName = (typeof currentEventName !== 'undefined' && currentEventName) ? currentEventName : (isEventActive ? (activeEvId === 2 ? 'Professional Dev Day' : 'Student Dev Day') : null);
+%>
+<div class="devfest-page">
+    
+    <!-- Shared navbar -->
+    <%- include('partials/nav', { currentPage: 'EventChoices.php', isLoggedIn: true, sid: sessionSid }) %>
+
+    <!-- Main Stage with Vibrant DevFest Gradient Mesh -->
+    <main class="devfest-stage">
+        
+        <!-- Ambient DevFest Color Blooms -->
+        <div class="blur-orb blur-top-right-1"></div>
+        <div class="blur-orb blur-top-right-2"></div>
+        <div class="blur-orb blur-bottom-left"></div>
+        <div class="blur-orb blur-mid-left"></div>
+        <div class="blur-orb blur-mid-right"></div>
+        <div class="blur-orb blur-bottom-center"></div>
+
+        <!-- Central Frosted Glass Container -->
+        <div class="frosted-modal">
+            
+            <!-- Interior Decorative Blobs -->
+            <div class="card-interior-blob-1"></div>
+            <div class="card-interior-blob-2"></div>
+
+            <!-- DevFest Header (Logo + Title) -->
+            <div class="devfest-logo-row">
+                <!-- GDG DevFest Logo identical to top left navbar -->
+                <img src="/IMG/GDG_LOGO.png" alt="DevFest Logo" class="gdg-logo">
+
+                <div class="devfest-title-box">
+                    <h1 class="devfest-main-title">DevFest</h1>
+                    <span class="devfest-subtitle">Bacolod 2026</span>
+                </div>
+            </div>
+
+            <!-- Current Active Event Status -->
+            <div class="active-event-indicator-box">
+                <% if (isEventActive && activeName) { %>
+                    <span class="current-event-pill" style="border-color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.hex : '#237539' %>; color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.fontColor : '#237539' %>;">
+                        <img src="<%= (typeof activeEventTheme !== 'undefined' && activeEventTheme && activeEventTheme.logoUrl) ? activeEventTheme.logoUrl : ('/api/event-logo/' + activeEvId) %>" alt="Current Event Logo" class="current-event-logo-mini" onerror="this.src='/assets/aistudio/Frame_4_b83932ab.png'; this.onerror=function(){this.src='/IMG/event-student-green.png'};">
+                        <span class="pulse-dot" style="background-color: <%= (typeof activeEventTheme !== 'undefined' && activeEventTheme) ? activeEventTheme.hex : '#237539' %>;"></span>
+                        Current Session Event: <strong><%= activeName %></strong>
+                    </span>
+                    <p class="current-event-guide">Select an event below to switch your booth terminal's active session without logging out.</p>
+                <% } else { %>
+                    <span class="current-event-pill pill-no-event">
+                        <span class="neutral-dot"></span>
+                        Current Session Event: <strong>None (No Event Selected)</strong>
+                    </span>
+                    <p class="current-event-guide">Select an event below to activate this booth terminal for scanning attendees.</p>
+                <% } %>
+            </div>
+
+            <!-- Track Selection Form -->
+            <form method="POST" action="/scanner.php" id="eventChoicesForm">
+                <input type="hidden" name="event_id" id="selectedEventId" value="<%= activeEvId || (typeof events !== 'undefined' && events && events[0] ? events[0].id : 1) %>">
+                <input type="hidden" name="sid" value="<%= sessionSid %>">
+                
+                <div class="carousel-wrapper">
+                    <button type="button" class="carousel-nav-btn carousel-prev" id="carouselPrevBtn" aria-label="Previous event">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                    </button>
+
+                    <div class="coverflow-stage" id="coverflowStage" role="region" aria-label="3D Event Choices Carousel">
+                        <div class="coverflow-track" id="coverflowTrack">
+                            <% 
+                            const rawEvents = (typeof events !== 'undefined' && events && events.length > 0) ? events : [
+                                { id: 1, event_name: 'Student Dev Day', venue: 'Bacolod City College' },
+                                { id: 2, event_name: 'Professional Dev Day', venue: 'Bacolod City College' }
+                            ];
+
+                            // Ensure at least 5 cards for the 3D coverflow visual loop matching the reference
+                            let loopCards = [...rawEvents];
+                            while (loopCards.length < 5) {
+                                loopCards = loopCards.concat(rawEvents);
+                            }
+
+                            loopCards.forEach(function(ev, idx) {
+                                const isSelected = (activeEvId === ev.id);
+                                const evName = (ev.event_name || 'Event').trim();
+                                const evNameLower = evName.toLowerCase();
+                                const isStudent = (ev.id === 1 || evNameLower.includes('student'));
+                                const isProfessional = (ev.id === 2 || evNameLower.includes('professional'));
+
+                                // Match theme dynamically: Red PNG & red font for Professional, Green PNG & green font for Student, unique Google colors for all other events
+                                let theme = ev.theme;
+                                if (!theme && typeof getEventTheme === 'function') {
+                                    theme = getEventTheme(ev.id, ev.event_name, rawEvents);
+                                }
+                                if (!theme) {
+                                    if (isProfessional) {
+                                        theme = { fontColor: '#e84432', hex: '#e84432', border: '#e84432', glow: 'rgba(232, 68, 50, 0.42)', logoUrl: '/assets/aistudio/Frame_3_3199d404.png' };
+                                    } else if (isStudent) {
+                                        theme = { fontColor: '#237539', hex: '#237539', border: '#237539', glow: 'rgba(35, 117, 57, 0.42)', logoUrl: '/assets/aistudio/Frame_4_b83932ab.png' };
+                                    } else {
+                                        theme = { fontColor: '#1a73e8', hex: '#1a73e8', border: '#1a73e8', glow: 'rgba(26, 115, 232, 0.42)', logoUrl: '/IMG/event-blue.png' };
+                                    }
+                                }
+
+                                const nameParts = evName.split(' ');
+                                const mainPart = nameParts.length > 1 ? nameParts.slice(0, -1).join(' ') : nameParts[0];
+                                const subPart = nameParts.length > 1 ? nameParts.slice(-1).join(' ') : 'TRACK';
+                            %>
+                            <label class="track-card <%= (isSelected && idx < rawEvents.length) ? 'active coverflow-center' : '' %>" 
+                                   data-event-id="<%= ev.id %>" 
+                                   data-event-name="<%= ev.event_name %>"
+                                   style="--event-color: <%= theme.hex %>; --event-glow: <%= theme.glow %>; --event-font-color: <%= theme.fontColor %>;">
+                                <input type="radio" name="track_id" value="<%= ev.id %>" class="track-radio" data-event-id="<%= ev.id %>" <%= isSelected ? 'checked' : '' %>>
+                                <div class="selection-check" style="background-color: <%= theme.hex %>;">✓</div>
+
+                                <div class="track-icon-wrapper">
+                                    <img src="<%= theme.logoUrl %>" 
+                                         alt="<%= ev.event_name %> Logo" 
+                                         class="track-standard-event-logo" 
+                                         onerror="this.src='/api/event-logo/<%= ev.id %>'; this.onerror=function(){this.src='/assets/aistudio/Frame_4_b83932ab.png'};">
+                                </div>
+
+                                <div>
+                                    <div class="students-label" style="color: <%= theme.fontColor %>;"><%= mainPart.toUpperCase() %></div>
+                                    <div class="students-sublabel" style="color: <%= theme.fontColor %>;"><%= subPart.toUpperCase() %></div>
+                                    <% if (ev.venue) { %>
+                                        <div style="font-size: 11.5px; font-weight: 600; color: #64748b; margin-top: 6px;"><%= ev.venue %></div>
+                                    <% } %>
+                                </div>
+                            </label>
+                            <% }); %>
+                        </div>
+                    </div>
+
+                    <button type="button" class="carousel-nav-btn carousel-next" id="carouselNextBtn" aria-label="Next event">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Action Buttons: PROCEED / SELECT & CANCEL -->
+                <div class="proceed-btn-wrapper">
+                    <button type="submit" class="btn-proceed" id="proceedBtn"><%= isEventActive ? 'UPDATE SELECTED EVENT' : 'SELECT EVENT & PROCEED' %></button>
+                    <% if (isEventActive) { %>
+                        <a href="/scanner.php<%= sidParam %>" class="btn-cancel-return">Keep Current Event</a>
+                    <% } else { %>
+                        <button type="button" class="btn-cancel-return btn-cancel-disabled" disabled aria-disabled="true" title="No event is currently active in this session. Please select an event to proceed.">Keep Current Event</button>
+                    <% } %>
+                </div>
+
+            </form>
+
+        </div>
+
+        <!-- Footer -->
+        <footer class="devfest-footer">
+            <p class="devfest-footer-text">
+                &copy; 2026 GDG BACOLOD - AI Innovations Team . All Rights Reserved
+            </p>
+        </footer>
+
+    </main>
+
+</div>
+
+<script>
+// Dynamic 3D Coverflow Looping Carousel
+const trackCards = Array.from(document.querySelectorAll('.coverflow-track .track-card'));
+const selectedEventIdInput = document.getElementById('selectedEventId');
+const prevBtn = document.getElementById('carouselPrevBtn');
+const nextBtn = document.getElementById('carouselNextBtn');
+const coverflowStage = document.getElementById('coverflowStage');
+
+if (trackCards.length > 0) {
+    const totalCards = trackCards.length;
+    const currentEvId = selectedEventIdInput ? selectedEventIdInput.value : '';
+
+    let currentIndex = trackCards.findIndex(card => card.getAttribute('data-event-id') === currentEvId);
+    if (currentIndex < 0) {
+        currentIndex = trackCards.findIndex(card => card.classList.contains('active'));
+    }
+    if (currentIndex < 0) currentIndex = 0;
+
+    const classNames = ['coverflow-center', 'coverflow-left-1', 'coverflow-left-2', 'coverflow-right-1', 'coverflow-right-2', 'coverflow-hidden', 'active'];
+
+    function updateCoverflow() {
+        trackCards.forEach((card, idx) => {
+            let offset = (idx - currentIndex) % totalCards;
+            while (offset > totalCards / 2) {
+                offset -= totalCards;
+            }
+            while (offset < -totalCards / 2) {
+                offset += totalCards;
+            }
+
+            classNames.forEach(cls => card.classList.remove(cls));
+
+            const radio = card.querySelector('input[type="radio"]');
+
+            if (offset === 0) {
+                card.classList.add('coverflow-center', 'active');
+                if (radio) radio.checked = true;
+                const evId = card.getAttribute('data-event-id');
+                if (selectedEventIdInput && evId) {
+                    selectedEventIdInput.value = evId;
+                }
+            } else if (offset === -1) {
+                card.classList.add('coverflow-left-1');
+                if (radio) radio.checked = false;
+            } else if (offset === -2) {
+                card.classList.add('coverflow-left-2');
+                if (radio) radio.checked = false;
+            } else if (offset === 1) {
+                card.classList.add('coverflow-right-1');
+                if (radio) radio.checked = false;
+            } else if (offset === 2) {
+                card.classList.add('coverflow-right-2');
+                if (radio) radio.checked = false;
+            } else {
+                card.classList.add('coverflow-hidden');
+                if (radio) radio.checked = false;
+            }
+        });
+    }
+
+    function rotateNext() {
+        currentIndex = (currentIndex + 1) % totalCards;
+        updateCoverflow();
+    }
+
+    function rotatePrev() {
+        currentIndex = (currentIndex - 1 + totalCards) % totalCards;
+        updateCoverflow();
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            rotateNext();
+        });
+    }
+
+    if (prevBtn) {
+        prevBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            rotatePrev();
+        });
+    }
+
+    trackCards.forEach((card, idx) => {
+        card.addEventListener('click', function(e) {
+            if (idx !== currentIndex) {
+                e.preventDefault();
+                currentIndex = idx;
+                updateCoverflow();
+            }
+        });
+    });
+
+    // Keyboard arrow keys
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight') {
+            rotateNext();
+        } else if (e.key === 'ArrowLeft') {
+            rotatePrev();
+        }
+    });
+
+    // Touch swipe support
+    if (coverflowStage) {
+        let touchStartX = 0;
+        coverflowStage.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        coverflowStage.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const diffX = touchEndX - touchStartX;
+            if (Math.abs(diffX) > 40) {
+                if (diffX < 0) {
+                    rotateNext();
+                } else {
+                    rotatePrev();
+                }
+            }
+        }, { passive: true });
+    }
+
+    updateCoverflow();
+}
+
+
+// Error handling: Prevent Backspace key from navigating back when logged in
+window.addEventListener('keydown', function(event) {
+    if (event.key === 'Backspace' || event.keyCode === 8) {
+        const target = event.target;
+        const isEditable = (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) &&
+                           !target.readOnly && !target.disabled;
+        if (!isEditable) {
+            event.preventDefault();
+        }
+    }
+});
+
+// Error handling: Prevent browser back button to login page when authenticated
+if (window.history && window.history.pushState) {
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('popstate', function() {
+        window.history.pushState(null, '', window.location.href);
+    });
+}
+</script>
+<script src="/JAVASCRIPT/nav.js" defer></script>
+</body>
+</html>

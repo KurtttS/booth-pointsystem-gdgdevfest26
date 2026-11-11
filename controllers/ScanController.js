@@ -1,0 +1,252 @@
+// controllers/ScanController.js - Handles QR code scanning, tier point allocation, and scan logs
+import { Attendee } from '../models/Attendee.js';
+import { Booth } from '../models/Booth.js';
+import { Event } from '../models/Event.js';
+import { ScanLog } from '../models/ScanLog.js';
+import { isSupabaseConfigured } from '../config/supabase.js';
+
+export class ScanController {
+  /**
+   * Process a QR code scan or manual entry when an attendee finishes a challenge at a booth.
+   * Strictly validates:
+   * 1. Attendee exists in registration records (ticket_number, order_number, qr_code_token, email, or ID)
+   * 2. Attendee is registered for the booth's currently selected event (event_attendees)
+   * 3. Attendee has checked in at event registration (checkin_status === 1)
+   * 4. Attendee has not already scanned at this booth for this event
+   * 5. Points are strictly determined by automatic visit tier categories (never manual input)
+   */
+  static async processScan(req, res) {
+    try {
+      if (!isSupabaseConfigured()) {
+        return res.status(503).json({
+          success: false,
+          message: 'Supabase credentials missing. Please set SUPABASE_URL and SUPABASE_ANON_KEY in .env.'
+        });
+      }
+
+      if (!req.session || !req.session.isLoggedIn) {
+        return res.status(401).json({
+          success: false,
+          message: 'Unauthorized. Please log in with a booth account.'
+        });
+      }
+
+      const boothId = req.session.booth_IDs || req.session.booth_id || req.session.boothId;
+      const rawEventId = req.session.event_id || req.session.eventId || req.body.event_id || req.query.event_id || 1;
+      const eventId = parseInt(rawEventId, 10) || 1;
+      req.session.event_id = eventId;
+      req.session.eventId = eventId;
+
+      if (!boothId) {
+        return res.status(403).json({
+          success: false,
+          message: 'No assigned booth found in active session.'
+        });
+      }
+
+      const qrCode = req.body.qr_code || req.body.id || req.body.code;
+      const attendeeName = req.body.name || req.body.attendee_name;
+
+      if (!qrCode && !attendeeName) {
+        return res.status(400).json({
+          success: false,
+          message: 'No QR code or Attendee ID provided.'
+        });
+      }
+
+      const cleanCode = qrCode ? String(qrCode).trim() : '';
+      const cleanName = attendeeName ? String(attendeeName).trim() : '';
+
+      if (cleanCode && cleanCode.length > 64) {
+        return res.status(400).json({
+          success: false,
+          message: 'QR code or Attendee ID cannot exceed 64 characters.'
+        });
+      }
+
+      if (cleanName && cleanName.length > 100) {
+        return res.status(400).json({
+          success: false,
+          message: 'Attendee name cannot exceed 100 characters.'
+        });
+      }
+
+      // Retrieve booth details from Supabase
+      const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+      const boothType = Booth.getBoothType(booth);
+
+      // Strictly resolve attendee and route to their specific registered event (Student Dev Day vs. Professional Dev Day)
+      const resolution = await Attendee.resolveForEvent({
+        identifier: qrCode ? String(qrCode).trim() : '',
+        name: attendeeName ? String(attendeeName).trim() : '',
+        eventId
+      });
+
+      if (resolution.status === 'not_found') {
+        const displayRef = qrCode ? `"${String(qrCode).trim()}"` : `"${String(attendeeName).trim()}"`;
+        return res.status(404).json({
+          success: false,
+          code: 'NOT_FOUND',
+          message: `Attendee or ticket ${displayRef} was not found in registration records.`
+        });
+      }
+
+      const { attendee, eventAttendee } = resolution;
+      const fullName = Attendee.getFullName(attendee);
+      const event = (await Event.findById(eventId)) || Event.getDefault(eventId);
+
+      if (resolution.status === 'wrong_event') {
+        const registeredEvent = (await Event.findById(resolution.registeredEventId)) || Event.getDefault(resolution.registeredEventId);
+        return res.status(403).json({
+          success: false,
+          code: 'WRONG_EVENT',
+          attendeeName: fullName,
+          message: `${fullName} is registered for ${registeredEvent.event_name}, not ${event.event_name}. Cannot record scan at a ${event.event_name} booth!`
+        });
+      }
+
+      if (resolution.status === 'not_checked_in') {
+        return res.status(403).json({
+          success: false,
+          code: 'NOT_CHECKED_IN',
+          attendeeName: fullName,
+          message: `${fullName} has not checked in at registration for ${event.event_name} yet.`
+        });
+      }
+
+      const displayAttendeeId =
+        attendee.qr_code_token ||
+        (eventAttendee && eventAttendee.ticket_number) ||
+        `ID ${String(attendee.id).padStart(3, '0')}`;
+
+      // Check scan limits per booth type: GDG booths allow up to 2 scans; others allow 1
+      const maxAllowedScans = boothType === 'gdg' ? 2 : 1;
+      const attendeeScanCount = await ScanLog.countByAttendeeBoothAndEvent(attendee.id, booth.id, event.id);
+
+      if (attendeeScanCount >= maxAllowedScans) {
+        const limitMessage = maxAllowedScans > 1
+          ? `${fullName} has already completed the maximum allowed scans (${maxAllowedScans}) at ${booth.name} for ${event.event_name}!`
+          : `${fullName} has already completed the challenge at ${booth.name} for ${event.event_name}!`;
+
+        return res.status(409).json({
+          success: false,
+          alreadyScanned: true,
+          code: 'ALREADY_SCANNED',
+          attendeeId: displayAttendeeId,
+          attendeeName: fullName,
+          scanCount: attendeeScanCount,
+          maxAllowedScans,
+          message: limitMessage
+        });
+      }
+
+      // Count previous completions strictly for this booth & event in Supabase
+      const existingScanCount = await ScanLog.countByBoothAndEvent(booth.id, event.id);
+
+      // Determine points & tier category based on booth type:
+      // - Sponsor: Visits 1-20 -> 100 PTS, 21-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
+      // - GDG: Flat 65 PTS all throughout (max 2 scans per attendee)
+      // - Standard/Other: Visits 1-10 -> 100 PTS, 11-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
+      const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount, boothType);
+
+      // Store directly in Supabase scan_logs table strictly under the attendee's eventId
+      const createdLog = await ScanLog.create({
+        attendeeId: attendee.id,
+        boothId: booth.id,
+        eventId: event.id,
+        points: tierResult.points,
+        category: tierResult.category
+      });
+
+      const totalScans = existingScanCount + 1;
+      const nextTierInfo = ScanLog.calculatePointsForScanCount(totalScans, boothType);
+
+      const timeStr = new Date(createdLog.timestamp).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      const scanNumberForAttendee = attendeeScanCount + 1;
+      const scanNotice = maxAllowedScans > 1 ? ` · Scan ${scanNumberForAttendee}/${maxAllowedScans}` : '';
+
+      return res.status(201).json({
+        success: true,
+        message: `✓ ${fullName} Scanned (+${tierResult.points} PTS · ${event.event_name}${scanNotice})`,
+        scan: {
+          id: createdLog.id,
+          attendeeId: displayAttendeeId,
+          attendeeDbId: attendee.id,
+          attendeeName: fullName,
+          points: tierResult.points,
+          category: tierResult.category,
+          timestamp: timeStr,
+          boothId: booth.id,
+          boothName: booth.name,
+          boothType,
+          eventId: event.id,
+          eventName: event.event_name,
+          attendeeScanNumber: scanNumberForAttendee,
+          maxAllowedScans
+        },
+        stats: {
+          totalScans,
+          currentTierPoints: nextTierInfo.points,
+          awardedPoints: tierResult.points,
+          currentCategory: nextTierInfo.category,
+          nextTierPoints: nextTierInfo.points,
+          eventId: event.id,
+          eventName: event.event_name,
+          boothType
+        }
+      });
+    } catch (err) {
+      console.error('ScanController error:', err);
+      return res.status(500).json({
+        success: false,
+        message: err.message || 'An error occurred while recording the scan in Supabase.'
+      });
+    }
+  }
+
+  /**
+   * Return recent scans feed for current booth and selected event directly from Supabase.
+   */
+  static async getFeed(req, res) {
+    try {
+      if (!req.session || !req.session.isLoggedIn) {
+        return res.status(401).json({ success: false, scans: [], totalScans: 0, message: 'Unauthorized' });
+      }
+
+      const boothId = req.session.booth_IDs || req.session.booth_id || req.session.boothId;
+      if (!boothId) {
+        return res.status(403).json({ success: false, scans: [], totalScans: 0, message: 'No assigned booth found' });
+      }
+
+      const rawEventId = req.query.event_id || req.session.event_id || req.session.eventId || 1;
+      const eventId = parseInt(rawEventId, 10) || 1;
+      if (req.session) {
+        req.session.event_id = eventId;
+        req.session.eventId = eventId;
+      }
+
+      const booth = (await Booth.findById(boothId)) || Booth.getDefault();
+      const boothType = Booth.getBoothType(booth);
+      const scans = await ScanLog.getRecentScans(boothId, eventId);
+      const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
+      const activeTier = ScanLog.calculatePointsForScanCount(totalScans, boothType);
+
+      res.json({
+        success: true,
+        boothId,
+        boothType,
+        eventId,
+        scans,
+        totalScans,
+        activeTierPoints: activeTier.points
+      });
+    } catch (err) {
+      console.error('getFeed error:', err);
+      res.status(500).json({ success: false, scans: [], totalScans: 0 });
+    }
+  }
+}

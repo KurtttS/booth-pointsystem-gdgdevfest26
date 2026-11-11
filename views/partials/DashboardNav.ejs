@@ -1,0 +1,5 @@
+<%
+    const curPage = (typeof currentPage !== 'undefined' && currentPage) ? currentPage : 'Dashboard.php';
+    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
+%>
+<%- include('nav', { currentPage: curPage, isLoggedIn: true, sid: sessionSid }) %>
