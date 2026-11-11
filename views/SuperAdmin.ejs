@@ -44,6 +44,16 @@
         }
         return str;
     }
+
+    // Universal truncate function with 15 character limit
+    function formatTruncate(val, limit = 15) {
+        if (!val) return '';
+        const str = String(val).trim();
+        if (str.length >= limit) {
+            return str.substring(0, limit).trimEnd() + '...';
+        }
+        return str;
+    }
 %>
 
     <div class="page <%= !safeLoggedIn ? 'page-login' : '' %>">
@@ -374,19 +384,34 @@
                                         </div>
                                     <% } else { %>
                                         <% attendees.forEach(function(att, idx) {
-                                            const isOver15 = (att.fullName && att.fullName.trim().length > 15);
+                                            const isOver15 = (att.fullName && att.fullName.trim().length >= 15);
+                                            const isEmailOver15 = (att.email && att.email.trim().length >= 15);
+                                            const isEventOver15 = (att.eventName && att.eventName.trim().length >= 15);
                                         %>
                                             <div class="table-row-item table-row-attendee" data-id="<%= att.id %>" data-index="<%= idx %>" data-search="<%= ((att.qrId || '') + ' ' + (att.fullName || '') + ' ' + (att.email || '') + ' ' + (att.eventName || '')).toLowerCase() %>">
                                                 <span class="table-cell-id"><%= att.qrId %></span>
-                                                <span class="attendee-name <%= isOver15 ? 'attendee-name-hoverable' : '' %>"
-                                                      <% if (isOver15) { %>
-                                                        data-full-name="<%= att.fullName %>"
-                                                        data-full-email="<%= att.email %>"
-                                                      <% } else { %>
-                                                        title="<%= att.fullName %>"
-                                                      <% } %>><%= formatAttendeeName(att.fullName) %></span>
-                                                <span class="attendee-email" title="<%= att.email %>" style="font-size: 13px; font-weight: 600; color: #334155;"><%= formatAttendeeEmail(att.email) %></span>
-                                                <span><%= att.eventName %></span>
+                                                <span class="attendee-name <%= isOver15 ? 'attendee-name-hoverable cell-hoverable' : '' %>"
+                                                      data-badge="Attendee Details"
+                                                      data-label="Complete Name"
+                                                      data-full-val="<%= att.fullName %>"
+                                                      data-sub-label="Email Address"
+                                                      data-sub-val="<%= att.email || 'No email registered' %>"
+                                                      data-full-name="<%= att.fullName %>"
+                                                      data-full-email="<%= att.email %>"
+                                                      title="<%= att.fullName %>"><%= formatAttendeeName(att.fullName) %></span>
+                                                <span class="attendee-email <%= isEmailOver15 ? 'cell-hoverable' : '' %>"
+                                                      data-badge="Attendee Email"
+                                                      data-label="Email Address"
+                                                      data-full-val="<%= att.email %>"
+                                                      data-sub-label="Attendee"
+                                                      data-sub-val="<%= att.fullName %>"
+                                                      title="<%= att.email %>"
+                                                      style="font-size: 13px; font-weight: 600; color: #334155;"><%= formatAttendeeEmail(att.email) %></span>
+                                                <span class="<%= isEventOver15 ? 'cell-hoverable' : '' %>"
+                                                      data-badge="Event Attended"
+                                                      data-label="Event Name"
+                                                      data-full-val="<%= att.eventName %>"
+                                                      title="<%= att.eventName %>"><%= formatTruncate(att.eventName, 15) %></span>
                                                 <div class="table-cell-actions">
                                                     <button class="btn-action-edit" type="button"
                                                             data-id="<%= att.id %>"
@@ -538,7 +563,16 @@
                                                 No booths registered in the database.
                                             </div>
                                         <% } else { %>
-                                            <% booths.forEach(function(b) { %>
+                                            <% booths.forEach(function(b) {
+                                                const rawUser = b.loginUsername || b.id || '';
+                                                const rawName = b.name || '';
+                                                const rawLoc = b.location || 'Activity Area';
+                                                const rawSponsor = b.sponsorName || b.sponsor || b.name || '';
+                                                const isUserOver = rawUser.trim().length >= 15;
+                                                const isNameOver = rawName.trim().length >= 15;
+                                                const isLocOver = rawLoc.trim().length >= 15;
+                                                const isSponsorOver = rawSponsor.trim().length >= 15;
+                                            %>
                                                 <div class="table-row-item table-row-booth table-row-clickable"
                                                      data-id="<%= b.id %>"
                                                      data-name="<%= (b.name || '').toLowerCase() %>"
@@ -552,9 +586,22 @@
                                                      onclick="if (!event.target.closest('.table-cell-actions')) window.location.href='/SuperAdmin.php?tab=booths&booth_id=<%= encodeURIComponent(b.id) %><%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>'"
                                                      title="Click to view booth details and visitor scans">
                                                     <span class="table-cell-id">
-                                                        <strong style="color: #0d1b54; font-size: 14px; font-weight: 800;"><%= b.loginUsername || b.id %></strong>
+                                                        <strong style="color: #0d1b54; font-size: 14px; font-weight: 800;"
+                                                                class="<%= isUserOver ? 'cell-hoverable' : '' %>"
+                                                                data-badge="Booth Login"
+                                                                data-label="Booth Username"
+                                                                data-full-val="<%= rawUser %>"
+                                                                data-sub-label="Booth Name"
+                                                                data-sub-val="<%= rawName %>"
+                                                                title="<%= rawUser %>"><%= formatTruncate(rawUser, 15) %></strong>
                                                     </span>
-                                                    <span><strong><%= b.name %></strong></span>
+                                                    <span><strong class="<%= isNameOver ? 'cell-hoverable' : '' %>"
+                                                                  data-badge="Booth Details"
+                                                                  data-label="Booth Name"
+                                                                  data-full-val="<%= rawName %>"
+                                                                  data-sub-label="Location"
+                                                                  data-sub-val="<%= rawLoc %>"
+                                                                  title="<%= rawName %>"><%= formatTruncate(rawName, 15) %></strong></span>
                                                     <span>
                                                         <% const bType = (b.booth_type || b.boothType || 'standard').toLowerCase(); %>
                                                         <% if (bType === 'sponsor') { %>
@@ -565,8 +612,20 @@
                                                             <span style="display: inline-block; padding: 4px 10px; border-radius: 9999px; font-size: 11.5px; font-weight: 750; background: #f8fafc; color: #475569; border: 1px solid #e2e8f0; text-transform: capitalize;">Standard</span>
                                                         <% } %>
                                                     </span>
-                                                    <span><%= b.location || 'Activity Area' %></span>
-                                                    <span><%= b.sponsorName || b.sponsor || b.name %></span>
+                                                    <span class="<%= isLocOver ? 'cell-hoverable' : '' %>"
+                                                          data-badge="Booth Location"
+                                                          data-label="Location"
+                                                          data-full-val="<%= rawLoc %>"
+                                                          data-sub-label="Booth"
+                                                          data-sub-val="<%= rawName %>"
+                                                          title="<%= rawLoc %>"><%= formatTruncate(rawLoc, 15) %></span>
+                                                    <span class="<%= isSponsorOver ? 'cell-hoverable' : '' %>"
+                                                          data-badge="Sponsor Info"
+                                                          data-label="Sponsor Name"
+                                                          data-full-val="<%= rawSponsor %>"
+                                                          data-sub-label="Booth"
+                                                          data-sub-val="<%= rawName %>"
+                                                          title="<%= rawSponsor %>"><%= formatTruncate(rawSponsor, 15) %></span>
                                                     <div class="table-cell-actions">
                                                         <button class="btn-action-edit" type="button"
                                                                 data-id="<%= b.id %>"
@@ -593,6 +652,38 @@
                                                 </div>
                                             <% }); %>
                                         <% } %>
+                                    </div>
+
+                                    <!-- Pagination Bar for Booths Table -->
+                                    <div class="table-pagination-bar" id="boothsPaginationBar">
+                                        <div class="pagination-top-row">
+                                            <div class="pagination-nav-group">
+                                                <button type="button" class="btn-page-nav" id="boothsPagPrevBtn" aria-label="Previous Page">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="15 18 9 12 15 6"></polyline>
+                                                    </svg>
+                                                </button>
+                                                <div class="pagination-pages" id="boothsPagPageNumbers"></div>
+                                                <button type="button" class="btn-page-nav" id="boothsPagNextBtn" aria-label="Next Page">
+                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polyline points="9 18 15 12 9 6"></polyline>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div class="pagination-bottom-row">
+                                            <div class="pagination-size-wrap">
+                                                <select class="pagination-size-select" id="boothsPageSizeSelect" aria-label="Items per page">
+                                                    <option value="10" selected>10</option>
+                                                    <option value="25">25</option>
+                                                    <option value="50">50</option>
+                                                    <option value="100">100</option>
+                                                </select>
+                                            </div>
+                                            <div class="pagination-results-text">
+                                                Results: <span id="boothsPagStart">1</span> - <span id="boothsPagEnd">10</span> of <span id="boothsPagTotal"><%= booths ? booths.length : 0 %></span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -1015,14 +1106,31 @@
                                             No events found in the database.
                                         </div>
                                     <% } else { %>
-                                        <% events.forEach(function(ev) { %>
-                                            <div class="table-row-events-item" data-id="<%= ev.id %>">
+                                        <% events.forEach(function(ev) {
+                                            const rawEvName = ev.event_name || '';
+                                            const rawVenue = ev.venue || 'Bacolod City';
+                                            const isEvNameOver = rawEvName.trim().length >= 15;
+                                            const isVenueOver = rawVenue.trim().length >= 15;
+                                        %>
+                                            <div class="table-row-events-item" data-id="<%= ev.id %>" data-search="<%= ((ev.event_name || '') + ' ' + (ev.venue || '')).toLowerCase() %>">
                                                 <span class="table-cell-id">#<%= ev.id %></span>
                                                 <span style="font-weight: 800; color: #0d1b54; display: inline-flex; align-items: center; gap: 8px;">
                                                     <img src="/api/event-logo/<%= ev.id %>" class="event-table-logo" alt="" onerror="this.src='/IMG/test_green.png'">
-                                                    <span><%= ev.event_name %></span>
+                                                    <span class="<%= isEvNameOver ? 'cell-hoverable' : '' %>"
+                                                          data-badge="Event Details"
+                                                          data-label="Event Name"
+                                                          data-full-val="<%= rawEvName %>"
+                                                          data-sub-label="Venue / Date"
+                                                          data-sub-val="<%= rawVenue %> (<%= ev.event_date ? new Date(ev.event_date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Nov 2026' %>)"
+                                                          title="<%= rawEvName %>"><%= formatTruncate(rawEvName, 15) %></span>
                                                 </span>
-                                                <span><%= ev.venue || 'Bacolod City' %></span>
+                                                <span class="<%= isVenueOver ? 'cell-hoverable' : '' %>"
+                                                      data-badge="Venue Details"
+                                                      data-label="Venue / Location"
+                                                      data-full-val="<%= rawVenue %>"
+                                                      data-sub-label="Event"
+                                                      data-sub-val="<%= rawEvName %>"
+                                                      title="<%= rawVenue %>"><%= formatTruncate(rawVenue, 15) %></span>
                                                 <span><%= ev.event_date ? new Date(ev.event_date).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'Nov 2026' %></span>
                                                 <span><strong style="color: #0b6534;"><%= ev.attendeeCount || 0 %></strong> Registrations</span>
                                                 <span><strong style="color: #1d4ed8;"><%= ev.scanCount || 0 %></strong> Scans</span>
@@ -1049,6 +1157,38 @@
                                             </div>
                                         <% }); %>
                                     <% } %>
+                                </div>
+
+                                <!-- Pagination Bar for Events Table -->
+                                <div class="table-pagination-bar" id="eventsPaginationBar">
+                                    <div class="pagination-top-row">
+                                        <div class="pagination-nav-group">
+                                            <button type="button" class="btn-page-nav" id="eventsPagPrevBtn" aria-label="Previous Page">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="15 18 9 12 15 6"></polyline>
+                                                </svg>
+                                            </button>
+                                            <div class="pagination-pages" id="eventsPagPageNumbers"></div>
+                                            <button type="button" class="btn-page-nav" id="eventsPagNextBtn" aria-label="Next Page">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                                                    <polyline points="9 18 15 12 9 6"></polyline>
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="pagination-bottom-row">
+                                        <div class="pagination-size-wrap">
+                                            <select class="pagination-size-select" id="eventsPageSizeSelect" aria-label="Items per page">
+                                                <option value="10" selected>10</option>
+                                                <option value="25">25</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                            </select>
+                                        </div>
+                                        <div class="pagination-results-text">
+                                            Results: <span id="eventsPagStart">1</span> - <span id="eventsPagEnd">10</span> of <span id="eventsPagTotal"><%= events ? events.length : 0 %></span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1596,16 +1736,16 @@
         </div>
     </div>
 
-    <!-- Floating Hover Card Container for Attendees with > 15 letter names -->
+    <!-- Floating Hover Card Container for Columns with >= 15 letter values -->
     <div id="attendeeHoverCard" class="attendee-hover-card" aria-hidden="true" style="display: none;">
         <div class="hover-card-arrow"></div>
-        <div class="hover-card-badge">Attendee Details</div>
-        <div class="hover-card-item">
-            <span class="hover-card-label">Complete Name</span>
+        <div class="hover-card-badge" id="hoverCardBadge">Details</div>
+        <div class="hover-card-item" id="hoverCardItem1">
+            <span class="hover-card-label" id="hoverCardLabel1">Complete Value</span>
             <div class="hover-card-val hover-card-name" id="hoverCardFullName"></div>
         </div>
-        <div class="hover-card-item">
-            <span class="hover-card-label">Email Address</span>
+        <div class="hover-card-item" id="hoverCardItem2">
+            <span class="hover-card-label" id="hoverCardLabel2">Additional Info</span>
             <div class="hover-card-val hover-card-email" id="hoverCardFullEmail"></div>
         </div>
     </div>
@@ -2008,6 +2148,8 @@
     // ==========================================
     // BOOTHS REAL-TIME CLIENT-SIDE SEARCH, FILTER & SORT
     // ==========================================
+    // BOOTHS REAL-TIME CLIENT-SIDE SEARCH, FILTER, SORT & PAGINATION
+    // ==========================================
     const boothSearchInput = document.getElementById('boothSearchInput');
     const boothSortSelect = document.getElementById('boothSortSelect');
     const boothFilterLabel = document.getElementById('boothTypeFilterLabel');
@@ -2017,22 +2159,34 @@
 
     let currentBoothType = 'all';
     let currentBoothQuery = (boothSearchInput ? boothSearchInput.value : '').trim().toLowerCase();
+    let boothPageSize = 10;
+    let currentBoothPage = 1;
+    let visibleBoothRows = [...allBoothRows];
+
+    const boothsPageSizeSelect = document.getElementById('boothsPageSizeSelect');
+    if (boothsPageSizeSelect) {
+        boothsPageSizeSelect.addEventListener('change', (e) => {
+            boothPageSize = parseInt(e.target.value, 10) || 10;
+            currentBoothPage = 1;
+            renderBoothPagination();
+        });
+    }
 
     function applyBoothFilterAndSort() {
         if (!boothsTableBody || allBoothRows.length === 0) return;
 
         // 1. Filter rows by type and search query
-        allBoothRows.forEach(row => {
+        visibleBoothRows = allBoothRows.filter(row => {
             const rowType = (row.dataset.type || 'standard').toLowerCase();
             const rowSearch = (row.dataset.search || '').toLowerCase();
             const matchesType = (currentBoothType === 'all' || rowType === currentBoothType);
             const matchesQuery = (!currentBoothQuery || rowSearch.includes(currentBoothQuery));
-            row.style.display = (matchesType && matchesQuery) ? 'grid' : 'none';
+            return matchesType && matchesQuery;
         });
 
         // 2. Sort rows based on selected sort option
         const sortVal = boothSortSelect ? boothSortSelect.value : 'name_asc';
-        const sortedRows = [...allBoothRows].sort((a, b) => {
+        visibleBoothRows.sort((a, b) => {
             if (sortVal === 'name_asc') {
                 return (a.dataset.name || '').localeCompare(b.dataset.name || '');
             } else if (sortVal === 'name_desc') {
@@ -2050,7 +2204,85 @@
         });
 
         // Re-append sorted rows to DOM
-        sortedRows.forEach(r => boothsTableBody.appendChild(r));
+        visibleBoothRows.forEach(r => boothsTableBody.appendChild(r));
+
+        currentBoothPage = 1;
+        renderBoothPagination();
+    }
+
+    function renderBoothPagination() {
+        const total = visibleBoothRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / boothPageSize));
+        if (currentBoothPage > totalPages) currentBoothPage = totalPages;
+        if (currentBoothPage < 1) currentBoothPage = 1;
+
+        const startIndex = (currentBoothPage - 1) * boothPageSize;
+        const endIndex = Math.min(startIndex + boothPageSize, total);
+
+        allBoothRows.forEach(row => row.style.display = 'none');
+        for (let i = startIndex; i < endIndex; i++) {
+            if (visibleBoothRows[i]) {
+                visibleBoothRows[i].style.display = 'grid';
+            }
+        }
+
+        const startEl = document.getElementById('boothsPagStart');
+        const endEl = document.getElementById('boothsPagEnd');
+        const totalEl = document.getElementById('boothsPagTotal');
+        if (startEl) startEl.textContent = total > 0 ? (startIndex + 1) : 0;
+        if (endEl) endEl.textContent = endIndex;
+        if (totalEl) totalEl.textContent = total;
+
+        const prevBtn = document.getElementById('boothsPagPrevBtn');
+        const nextBtn = document.getElementById('boothsPagNextBtn');
+        if (prevBtn) prevBtn.disabled = (currentBoothPage <= 1);
+        if (nextBtn) nextBtn.disabled = (currentBoothPage >= totalPages);
+
+        const pagesContainer = document.getElementById('boothsPagPageNumbers');
+        if (pagesContainer) {
+            pagesContainer.innerHTML = '';
+            const items = buildPaginationItems(currentBoothPage, totalPages);
+            items.forEach(item => {
+                if (item === '...') {
+                    const el = document.createElement('span');
+                    el.className = 'pagination-ellipsis';
+                    el.textContent = '...';
+                    pagesContainer.appendChild(el);
+                } else {
+                    const pBtn = document.createElement('button');
+                    pBtn.type = 'button';
+                    pBtn.className = `btn-page-num ${item === currentBoothPage ? 'active' : ''}`;
+                    pBtn.textContent = item;
+                    pBtn.setAttribute('aria-label', `Page ${item}`);
+                    if (item === currentBoothPage) {
+                        pBtn.setAttribute('aria-current', 'page');
+                    }
+                    pBtn.addEventListener('click', () => {
+                        currentBoothPage = item;
+                        renderBoothPagination();
+                    });
+                    pagesContainer.appendChild(pBtn);
+                }
+            });
+        }
+    }
+
+    const prevBoothBtn = document.getElementById('boothsPagPrevBtn');
+    if (prevBoothBtn) {
+        prevBoothBtn.addEventListener('click', () => {
+            if (currentBoothPage > 1) {
+                currentBoothPage--;
+                renderBoothPagination();
+            }
+        });
+    }
+
+    const nextBoothBtn = document.getElementById('boothsPagNextBtn');
+    if (nextBoothBtn) {
+        nextBoothBtn.addEventListener('click', () => {
+            currentBoothPage++;
+            renderBoothPagination();
+        });
     }
 
     if (boothSearchInput) {
@@ -2104,6 +2336,10 @@
             applyBoothFilterAndSort();
         });
     });
+
+    if (allBoothRows.length > 0) {
+        applyBoothFilterAndSort();
+    }
 
     // ==========================================
     // POINTS REAL-TIME SEARCH, FILTER & PAGINATION
@@ -2271,27 +2507,140 @@
     }
 
     // ==========================================
-    // FLOATING HOVER CARD FOR ATTENDEES (> 15 LETTERS)
+    // EVENTS PAGINATION
+    // ==========================================
+    const allEventRows = Array.from(document.querySelectorAll('.table-row-events-item'));
+    let eventPageSize = 10;
+    let currentEventPage = 1;
+    let visibleEventRows = [...allEventRows];
+
+    const eventsPageSizeSelect = document.getElementById('eventsPageSizeSelect');
+    if (eventsPageSizeSelect) {
+        eventsPageSizeSelect.addEventListener('change', (e) => {
+            eventPageSize = parseInt(e.target.value, 10) || 10;
+            currentEventPage = 1;
+            renderEventPagination();
+        });
+    }
+
+    function renderEventPagination() {
+        const total = visibleEventRows.length;
+        const totalPages = Math.max(1, Math.ceil(total / eventPageSize));
+        if (currentEventPage > totalPages) currentEventPage = totalPages;
+        if (currentEventPage < 1) currentEventPage = 1;
+
+        const startIndex = (currentEventPage - 1) * eventPageSize;
+        const endIndex = Math.min(startIndex + eventPageSize, total);
+
+        allEventRows.forEach(row => row.style.display = 'none');
+        for (let i = startIndex; i < endIndex; i++) {
+            if (visibleEventRows[i]) {
+                visibleEventRows[i].style.display = 'grid';
+            }
+        }
+
+        const startEl = document.getElementById('eventsPagStart');
+        const endEl = document.getElementById('eventsPagEnd');
+        const totalEl = document.getElementById('eventsPagTotal');
+        if (startEl) startEl.textContent = total > 0 ? (startIndex + 1) : 0;
+        if (endEl) endEl.textContent = endIndex;
+        if (totalEl) totalEl.textContent = total;
+
+        const prevEvBtn = document.getElementById('eventsPagPrevBtn');
+        const nextEvBtn = document.getElementById('eventsPagNextBtn');
+        if (prevEvBtn) prevEvBtn.disabled = (currentEventPage <= 1);
+        if (nextEvBtn) nextEvBtn.disabled = (currentEventPage >= totalPages);
+
+        const pagesContainer = document.getElementById('eventsPagPageNumbers');
+        if (pagesContainer) {
+            pagesContainer.innerHTML = '';
+            const items = buildPaginationItems(currentEventPage, totalPages);
+            items.forEach(item => {
+                if (item === '...') {
+                    const el = document.createElement('span');
+                    el.className = 'pagination-ellipsis';
+                    el.textContent = '...';
+                    pagesContainer.appendChild(el);
+                } else {
+                    const pBtn = document.createElement('button');
+                    pBtn.type = 'button';
+                    pBtn.className = `btn-page-num ${item === currentEventPage ? 'active' : ''}`;
+                    pBtn.textContent = item;
+                    pBtn.setAttribute('aria-label', `Page ${item}`);
+                    if (item === currentEventPage) {
+                        pBtn.setAttribute('aria-current', 'page');
+                    }
+                    pBtn.addEventListener('click', () => {
+                        currentEventPage = item;
+                        renderEventPagination();
+                    });
+                    pagesContainer.appendChild(pBtn);
+                }
+            });
+        }
+    }
+
+    const prevEvBtn = document.getElementById('eventsPagPrevBtn');
+    if (prevEvBtn) {
+        prevEvBtn.addEventListener('click', () => {
+            if (currentEventPage > 1) {
+                currentEventPage--;
+                renderEventPagination();
+            }
+        });
+    }
+
+    const nextEvBtn = document.getElementById('eventsPagNextBtn');
+    if (nextEvBtn) {
+        nextEvBtn.addEventListener('click', () => {
+            currentEventPage++;
+            renderEventPagination();
+        });
+    }
+
+    if (allEventRows.length > 0) {
+        renderEventPagination();
+    }
+
+    // ==========================================
+    // FLOATING HOVER CARD FOR TRUNCATED COLUMNS (>= 15 CHARACTERS)
     // ==========================================
     const hoverCard = document.getElementById('attendeeHoverCard');
+    const hoverBadgeEl = document.getElementById('hoverCardBadge');
+    const hoverItem1El = document.getElementById('hoverCardItem1');
+    const hoverLabel1El = document.getElementById('hoverCardLabel1');
     const hoverNameEl = document.getElementById('hoverCardFullName');
+    const hoverItem2El = document.getElementById('hoverCardItem2');
+    const hoverLabel2El = document.getElementById('hoverCardLabel2');
     const hoverEmailEl = document.getElementById('hoverCardFullEmail');
     let hoverHideTimeout = null;
 
     if (hoverCard && hoverNameEl && hoverEmailEl) {
         document.addEventListener('mouseover', (e) => {
-            const trigger = e.target.closest('.attendee-name-hoverable');
+            const trigger = e.target.closest('.attendee-name-hoverable, .cell-hoverable');
             if (!trigger) return;
 
-            const fullName = trigger.dataset.fullName;
-            const fullEmail = trigger.dataset.fullEmail;
-            // Strictly applicable only to users with names over 15 letters
-            if (!fullName || fullName.trim().length <= 15) return;
+            const fullVal = trigger.dataset.fullVal || trigger.dataset.fullName;
+            if (!fullVal || fullVal.trim().length < 15) return;
 
             clearTimeout(hoverHideTimeout);
 
-            hoverNameEl.textContent = fullName;
-            hoverEmailEl.textContent = fullEmail || 'No email registered';
+            const badgeText = trigger.dataset.badge || 'Details';
+            const label1Text = trigger.dataset.label || 'Complete Value';
+            const subVal = trigger.dataset.subVal || trigger.dataset.fullEmail;
+            const label2Text = trigger.dataset.subLabel || 'Additional Info';
+
+            if (hoverBadgeEl) hoverBadgeEl.textContent = badgeText;
+            if (hoverLabel1El) hoverLabel1El.textContent = label1Text;
+            hoverNameEl.textContent = fullVal;
+
+            if (subVal) {
+                if (hoverItem2El) hoverItem2El.style.display = 'block';
+                if (hoverLabel2El) hoverLabel2El.textContent = label2Text;
+                hoverEmailEl.textContent = subVal;
+            } else {
+                if (hoverItem2El) hoverItem2El.style.display = 'none';
+            }
 
             // Show hidden to calculate real layout dimensions
             hoverCard.style.display = 'block';
@@ -2329,7 +2678,7 @@
         });
 
         document.addEventListener('mouseout', (e) => {
-            const trigger = e.target.closest('.attendee-name-hoverable');
+            const trigger = e.target.closest('.attendee-name-hoverable, .cell-hoverable');
             if (!trigger) return;
 
             const toEl = e.relatedTarget;
