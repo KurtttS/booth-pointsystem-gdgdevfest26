@@ -53,7 +53,7 @@
 <div class="dashboard-page">
 
     <!-- Top Navigation Bar -->
-    <%- include('partials/nav', { currentPage: 'dashboard', isLoggedIn: true }) %>
+    <%- include('partials/nav', { currentPage: 'Dashboard.php', isLoggedIn: true, sid: sessionSid }) %>
 
     <!-- Main Ambient Backdrop Blooms -->
     <div class="blur-orb blur-top-right"></div>
@@ -106,7 +106,7 @@
                 <h2 class="station-name"><%= stationName %></h2>
                 <div class="station-meta-bar">
                     <p class="station-location"><%= stationLocation %><% if (currentEventName) { %><%= stationLocation ? ' · ' : '' %><span style="display: inline-flex; align-items: center; gap: 6px;"><img src="/api/event-logo/<%= currentEventId %>" alt="" style="width: 20px; height: 12px; object-fit: contain; vertical-align: middle;" onerror="this.src='/IMG/test_green.png'"><%= currentEventName %></span><% } %></p>
-                    <a href="/choices" class="dash-switch-event-link" title="Switch or select a different event without logging out">
+                    <a href="/EventChoices.php<%= sidParam %>" class="dash-switch-event-link" title="Switch or select a different event without logging out">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                             <polyline points="17 1 21 5 17 9"></polyline>
                             <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
@@ -168,12 +168,12 @@
 
             <!-- Left: Leaderboard Card -->
             <div class="leaderboard-card">
-                <a href="/leaderboard" class="card-link" aria-label="Open full leaderboard"></a>
+                <a href="/Leaderboard.php<%= sidParam %>" class="card-link" aria-label="Open full leaderboard"></a>
 
                 <div class="leaderboard-header">
                     <div class="leaderboard-header-row">
                         <h3 class="leaderboard-title">Leaderboard</h3>
-                        <a href="/leaderboard" class="leaderboard-see-all-btn" aria-label="Open full leaderboard">See All &rarr;</a>
+                        <a href="/Leaderboard.php<%= sidParam %>" class="leaderboard-see-all-btn" aria-label="Open full leaderboard">See All &rarr;</a>
                     </div>
                     <p class="leaderboard-subtitle">Top-performing performers ranked by points and QR scans.</p>
                 </div>

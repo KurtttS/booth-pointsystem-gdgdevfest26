@@ -57,10 +57,10 @@ export class ScanController {
       const cleanCode = qrCode ? String(qrCode).trim() : '';
       const cleanName = attendeeName ? String(attendeeName).trim() : '';
 
-      if (cleanCode && cleanCode.length > 255) {
+      if (cleanCode && cleanCode.length > 64) {
         return res.status(400).json({
           success: false,
-          message: 'QR code or Attendee ID cannot exceed 255 characters.'
+          message: 'QR code or Attendee ID cannot exceed 64 characters.'
         });
       }
 
@@ -75,15 +75,15 @@ export class ScanController {
       const booth = (await Booth.findById(boothId)) || Booth.getDefault();
       const boothType = Booth.getBoothType(booth);
 
-      // Resolve attendee, robustly parsing ticket number and ensuring door check-in status
+      // Strictly resolve attendee and route to their specific registered event (Student Dev Day vs. Professional Dev Day)
       const resolution = await Attendee.resolveForEvent({
-        identifier: cleanCode,
-        name: cleanName,
+        identifier: qrCode ? String(qrCode).trim() : '',
+        name: attendeeName ? String(attendeeName).trim() : '',
         eventId
       });
 
-      if (resolution.status === 'not_found' || !resolution.attendee) {
-        const displayRef = cleanCode ? `"${cleanCode}"` : `"${cleanName}"`;
+      if (resolution.status === 'not_found') {
+        const displayRef = qrCode ? `"${String(qrCode).trim()}"` : `"${String(attendeeName).trim()}"`;
         return res.status(404).json({
           success: false,
           code: 'NOT_FOUND',
@@ -91,51 +91,32 @@ export class ScanController {
         });
       }
 
-      if (resolution.status === 'wrong_event') {
-        const registeredEvent = (await Event.findById(resolution.registeredEventId)) || Event.getDefault(resolution.registeredEventId);
-        const currentEvent = (await Event.findById(eventId)) || Event.getDefault(eventId);
-        const fullName = Attendee.getFullName(resolution.attendee);
-        const regName = registeredEvent.event_name || `Event ${resolution.registeredEventId}`;
-        const curName = currentEvent.event_name || `Event ${eventId}`;
-
-        return res.status(403).json({
-          success: false,
-          code: 'WRONG_EVENT',
-          message: `${fullName} is registered for ${regName}, not ${curName}. Cannot record scan at a ${curName} booth!`
-        });
-      }
-
-      if (resolution.status === 'not_registered') {
-        const currentEvent = (await Event.findById(eventId)) || Event.getDefault(eventId);
-        const fullName = Attendee.getFullName(resolution.attendee);
-        const curName = currentEvent.event_name || `Event ${eventId}`;
-
-        return res.status(403).json({
-          success: false,
-          code: 'NOT_REGISTERED',
-          message: `${fullName} is not registered for ${curName}.`
-        });
-      }
-
-      if (resolution.status === 'not_checked_in') {
-        const currentEvent = (await Event.findById(eventId)) || Event.getDefault(eventId);
-        const fullName = Attendee.getFullName(resolution.attendee);
-        const curName = currentEvent.event_name || `Event ${eventId}`;
-
-        return res.status(403).json({
-          success: false,
-          code: 'NOT_CHECKED_IN',
-          message: `${fullName} has not checked in at registration for ${curName} yet. Attendees must check in at event registration before visiting booths.`
-        });
-      }
-
       const { attendee, eventAttendee } = resolution;
       const fullName = Attendee.getFullName(attendee);
       const event = (await Event.findById(eventId)) || Event.getDefault(eventId);
 
+      if (resolution.status === 'wrong_event') {
+        const registeredEvent = (await Event.findById(resolution.registeredEventId)) || Event.getDefault(resolution.registeredEventId);
+        return res.status(403).json({
+          success: false,
+          code: 'WRONG_EVENT',
+          attendeeName: fullName,
+          message: `${fullName} is registered for ${registeredEvent.event_name}, not ${event.event_name}. Cannot record scan at a ${event.event_name} booth!`
+        });
+      }
+
+      if (resolution.status === 'not_checked_in') {
+        return res.status(403).json({
+          success: false,
+          code: 'NOT_CHECKED_IN',
+          attendeeName: fullName,
+          message: `${fullName} has not checked in at registration for ${event.event_name} yet.`
+        });
+      }
+
       const displayAttendeeId =
-        (eventAttendee && (eventAttendee.ticket_number || eventAttendee.ticketnumber)) ||
         attendee.qr_code_token ||
+        (eventAttendee && eventAttendee.ticket_number) ||
         `ID ${String(attendee.id).padStart(3, '0')}`;
 
       // Check scan limits per booth type: GDG booths allow up to 2 scans; others allow 1
@@ -168,7 +149,7 @@ export class ScanController {
       // - Standard/Other: Visits 1-10 -> 100 PTS, 11-50 -> 85 PTS, 51-90 -> 65 PTS, 91+ -> 45 PTS
       const tierResult = ScanLog.calculatePointsForScanCount(existingScanCount, boothType);
 
-      // Store directly in Supabase scan_logs table strictly under the active event.id
+      // Store directly in Supabase scan_logs table strictly under the attendee's eventId
       const createdLog = await ScanLog.create({
         attendeeId: attendee.id,
         boothId: booth.id,

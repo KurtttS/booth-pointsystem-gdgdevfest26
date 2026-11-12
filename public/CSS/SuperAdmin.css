@@ -860,19 +860,17 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Attendee & Cell Hoverable Indicator (For values >= 15 characters) */
-.attendee-name-hoverable,
-.cell-hoverable {
+/* Attendee Name Hoverable Indicator (Only for names > 15 characters) */
+.attendee-name-hoverable {
     cursor: pointer;
     text-decoration: underline dotted #d97706 1.5px;
     text-underline-offset: 3px;
     transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-.attendee-name-hoverable:hover,
-.cell-hoverable:hover {
-    color: #b45309 !important;
-    text-decoration-color: #b45309 !important;
+.attendee-name-hoverable:hover {
+    color: #b45309;
+    text-decoration-color: #b45309;
 }
 
 /* Floating Hover Card Container */
@@ -1714,8 +1712,10 @@ body {
 
 #overviewFilterPopover {
     top: calc(100% + 8px);
-    left: 0;
-    min-width: 270px;
+    right: 0;
+    left: auto;
+    min-width: 260px;
+    max-width: min(320px, calc(100vw - 32px));
     z-index: 1000;
 }
 
@@ -2016,18 +2016,7 @@ h1.login-title {
 
 @media (max-width: 1080px) {
     .overview-grid {
-        grid-template-columns: 1fr !important;
-        gap: 24px;
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-    }
-
-    .overview-left-col,
-    .overview-right-card {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
+        grid-template-columns: 1fr;
     }
 
     .booth-analytics-grid {
@@ -2048,34 +2037,6 @@ h1.login-title {
 @media (max-width: 768px) {
     .superadmin-container {
         padding: 20px 16px 40px;
-        width: 100%;
-        max-width: 100vw;
-        box-sizing: border-box;
-    }
-
-    /* Stack admin overview into single column cleanly */
-    .overview-grid {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-    }
-
-    .overview-left-col,
-    .overview-right-card,
-    .superadmin-card {
-        width: 100%;
-        max-width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-    .superadmin-card {
-        padding: 20px 16px;
-        border-radius: 20px;
-        overflow: hidden;
     }
 
     .superadmin-action-bar {
@@ -2138,41 +2099,179 @@ h1.login-title {
         padding: 0 46px;
     }
 
-    /* Attendees bar chart mobile view - prevent blowout, smooth inner scroll */
-    .bar-chart-container {
-        height: 250px;
-        width: 100%;
-        max-width: 100%;
+    /* SuperAdmin Card on Mobile */
+    .superadmin-card {
+        padding: 20px 16px;
+        border-radius: 20px;
+    }
+
+    .overview-grid {
+        gap: 18px;
+    }
+
+    .overview-left-col {
+        gap: 18px;
+    }
+
+    .superadmin-header {
+        margin-bottom: 18px;
+    }
+
+    .superadmin-title {
+        font-size: 25px;
+        letter-spacing: -0.4px;
+    }
+
+    .superadmin-subtitle {
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    .card-heading {
+        font-size: 19px;
+    }
+
+    .card-subheading {
+        font-size: 12px;
+        margin: 3px 0 14px;
+    }
+
+    /* Donut Chart mobile tuning */
+    .donut-chart-wrap {
+        padding: 8px 0 4px;
+    }
+
+    .donut-svg {
+        width: 150px;
+        height: 150px;
+    }
+
+    .donut-legend {
+        gap: 8px 14px;
+        margin-top: 14px;
+    }
+
+    .donut-legend-item {
+        font-size: 11px;
+    }
+
+    /* Most Recent Scans mobile feed */
+    .overview-right-card {
+        height: auto;
+        min-height: 0;
+    }
+
+    .attendees-card-header {
+        padding-bottom: 12px;
+        margin-top: 6px;
+    }
+
+    .attendees-header-title {
+        font-size: 14px;
+    }
+
+    .event-filter-btn {
+        font-size: 11px;
+        padding: 4px 6px;
+    }
+
+    .recent-scans-feed {
+        max-height: 420px;
+        padding: 4px 0 0;
+    }
+
+    .scan-feed-item {
+        padding: 12px 6px;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    .scan-feed-left {
+        flex: 1;
         min-width: 0;
+        gap: 5px;
+    }
+
+    .scan-user-main {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+        align-items: center;
+    }
+
+    .scan-user-name {
+        font-size: 13.5px;
+        max-width: 160px;
         overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .scan-qr-badge {
+        font-size: 10px;
+        padding: 1px 6px;
+    }
+
+    .scan-booth-meta {
+        flex-wrap: wrap;
+        gap: 4px 8px;
+        font-size: 11px;
+    }
+
+    .scan-station-tag {
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .scan-event-tag {
+        font-size: 10px;
+        padding: 1px 5px;
+        white-space: nowrap;
+    }
+
+    .scan-feed-right {
+        flex-shrink: 0;
+        align-items: flex-end;
+        gap: 3px;
+    }
+
+    .scan-points-badge {
+        font-size: 12px;
+        padding: 2px 8px;
+    }
+
+    .scan-time-ago {
+        font-size: 10.5px;
+    }
+
+    /* Attendees bar chart mobile view - prevent booth names cramming */
+    .bar-chart-container {
+        height: 265px;
     }
 
     .chart-bars-scroll {
-        width: 100%;
-        max-width: calc(100% - 44px);
-        min-width: 0;
-        flex: 1;
         overflow-x: auto;
         overflow-y: visible;
         -webkit-overflow-scrolling: touch;
     }
 
     .chart-bars-wrap {
-        min-width: 440px;
-        gap: 10px;
+        min-width: 520px;
+        gap: 12px;
         justify-content: flex-start;
-        padding: 0 12px;
+        padding: 0 16px;
     }
 
     .chart-bar-group {
-        flex: 0 0 54px;
-        min-width: 54px;
-        max-width: 54px;
+        flex: 0 0 62px;
+        min-width: 62px;
+        max-width: 62px;
     }
 
     .chart-bar-label {
-        width: 54px;
-        font-size: 9.5px;
+        width: 62px;
+        font-size: 10px;
         line-height: 1.15;
         word-break: break-word;
         white-space: normal;
@@ -2182,52 +2281,11 @@ h1.login-title {
         overflow: hidden;
         text-overflow: ellipsis;
     }
-
-    /* Donut chart wrap on mobile */
-    .donut-chart-wrap {
-        width: 100%;
-        max-width: 100%;
-    }
-
-    .donut-legend {
-        gap: 10px 16px;
-    }
-
-    /* Overview Right Card and Recent Scans Feed on Mobile */
-    .attendees-card-header {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    .scan-feed-item {
-        padding: 12px 14px;
-        gap: 12px;
-        max-width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-    .scan-feed-left {
-        min-width: 0;
-        flex: 1;
-    }
-
-    .scan-user-name {
-        max-width: 150px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .scan-booth-meta {
-        flex-wrap: wrap;
-        gap: 6px;
-    }
 }
 
-@media (max-width: 520px) {
+@media (max-width: 480px) {
     .superadmin-container {
-        padding: 16px 12px 32px;
+        padding: 14px 10px 32px;
     }
 
     .superadmin-card {
@@ -2235,32 +2293,56 @@ h1.login-title {
         border-radius: 18px;
     }
 
+    .superadmin-title {
+        font-size: 22px;
+    }
+
     .card-heading {
-        font-size: 19px;
+        font-size: 17px;
     }
 
-    .scan-feed-item {
-        flex-direction: column;
-        align-items: flex-start;
+    .bar-chart-container {
+        height: 250px;
+    }
+
+    .chart-y-axis {
+        width: 30px;
+        font-size: 9px;
+        padding-right: 6px;
+    }
+
+    .chart-bars-wrap {
+        min-width: 460px;
         gap: 8px;
-        padding: 12px 10px;
+        padding: 0 8px;
     }
 
-    .scan-feed-left {
-        width: 100%;
+    .chart-bar-group {
+        flex: 0 0 54px;
+        min-width: 54px;
+        max-width: 54px;
     }
 
-    .scan-feed-right {
-        width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px dashed #f1f5f9;
-        padding-top: 8px;
+    .chart-bar {
+        width: 22px;
+    }
+
+    .chart-bar-label {
+        width: 54px;
+        font-size: 9px;
+    }
+
+    .donut-svg {
+        width: 130px;
+        height: 130px;
     }
 
     .scan-user-name {
-        max-width: 180px;
+        max-width: 120px;
+    }
+
+    .scan-station-tag {
+        max-width: 110px;
     }
 }
 

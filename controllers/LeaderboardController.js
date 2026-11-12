@@ -26,7 +26,7 @@ export class LeaderboardController {
       const eventName = currentEvent ? currentEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
 
       res.render('Leaderboard', {
-        currentPage: 'leaderboard',
+        currentPage: 'Leaderboard.php',
         selectedEventId: eventId,
         currentEvent,
         allEvents: allEvents || [],
@@ -44,7 +44,7 @@ export class LeaderboardController {
     } catch (err) {
       console.error('LeaderboardController error:', err);
       res.render('Leaderboard', {
-        currentPage: 'leaderboard',
+        currentPage: 'Leaderboard.php',
         selectedEventId: eventId,
         currentEvent: null,
         allEvents: [],
@@ -96,7 +96,7 @@ export class LeaderboardController {
       const eventName = currentEvent ? currentEvent.event_name : (eventId === 2 ? 'Professional Dev Day' : 'Student Dev Day');
 
       res.render('AdminLeaderboard', {
-        currentPage: 'adminleaderboard',
+        currentPage: 'AdminLeaderboard.php',
         selectedEventId: eventId,
         currentEvent,
         allEvents: allEvents || [],
@@ -113,7 +113,7 @@ export class LeaderboardController {
     } catch (err) {
       console.error('showAdminLeaderboard error:', err);
       res.render('AdminLeaderboard', {
-        currentPage: 'adminleaderboard',
+        currentPage: 'AdminLeaderboard.php',
         selectedEventId: 1,
         currentEvent: null,
         trackName: 'Leaderboard',

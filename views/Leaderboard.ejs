@@ -50,7 +50,7 @@
 <div class="page-shell">
 
     <!-- Shared navbar -->
-    <%- include('partials/nav', { currentPage: 'leaderboard', isLoggedIn: userIsLoggedIn, isAdmin: (typeof isAdmin !== 'undefined' ? isAdmin : false) }) %>
+    <%- include('partials/nav', { currentPage: 'Leaderboard.php', isLoggedIn: userIsLoggedIn, isAdmin: (typeof isAdmin !== 'undefined' ? isAdmin : false), sid: sessionSid }) %>
 
     <!-- LEADERBOARD CONTENT -->
     <main class="leaderboard">
@@ -84,7 +84,7 @@
                         <% eventsList.forEach(function(ev) { 
                             const isCurrent = (parseInt(selectedEvId, 10) === parseInt(ev.id, 10));
                         %>
-                        <a href="/leaderboard?event_id=<%= ev.id %>"
+                        <a href="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
                            class="dropdown-item leaderboard-event-item <%= isCurrent ? 'is-selected' : '' %>"
                            role="menuitem">
                             <img src="/api/event-logo/<%= ev.id %>" alt="<%= ev.event_name %>" class="leaderboard-item-event-logo" onerror="this.src='/IMG/test_green.png'">
@@ -99,7 +99,7 @@
                     <!-- Hidden native select for backwards compatibility and accessibility -->
                     <select id="leaderboardEventSelect" class="sr-only-select" aria-label="Select Event Leaderboard" onchange="if(this.value) window.location.href=this.value;">
                         <% eventsList.forEach(function(ev) { %>
-                        <option value="/leaderboard?event_id=<%= ev.id %>"
+                        <option value="/Leaderboard.php?event_id=<%= ev.id %><%= sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '' %>"
                                 <%= (parseInt(selectedEvId, 10) === parseInt(ev.id, 10)) ? 'selected' : '' %>>
                             <%= ev.event_name %>
                         </option>
