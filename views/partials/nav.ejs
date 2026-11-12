@@ -1,22 +1,19 @@
 <%
-    const cur = (typeof currentPage !== 'undefined' && currentPage) ? currentPage : '';
-    const isLogin = (cur === 'LoginBooth.php' || cur === 'LoginBooth');
-    const isDashboard = (cur === 'Dashboard.php' || cur === 'Dashboard');
-    const isScanner = (cur === 'scanner.php' || cur === 'scanner');
-    const isLeaderboard = (cur === 'Leaderboard.php' || cur === 'Leaderboard' || cur === 'AdminLeaderboard.php' || cur === 'AdminLeaderboard');
-    const isSuperAdmin = (cur === 'SuperAdmin.php' || cur === 'SuperAdmin');
-    const isProfile = (cur === 'StationProfile.php' || cur === 'StationProfile');
-    const isChoices = (cur === 'EventChoices.php' || cur === 'EventChoices');
+    const cur = (typeof currentPage !== 'undefined' && currentPage) ? currentPage.toLowerCase() : '';
+    const isLogin = (cur.includes('login'));
+    const isDashboard = (cur.includes('dashboard'));
+    const isScanner = (cur.includes('scanner'));
+    const isLeaderboard = (cur.includes('leaderboard'));
+    const isSuperAdmin = (cur.includes('superadmin') || cur.includes('admin'));
+    const isProfile = (cur.includes('profile') || cur.includes('stationprofile'));
+    const isChoices = (cur.includes('choice') || cur.includes('eventchoices'));
     const loggedIn = (typeof isLoggedIn !== 'undefined' && isLoggedIn);
     const adminMode = (typeof isAdmin !== 'undefined' && isAdmin);
     const tab = (typeof activeTab !== 'undefined' && activeTab) ? activeTab : 'overview';
-    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
-    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
-    const sidQuery = sessionSid ? ('&sid=' + encodeURIComponent(sessionSid)) : '';
 
-    let homeUrl = '/Leaderboard.php' + sidParam;
+    let homeUrl = '/leaderboard';
     if (loggedIn) {
-        homeUrl = adminMode ? ('/SuperAdmin.php?tab=overview' + sidQuery) : ('/Dashboard.php' + sidParam);
+        homeUrl = adminMode ? '/superadmin?tab=overview' : '/dashboard';
     }
 %>
 <header class="topbar">
@@ -49,32 +46,32 @@
 
         <% if (loggedIn && adminMode) { %>
             <!-- 1. SUPER ADMIN NAVIGATION -->
-            <a href="/SuperAdmin.php?tab=overview<%= sidQuery %>"
+            <a href="/superadmin?tab=overview"
                class="<%= tab === 'overview' ? 'active' : '' %>">
                 Overview
             </a>
 
-            <a href="/SuperAdmin.php?tab=attendees<%= sidQuery %>"
+            <a href="/superadmin?tab=attendees"
                class="<%= tab === 'attendees' ? 'active' : '' %>">
                 Attendees
             </a>
 
-            <a href="/SuperAdmin.php?tab=booths<%= sidQuery %>"
+            <a href="/superadmin?tab=booths"
                class="<%= tab === 'booths' ? 'active' : '' %>">
                 Booth
             </a>
 
-            <a href="/SuperAdmin.php?tab=points<%= sidQuery %>"
+            <a href="/superadmin?tab=points"
                class="<%= tab === 'points' ? 'active' : '' %>">
                 Points
             </a>
 
-            <a href="/SuperAdmin.php?tab=events<%= sidQuery %>"
+            <a href="/superadmin?tab=events"
                class="<%= tab === 'events' ? 'active' : '' %>">
                 Events
             </a>
 
-            <a href="/logout.php?role=admin"
+            <a href="/logout?role=admin"
                class="superadmin-logout-btn">
                 Log Out
             </a>
@@ -83,21 +80,21 @@
         <% } else if (!loggedIn) { %>
             <!-- 2. UNAUTHENTICATED / GUEST: On leaderboard, only Login is in header; on login, show Leaderboard & Login -->
             <% if (isLeaderboard) { %>
-                <a href="/LoginBooth.php<%= sidParam %>">
+                <a href="/login">
                     Login
                 </a>
             <% } else { %>
-                <a href="/Leaderboard.php<%= sidParam %>"
+                <a href="/leaderboard"
                    class="<%= isLeaderboard ? 'active' : '' %>">
                     Leaderboard
                 </a>
 
-                <a href="/LoginBooth.php<%= sidParam %>"
+                <a href="/login"
                    class="<%= isLogin ? 'active' : '' %>">
                     Login
                 </a>
 
-                <a href="/SuperAdmin.php<%= sidParam %>"
+                <a href="/superadmin"
                    class="<%= isSuperAdmin ? 'active' : '' %>">
                     SuperAdmin
                 </a>
@@ -105,28 +102,28 @@
 
         <% } else { %>
             <!-- 3. AUTHENTICATED BOOTH USER: Dashboard, Scanner, Events, Leaderboard, and Station Profile Icon -->
-            <a href="/Dashboard.php<%= sidParam %>"
+            <a href="/dashboard"
                class="<%= isDashboard ? 'active' : '' %>">
                 Dashboard
             </a>
 
-            <a href="/scanner.php<%= sidParam %>"
+            <a href="/scanner"
                class="<%= isScanner ? 'active' : '' %>">
                 Scanner
             </a>
 
-            <a href="/EventChoices.php<%= sidParam %>"
+            <a href="/choices"
                class="<%= isChoices ? 'active' : '' %>"
                title="Event Selection">
                 Events
             </a>
 
-            <a href="/Leaderboard.php<%= sidParam %>"
+            <a href="/leaderboard"
                class="<%= isLeaderboard ? 'active' : '' %>">
                 Leaderboard
             </a>
 
-            <a href="/StationProfile.php<%= sidParam %>"
+            <a href="/stationprofile"
                class="profile-btn <%= isProfile ? 'active' : '' %>"
                aria-label="Station Profile"
                title="Station Profile">

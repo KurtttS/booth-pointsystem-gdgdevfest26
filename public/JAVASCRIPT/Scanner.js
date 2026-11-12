@@ -795,8 +795,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateManualCharCount() {
         if (!manualIdInput || !manualCharCount) return;
         const len = manualIdInput.value.length;
-        manualCharCount.textContent = `${len}/64`;
-        if (len >= 64) {
+        manualCharCount.textContent = `${len}/255`;
+        if (len >= 255) {
             manualCharCount.style.color = '#dc2626';
         } else {
             manualCharCount.style.color = '#64748b';
@@ -836,8 +836,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!id) return;
 
-            if (id.length > 64) {
-                showScanBanner('✕ Attendee / Ticket ID cannot exceed 64 characters.', 'error');
+            if (id.length > 255) {
+                showScanBanner('✕ Attendee / Ticket ID cannot exceed 255 characters.', 'error');
                 return;
             }
 

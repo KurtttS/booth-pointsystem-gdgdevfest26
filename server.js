@@ -257,32 +257,47 @@ app.use('/views', express.static(path.join(__dirname, 'public')));
 
 // --- Routes (MVC) ---
 
-// Root redirects to LoginBooth.php
-app.get('/', (req, res) => res.redirect('/LoginBooth.php'));
-app.get('/login', (req, res) => res.redirect('/LoginBooth.php'));
+// Root redirects to /login
+app.get('/', (req, res) => res.redirect('/login'));
+
+// Helper to redirect legacy .php GET requests to clean extensionless URLs
+const redirectToClean = (targetBase, allowedParams = []) => (req, res) => {
+  const query = new URLSearchParams();
+  allowedParams.forEach(p => {
+    if (req.query[p] !== undefined && req.query[p] !== '') {
+      query.set(p, req.query[p]);
+    }
+  });
+  const qs = query.toString() ? '?' + query.toString() : '';
+  return res.redirect(302, targetBase + qs);
+};
 
 // Booth Portal (Controller: BoothController)
-app.get('/LoginBooth.php', BoothController.showLogin);
+app.get(['/login', '/loginbooth'], BoothController.showLogin);
+app.post(['/login', '/loginbooth'], BoothController.processLogin);
+app.get('/LoginBooth.php', redirectToClean('/login', ['error', 'message']));
 app.post('/LoginBooth.php', BoothController.processLogin);
 
 // Event / Track Selection (Controller: BoothController)
-app.get('/EventChoices.php', BoothController.showChoices);
-app.post('/EventChoices.php', (req, res, next) => {
+const handleChoicesPost = (req, res, next) => {
   if (req.body.username) {
     return BoothController.processLogin(req, res, next);
   }
   return BoothController.selectTrack(req, res, next);
-});
-app.get('/choices', (req, res) => res.redirect('/EventChoices.php'));
+};
+app.get(['/choices', '/eventchoices'], BoothController.showChoices);
+app.post(['/choices', '/eventchoices'], handleChoicesPost);
+app.get('/EventChoices.php', redirectToClean('/choices'));
+app.post('/EventChoices.php', handleChoicesPost);
 
 // Scanner Terminal (Controller: BoothController)
-app.get('/scanner.php', BoothController.showScanner);
+app.get('/scanner', BoothController.showScanner);
+app.post('/scanner', BoothController.selectTrack);
+app.get('/scanner.php', redirectToClean('/scanner', ['track', 'event_id']));
 app.post('/scanner.php', BoothController.selectTrack);
-app.get('/scanner', (req, res) => res.redirect('/scanner.php'));
 
 // Logout
-app.get('/logout.php', BoothController.logout);
-app.get('/logout', BoothController.logout);
+app.get(['/logout', '/logout.php', '/LogOutBooth.php', '/logoutbooth'], BoothController.logout);
 
 // Session inspect API
 app.get('/api/session', (req, res) => {
@@ -301,13 +316,12 @@ app.post('/api/scan', ScanController.processScan);
 app.get('/api/scans/feed', ScanController.getFeed);
 
 // Leaderboard (Controller: LeaderboardController)
-app.get('/Leaderboard.php', LeaderboardController.showLeaderboard);
-app.get('/leaderboard', (req, res) => res.redirect('/Leaderboard.php'));
+app.get('/leaderboard', LeaderboardController.showLeaderboard);
+app.get('/Leaderboard.php', redirectToClean('/leaderboard', ['event_id']));
 app.get('/api/leaderboard', LeaderboardController.getLeaderboardApi);
 
 // SuperAdmin Terminal & Pages (Controller: AdminController)
-app.get('/SuperAdmin.php', AdminController.showAdmin);
-app.post('/SuperAdmin.php', (req, res, next) => {
+const handleSuperAdminPost = (req, res, next) => {
   const action = req.body.action;
   if (action === 'change_password') {
     return AdminController.changePassword(req, res, next);
@@ -349,7 +363,12 @@ app.post('/SuperAdmin.php', (req, res, next) => {
     return AdminController.deleteEvent(req, res, next);
   }
   return AdminController.processLogin(req, res, next);
-});
+};
+
+app.get('/superadmin', AdminController.showAdmin);
+app.post('/superadmin', handleSuperAdminPost);
+app.get('/SuperAdmin.php', redirectToClean('/superadmin', ['tab', 'event_id', 'booth_id', 'type', 'sort', 'search']));
+app.post('/SuperAdmin.php', handleSuperAdminPost);
 
 // Direct SuperAdmin API Endpoints
 app.post('/api/admin/change-password', AdminController.changePassword);
@@ -367,41 +386,24 @@ app.post('/api/admin/events/edit', AdminController.editEvent);
 app.post('/api/admin/events/delete', AdminController.deleteEvent);
 
 // SuperAdmin Navigation Aliases
-app.get('/superadmin', (req, res) => res.redirect('/SuperAdmin.php'));
-app.get('/SuperAdminAttendees.php', (req, res) => {
-  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
-  res.redirect(`/SuperAdmin.php?tab=attendees${sid}`);
-});
-app.get('/SuperAdminBooths.php', (req, res) => {
-  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
-  res.redirect(`/SuperAdmin.php?tab=booths${sid}`);
-});
-app.get('/SuperAdminPoints.php', (req, res) => {
-  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
-  res.redirect(`/SuperAdmin.php?tab=points${sid}`);
-});
-app.get('/SuperAdminEvents.php', (req, res) => {
-  const sid = req.query.sid ? `&sid=${encodeURIComponent(req.query.sid)}` : '';
-  res.redirect(`/SuperAdmin.php?tab=events${sid}`);
-});
-
+app.get('/SuperAdminAttendees.php', (req, res) => res.redirect(302, '/superadmin?tab=attendees'));
+app.get('/SuperAdminBooths.php', (req, res) => res.redirect(302, '/superadmin?tab=booths'));
+app.get('/SuperAdminPoints.php', (req, res) => res.redirect(302, '/superadmin?tab=points'));
+app.get('/SuperAdminEvents.php', (req, res) => res.redirect(302, '/superadmin?tab=events'));
 
 // Dashboard (Controller: BoothController)
-app.get('/Dashboard.php', BoothController.showDashboard);
-app.get('/dashboard', (req, res) => res.redirect('/Dashboard.php'));
+app.get('/dashboard', BoothController.showDashboard);
+app.get('/Dashboard.php', redirectToClean('/dashboard'));
 
 // Station Profile (Controller: BoothController)
-app.get('/StationProfile.php', BoothController.showStationProfile);
+app.get(['/stationprofile', '/profile'], BoothController.showStationProfile);
+app.post(['/stationprofile', '/profile'], upload.single('dashboard_bg'), BoothController.updateStationProfileBg);
+app.get('/StationProfile.php', redirectToClean('/stationprofile'));
 app.post('/StationProfile.php', upload.single('dashboard_bg'), BoothController.updateStationProfileBg);
-app.get('/stationprofile', (req, res) => res.redirect('/StationProfile.php'));
 
 // Admin Leaderboard (Controller: LeaderboardController)
-app.get('/AdminLeaderboard.php', LeaderboardController.showAdminLeaderboard);
-app.get('/adminleaderboard', (req, res) => res.redirect('/AdminLeaderboard.php'));
-
-// Logout aliases matching uploaded files
-app.get('/LogOutBooth.php', BoothController.logout);
-app.get('/logoutbooth', BoothController.logout);
+app.get('/adminleaderboard', LeaderboardController.showAdminLeaderboard);
+app.get('/AdminLeaderboard.php', redirectToClean('/adminleaderboard', ['event_id']));
 
 // Standardized Single-Color Event Logo endpoint
 app.get(['/api/event-logo/:eventId', '/IMG/event-logo-:eventId.png'], (req, res) => {

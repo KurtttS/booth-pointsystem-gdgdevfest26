@@ -1,19 +1,17 @@
 <%
-    const cur = (typeof currentPage !== 'undefined' && currentPage) ? currentPage : '';
-    const isLogin = (cur === 'LoginBooth.php' || cur === 'LoginBooth');
-    const isDashboard = (cur === 'Dashboard.php' || cur === 'Dashboard');
-    const isScanner = (cur === 'scanner.php' || cur === 'scanner');
-    const isLeaderboard = (cur === 'Leaderboard.php' || cur === 'Leaderboard');
-    const isSuperAdmin = (cur === 'SuperAdmin.php' || cur === 'SuperAdmin');
-    const isProfile = (cur === 'StationProfile.php' || cur === 'StationProfile');
-    const isChoices = (cur === 'EventChoices.php' || cur === 'EventChoices');
+    const cur = (typeof currentPage !== 'undefined' && currentPage) ? currentPage.toLowerCase() : '';
+    const isLogin = (cur.includes('login'));
+    const isDashboard = (cur.includes('dashboard'));
+    const isScanner = (cur.includes('scanner'));
+    const isLeaderboard = (cur.includes('leaderboard'));
+    const isSuperAdmin = (cur.includes('superadmin') || cur.includes('admin'));
+    const isProfile = (cur.includes('profile') || cur.includes('stationprofile'));
+    const isChoices = (cur.includes('choice') || cur.includes('eventchoices'));
     const loggedIn = (typeof isLoggedIn !== 'undefined' && isLoggedIn);
-    const sessionSid = (typeof sid !== 'undefined' && sid) ? sid : '';
-    const sidParam = sessionSid ? ('?sid=' + encodeURIComponent(sessionSid)) : '';
 %>
 <header class="topbar">
 
-    <a class="brand" href="<%= loggedIn ? ('/Dashboard.php' + sidParam) : '/LoginBooth.php' %>"
+    <a class="brand" href="<%= loggedIn ? '/dashboard' : '/login' %>"
        aria-label="DevFest Bacolod 2026 home">
 
         <img src="/IMG/GDG_LOGO.png"
@@ -41,40 +39,40 @@
 
         <% if (isLogin || !loggedIn) { %>
             <!-- 1. LOGIN / UNAUTHENTICATED: Cannot access Scanner and Leaderboard -->
-            <a href="/LoginBooth.php<%= sidParam %>"
+            <a href="/login"
                class="<%= isLogin ? 'active' : '' %>">
                 Booth Portal
             </a>
 
-            <a href="/SuperAdmin.php<%= sidParam %>"
+            <a href="/superadmin"
                class="<%= isSuperAdmin ? 'active' : '' %>">
                 SuperAdmin
             </a>
 
         <% } else { %>
             <!-- 2. AUTHENTICATED: Dashboard, Scanner, Events, Leaderboard, and Station Profile Icon -->
-            <a href="/Dashboard.php<%= sidParam %>"
+            <a href="/dashboard"
                class="<%= isDashboard ? 'active' : '' %>">
                 Dashboard
             </a>
 
-            <a href="/scanner.php<%= sidParam %>"
+            <a href="/scanner"
                class="<%= isScanner ? 'active' : '' %>">
                 Scanner
             </a>
 
-            <a href="/EventChoices.php<%= sidParam %>"
+            <a href="/choices"
                class="<%= isChoices ? 'active' : '' %>"
                title="Event Selection">
                 Events
             </a>
 
-            <a href="/Leaderboard.php<%= sidParam %>"
+            <a href="/leaderboard"
                class="<%= isLeaderboard ? 'active' : '' %>">
                 Leaderboard
             </a>
 
-            <a href="/StationProfile.php<%= sidParam %>"
+            <a href="/stationprofile"
                class="profile-btn <%= isProfile ? 'active' : '' %>"
                aria-label="Station Profile"
                title="Station Profile">

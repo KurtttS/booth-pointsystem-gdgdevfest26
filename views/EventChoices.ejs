@@ -33,7 +33,7 @@
 <div class="devfest-page">
     
     <!-- Shared navbar -->
-    <%- include('partials/nav', { currentPage: 'EventChoices.php', isLoggedIn: true, sid: sessionSid }) %>
+    <%- include('partials/nav', { currentPage: 'choices', isLoggedIn: true }) %>
 
     <!-- Main Stage with Vibrant DevFest Gradient Mesh -->
     <main class="devfest-stage">
@@ -83,7 +83,7 @@
             </div>
 
             <!-- Track Selection Form -->
-            <form method="POST" action="/scanner.php" id="eventChoicesForm">
+            <form method="POST" action="/scanner" id="eventChoicesForm">
                 <input type="hidden" name="event_id" id="selectedEventId" value="<%= activeEvId || (typeof events !== 'undefined' && events && events[0] ? events[0].id : 1) %>">
                 <input type="hidden" name="sid" value="<%= sessionSid %>">
                 
@@ -171,7 +171,7 @@
                 <div class="proceed-btn-wrapper">
                     <button type="submit" class="btn-proceed" id="proceedBtn"><%= isEventActive ? 'UPDATE SELECTED EVENT' : 'SELECT EVENT & PROCEED' %></button>
                     <% if (isEventActive) { %>
-                        <a href="/scanner.php<%= sidParam %>" class="btn-cancel-return">Keep Current Event</a>
+                        <a href="/scanner" class="btn-cancel-return">Keep Current Event</a>
                     <% } else { %>
                         <button type="button" class="btn-cancel-return btn-cancel-disabled" disabled aria-disabled="true" title="No event is currently active in this session. Please select an event to proceed.">Keep Current Event</button>
                     <% } %>

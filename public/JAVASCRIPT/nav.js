@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             sessionStorage.removeItem('devfest_sid');
             localStorage.removeItem('devfest_sid');
+            document.cookie = 'devfest_sid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
         } catch (e) {}
     }
 
@@ -24,12 +25,16 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             sessionStorage.setItem('devfest_sid', sid);
             localStorage.setItem('devfest_sid', sid);
+            document.cookie = 'devfest_sid=' + encodeURIComponent(sid) + '; path=/; SameSite=Lax';
         } catch (e) {
             // Storage quota or restriction ignored
         }
     } else if (!isLogout) {
         try {
             sid = sessionStorage.getItem('devfest_sid') || localStorage.getItem('devfest_sid');
+            if (sid) {
+                document.cookie = 'devfest_sid=' + encodeURIComponent(sid) + '; path=/; SameSite=Lax';
+            }
         } catch (e) {
             sid = null;
         }
@@ -37,32 +42,58 @@ document.addEventListener("DOMContentLoaded", function () {
         sid = null;
     }
 
-    // Attach sid to internal links to prevent losing authentication inside cross-origin iframes
-    if (sid) {
-        document.querySelectorAll('a[href]').forEach(function (link) {
-            const href = link.getAttribute('href');
-            if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('http')) return;
+    // Immediately hide file types (.php), query parameters with response/JSON payloads, messages, and raw sid from the address bar
+    try {
+        if (window.history && window.history.replaceState) {
+            const curUrl = new URL(window.location.href);
+            let urlChanged = false;
 
-            if (href.toLowerCase().includes('logout')) {
-                link.addEventListener('click', function () {
-                    try {
-                        sessionStorage.removeItem('devfest_sid');
-                        localStorage.removeItem('devfest_sid');
-                    } catch (e) {}
-                });
-                return;
+            // 1. Hide .php file extension from pathname if present
+            const cleanPathMap = {
+                '/superadmin.php': '/superadmin',
+                '/dashboard.php': '/dashboard',
+                '/loginbooth.php': '/login',
+                '/eventchoices.php': '/choices',
+                '/scanner.php': '/scanner',
+                '/leaderboard.php': '/leaderboard',
+                '/adminleaderboard.php': '/adminleaderboard',
+                '/stationprofile.php': '/stationprofile',
+                '/logout.php': '/logout',
+                '/logoutbooth.php': '/logout'
+            };
+            const pathLower = curUrl.pathname.toLowerCase();
+            if (cleanPathMap[pathLower]) {
+                curUrl.pathname = cleanPathMap[pathLower];
+                urlChanged = true;
+            } else if (curUrl.pathname.endsWith('.php')) {
+                curUrl.pathname = curUrl.pathname.slice(0, -4);
+                urlChanged = true;
             }
 
-            try {
-                const url = new URL(href, window.location.origin);
-                if (!url.searchParams.has('sid')) {
-                    url.searchParams.set('sid', sid);
-                    link.setAttribute('href', url.pathname + url.search);
+            // 2. Hide JSON responses, status, message, error, and session IDs from the URL search params
+            const sensitiveParams = ['message', 'msg', 'error', 'status', 'json', 'response', 'sid', 'logged_out', 'logout'];
+            sensitiveParams.forEach(function (param) {
+                if (curUrl.searchParams.has(param)) {
+                    curUrl.searchParams.delete(param);
+                    urlChanged = true;
                 }
-            } catch (err) {
-                // Ignore parse errors
+            });
+
+            // Also remove any parameter containing serialized JSON objects/arrays
+            for (const [key, value] of Array.from(curUrl.searchParams.entries())) {
+                if (typeof value === 'string' && (value.startsWith('{') || value.startsWith('%7B') || value.startsWith('[') || value.includes('{"') || value.includes('%22'))) {
+                    curUrl.searchParams.delete(key);
+                    urlChanged = true;
+                }
             }
-        });
+
+            if (urlChanged) {
+                const newCleanUrl = curUrl.pathname + (curUrl.search ? curUrl.search : '') + (curUrl.hash ? curUrl.hash : '');
+                window.history.replaceState({}, document.title, newCleanUrl);
+            }
+        }
+    } catch (cleanErr) {
+        // Fallback safe
     }
 
     if (!menuToggle || !navLinks) return;

@@ -16,13 +16,21 @@ export class AdminController {
   static async showAdmin(req, res) {
     const isLoggedIn = !!(req.session && req.session.isLoggedIn && req.session.isAdmin);
     const sid = req.sessionID || req.query.sid || '';
-    const message = req.query.message || req.query.msg || req.query.error || '';
-    const messageSuccess = !!(req.query.message || req.query.msg);
+
+    // Retrieve and clear flash messages from session to prevent dirty URL parameters
+    const flashMessage = req.session?.flashMessage;
+    const flashError = req.session?.flashError;
+    if (req.session) {
+      delete req.session.flashMessage;
+      delete req.session.flashError;
+    }
+    const message = flashMessage || flashError || req.query.message || req.query.msg || req.query.error || '';
+    const messageSuccess = flashMessage ? true : (flashError ? false : !!(req.query.message || req.query.msg));
 
     // If not authenticated, render login form matching DevFest login card
     if (!isLoggedIn) {
       return res.render('SuperAdmin', {
-        currentPage: 'SuperAdmin.php',
+        currentPage: 'superadmin',
         activeTab: 'login',
         isLoggedIn: false,
         isAdmin: false,
@@ -101,7 +109,7 @@ export class AdminController {
         });
 
         return res.render('SuperAdmin', {
-          currentPage: 'SuperAdmin.php',
+          currentPage: 'superadmin',
           activeTab: 'overview',
           isLoggedIn: true,
           isAdmin: true,
@@ -193,7 +201,7 @@ export class AdminController {
         }
 
         return res.render('SuperAdmin', {
-          currentPage: 'SuperAdmin.php',
+          currentPage: 'superadmin',
           activeTab: 'attendees',
           isLoggedIn: true,
           isAdmin: true,
@@ -289,7 +297,7 @@ export class AdminController {
         // Screenshot 3: ALL BOOTHS TABLE VIEW
         if (selectedBoothId === 'all') {
           return res.render('SuperAdmin', {
-            currentPage: 'SuperAdmin.php',
+            currentPage: 'superadmin',
             activeTab: 'booths',
             selectedBoothId: 'all',
             isLoggedIn: true,
@@ -314,7 +322,7 @@ export class AdminController {
         const currentBooth = booths.find(b => b.id.toString() === selectedBoothId.toString()) || booths[0];
 
         if (!currentBooth) {
-          return res.redirect(`/SuperAdmin.php?tab=booths&sid=${encodeURIComponent(sid)}`);
+          return res.redirect('/superadmin?tab=booths');
         }
 
         // Fetch scan logs for this booth
@@ -367,7 +375,7 @@ export class AdminController {
         }).length;
 
         return res.render('SuperAdmin', {
-          currentPage: 'SuperAdmin.php',
+          currentPage: 'superadmin',
           activeTab: 'booths',
           selectedBoothId: currentBooth.id,
           currentBooth,
@@ -434,7 +442,7 @@ export class AdminController {
           }
 
           return res.render('SuperAdmin', {
-            currentPage: 'SuperAdmin.php',
+            currentPage: 'superadmin',
             activeTab: 'points',
             isLoggedIn: true,
             isAdmin: true,
@@ -513,7 +521,7 @@ export class AdminController {
             : eventsWithStats;
 
           return res.render('SuperAdmin', {
-            currentPage: 'SuperAdmin.php',
+            currentPage: 'superadmin',
             activeTab: 'events',
             isLoggedIn: true,
             isAdmin: true,
@@ -532,12 +540,12 @@ export class AdminController {
         }
 
         // Default fallback: redirect to overview
-        return res.redirect(`/SuperAdmin.php?tab=overview&sid=${encodeURIComponent(sid)}`);
+        return res.redirect('/superadmin');
 
     } catch (err) {
       console.error('[AdminController.showAdmin] Error loading SuperAdmin page:', err);
       return res.render('SuperAdmin', {
-        currentPage: 'SuperAdmin.php',
+        currentPage: 'superadmin',
         activeTab: 'overview',
         isLoggedIn: true,
         isAdmin: true,
@@ -567,7 +575,7 @@ export class AdminController {
 
     if (!username || !password) {
       return res.render('SuperAdmin', {
-        currentPage: 'SuperAdmin.php',
+        currentPage: 'superadmin',
         activeTab: 'login',
         message: 'Please enter both administrator username and password.',
         messageSuccess: false,
@@ -600,12 +608,12 @@ export class AdminController {
         return req.session.save((err) => {
           if (err) console.error('[AdminController.processLogin] Session save error:', err);
           // Redirect immediately to Super Admin dashboard overview
-          return res.redirect(`/SuperAdmin.php?tab=overview${sid ? '&sid=' + encodeURIComponent(sid) : ''}`);
+          return res.redirect('/superadmin');
         });
       } else {
         const denialMessage = authResult.message || 'Invalid administrator credentials. Access denied.';
         return res.render('SuperAdmin', {
-          currentPage: 'SuperAdmin.php',
+          currentPage: 'superadmin',
           activeTab: 'login',
           message: denialMessage,
           messageSuccess: false,
@@ -620,7 +628,7 @@ export class AdminController {
     } catch (err) {
       console.error('[AdminController.processLogin] Unexpected error:', err);
       return res.render('SuperAdmin', {
-        currentPage: 'SuperAdmin.php',
+        currentPage: 'superadmin',
         activeTab: 'login',
         message: 'A system error occurred during authentication. Please try again.',
         messageSuccess: false,
@@ -644,10 +652,17 @@ export class AdminController {
         message
       });
     }
-    const sid = req.body?.sid || req.query?.sid || req.sessionID || req.session?.id || '';
-    const sidQuery = sid ? `&sid=${encodeURIComponent(sid)}` : '';
-    const param = msgType === 'error' ? 'error' : 'message';
-    const targetUrl = `/SuperAdmin.php?tab=${encodeURIComponent(tab)}&${param}=${encodeURIComponent(message)}${sidQuery}`;
+
+    if (req.session) {
+      if (msgType === 'error') {
+        req.session.flashError = message;
+      } else {
+        req.session.flashMessage = message;
+      }
+    }
+
+    const cleanTab = (tab && tab !== 'overview') ? `?tab=${encodeURIComponent(tab)}` : '';
+    const targetUrl = `/superadmin${cleanTab}`;
 
     if (req.session && typeof req.session.save === 'function') {
       return req.session.save((err) => {
@@ -663,7 +678,8 @@ export class AdminController {
    */
   static async addAttendee(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -747,7 +763,8 @@ export class AdminController {
    */
   static async editAttendee(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -846,7 +863,8 @@ export class AdminController {
    */
   static async deleteAttendee(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -879,7 +897,8 @@ export class AdminController {
    */
   static async addBooth(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -940,7 +959,8 @@ export class AdminController {
    */
   static async editBooth(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1025,7 +1045,8 @@ export class AdminController {
    */
   static async deleteBooth(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1060,7 +1081,8 @@ export class AdminController {
     const isAdmin = !!(req.session && req.session.isLoggedIn && req.session.isAdmin);
 
     if (!isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=' + encodeURIComponent('Unauthorized. Please log in first.'));
+      if (req.session) req.session.flashError = 'Unauthorized. Please log in first.';
+      return res.redirect('/superadmin');
     }
 
     const username = req.session.adminUser || req.session.username;
@@ -1094,7 +1116,8 @@ export class AdminController {
    */
   static async addPoints(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1129,7 +1152,8 @@ export class AdminController {
    */
   static async editPoints(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1164,7 +1188,8 @@ export class AdminController {
    */
   static async deletePoints(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1186,7 +1211,8 @@ export class AdminController {
    */
   static async addEvent(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1229,7 +1255,8 @@ export class AdminController {
    */
   static async editEvent(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {
@@ -1269,7 +1296,8 @@ export class AdminController {
    */
   static async deleteEvent(req, res) {
     if (!req.session?.isAdmin) {
-      return res.redirect('/SuperAdmin.php?error=Unauthorized');
+      if (req.session) req.session.flashError = 'Unauthorized';
+      return res.redirect('/superadmin');
     }
 
     try {

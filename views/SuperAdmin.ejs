@@ -61,7 +61,7 @@
 
             <!-- Shared navbar -->
             <%- include('partials/nav', {
-                currentPage: 'SuperAdmin.php',
+                currentPage: 'superadmin',
                 activeTab: safeActiveTab,
                 isLoggedIn: safeLoggedIn,
                 isAdmin: safeAdmin,
@@ -93,7 +93,7 @@
                             </div>
                         <% } %>
 
-                        <form id="adminLoginForm" action="/SuperAdmin.php" method="post">
+                        <form id="adminLoginForm" action="/superadmin" method="post">
                             <input type="hidden" name="sid" value="<%= (typeof sid !== 'undefined') ? sid : '' %>">
 
                             <div class="field">
@@ -277,10 +277,10 @@
                                             </button>
 
                                             <div class="dropdown-popover" id="overviewFilterPopover">
-                                                <a href="/SuperAdmin.php?tab=overview<%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                <a href="/superadmin?tab=overview"
                                                    class="dropdown-item <%= !selectedEventId ? 'is-selected' : '' %>">All Events</a>
                                                 <% safeEvents.forEach(function(ev) { %>
-                                                    <a href="/SuperAdmin.php?tab=overview&event_id=<%= ev.id %><%= sid ? '&sid=' + encodeURIComponent(sid) : '' %>"
+                                                    <a href="/superadmin?tab=overview&event_id=<%= ev.id %>"
                                                        class="dropdown-item <%= selectedEventId === ev.id ? 'is-selected' : '' %>">
                                                         <img src="/api/event-logo/<%= ev.id %>" alt="" class="dropdown-item-logo" onerror="this.src='/IMG/test_green.png'">
                                                         <span><%= ev.event_name %></span>

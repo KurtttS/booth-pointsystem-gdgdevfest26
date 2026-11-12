@@ -14,28 +14,35 @@ export class BoothController {
    * If user is already logged in, prevent returning to login by redirecting forward.
    */
   static showLogin(req, res) {
+    const flashError = req.session?.flashError;
+    const flashMessage = req.session?.flashMessage;
+    if (req.session) {
+      delete req.session.flashError;
+      delete req.session.flashMessage;
+    }
+    const error = flashError || req.query.error || null;
+    const message = flashMessage || req.query.message || null;
+
     // If arriving with explicit logout or error, ensure user stays on Booth Portal Terminal
-    if (req.query.logged_out === '1' || req.query.logged_out === 'true' || req.query.error) {
+    if (req.query.logged_out === '1' || req.query.logged_out === 'true' || error) {
       return res.render('LoginBooth', {
-        currentPage: 'LoginBooth.php',
-        error: req.query.error || null,
-        message: req.query.message || 'You have been logged out successfully.'
+        currentPage: 'login',
+        error,
+        message: message || (req.query.logged_out ? 'You have been logged out successfully.' : null)
       });
     }
 
     if (req.session && req.session.isLoggedIn && (req.session.booth_IDs || req.session.booth_id || req.session.boothId)) {
-      const sid = req.sessionID || req.query.sid;
-      const sidQuery = sid ? '?sid=' + encodeURIComponent(sid) : '';
       if (req.session.event_id || req.session.eventId) {
-        return res.redirect('/scanner.php' + sidQuery);
+        return res.redirect('/scanner');
       }
-      return res.redirect('/EventChoices.php' + sidQuery);
+      return res.redirect('/choices');
     }
 
     res.render('LoginBooth', {
-      currentPage: 'LoginBooth.php',
-      error: req.query.error || null,
-      message: req.query.message || null
+      currentPage: 'login',
+      error,
+      message
     });
   }
 
@@ -49,7 +56,7 @@ export class BoothController {
 
     if (!username || !password) {
       return res.render('LoginBooth', {
-        currentPage: 'LoginBooth.php',
+        currentPage: 'login',
         error: 'Please enter both username and password.',
         message: null,
         username
@@ -58,7 +65,7 @@ export class BoothController {
 
     if (!isSupabaseConfigured()) {
       return res.render('LoginBooth', {
-        currentPage: 'LoginBooth.php',
+        currentPage: 'login',
         error: 'Supabase is not configured. Ensure your .env file (not .env.txt or .env.example) contains SUPABASE_URL and SUPABASE_ANON_KEY, then restart Node.',
         message: null,
         username
@@ -86,11 +93,9 @@ export class BoothController {
             req.session.username = admin.username;
             req.session.user = displayName;
 
-            const sid = req.sessionID;
             return req.session.save((err) => {
               if (err) console.error('[Session] Error saving admin session:', err);
-              const target = '/SuperAdmin.php?tab=overview' + (sid ? '&sid=' + encodeURIComponent(sid) : '');
-              return res.redirect(target);
+              return res.redirect('/superadmin');
             });
           });
         }
@@ -100,7 +105,7 @@ export class BoothController {
           ? 'Staff accounts cannot log in to the Booth Portal Terminal. Please use a booth account.'
           : 'Invalid administrator credentials. Please check your username and password.';
         return res.render('LoginBooth', {
-          currentPage: 'LoginBooth.php',
+          currentPage: 'login',
           error: roleError,
           message: null,
           username
@@ -137,18 +142,16 @@ export class BoothController {
           req.session.selected_event_id = null;
           req.session.selected_track = null;
 
-          const sid = req.sessionID;
           return req.session.save((err) => {
             if (err) console.error('[Session] Error saving booth session:', err);
-            const target = '/EventChoices.php' + (sid ? '?sid=' + encodeURIComponent(sid) : '');
-            return res.redirect(target);
+            return res.redirect('/choices');
           });
         });
       }
 
       if (adminRecord && !Admin.isActive(adminRecord)) {
         return res.render('LoginBooth', {
-          currentPage: 'LoginBooth.php',
+          currentPage: 'login',
           error: 'This account is inactive and cannot log in to the Booth Portal Terminal.',
           message: null,
           username
@@ -157,7 +160,7 @@ export class BoothController {
 
       // 3. Username belongs to a booth account but password is incorrect: keep existing invalid-credentials message
       return res.render('LoginBooth', {
-        currentPage: 'LoginBooth.php',
+        currentPage: 'login',
         error: 'Invalid booth credentials. Please enter a valid booth username and password.',
         message: null,
         username
@@ -166,7 +169,7 @@ export class BoothController {
       console.error('[BoothController.processLogin] error:', err);
       const errMsg = err && err.message ? err.message : 'An internal error occurred during authentication. Please try again.';
       return res.render('LoginBooth', {
-        currentPage: 'LoginBooth.php',
+        currentPage: 'login',
         error: errMsg,
         message: null,
         username
@@ -181,7 +184,8 @@ export class BoothController {
   static async showChoices(req, res) {
     const boothId = req.session.booth_IDs || req.session.booth_id || req.session.boothId || (req.session.isAdmin ? 'BOOTH001' : null);
     if (!req.session.isLoggedIn || !boothId) {
-      return res.redirect('/LoginBooth.php?error=' + encodeURIComponent('Access denied. Please log in first.'));
+      if (req.session) req.session.flashError = 'Access denied. Please log in first.';
+      return res.redirect('/login');
     }
 
     const events = await Event.getAll();
@@ -198,7 +202,7 @@ export class BoothController {
     const activeEventTheme = eventId ? getEventTheme(eventId, activeEvent ? activeEvent.event_name : '', events) : null;
 
     res.render('EventChoices', {
-      currentPage: 'EventChoices.php',
+      currentPage: 'choices',
       track,
       eventId,
       hasCurrentEvent,
@@ -222,7 +226,8 @@ export class BoothController {
   static async selectTrack(req, res) {
     const boothId = req.session.booth_IDs || req.session.booth_id || req.session.boothId || (req.session.isAdmin ? 'BOOTH001' : null);
     if (!req.session.isLoggedIn || !boothId) {
-      return res.redirect('/LoginBooth.php?error=' + encodeURIComponent('Access denied. Please log in first.'));
+      if (req.session) req.session.flashError = 'Access denied. Please log in first.';
+      return res.redirect('/login');
     }
 
     const rawEventId = req.body.event_id || req.body.eventId || req.body.track_id || (req.body.track === 'professionals' ? 2 : 1);
@@ -255,10 +260,9 @@ export class BoothController {
     req.session.active_context = resolvedEventName;
     req.session.eventVenue = event ? (event.venue || '') : '';
 
-    const sid = req.body.sid || req.query.sid || req.sessionID || '';
     req.session.save((err) => {
       if (err) console.error('[Session] Error saving event selection:', err);
-      const target = '/scanner.php?track=' + encodeURIComponent(selectedTrack) + '&event_id=' + eventId + (sid ? '&sid=' + encodeURIComponent(sid) : '');
+      const target = '/scanner?track=' + encodeURIComponent(selectedTrack) + '&event_id=' + eventId;
       res.redirect(target);
     });
   }
@@ -270,15 +274,13 @@ export class BoothController {
   static async showScanner(req, res) {
     const boothId = req.session.booth_IDs || req.session.booth_id || req.session.boothId || (req.session.isAdmin ? 'BOOTH001' : null);
     if (!req.session.isLoggedIn || !boothId) {
-      return res.redirect('/LoginBooth.php?error=' + encodeURIComponent('Access denied. Please log in first.'));
+      if (req.session) req.session.flashError = 'Access denied. Please log in first.';
+      return res.redirect('/login');
     }
-
-    const sid = req.sessionID || req.query.sid || '';
-    const sidQuery = sid ? '?sid=' + encodeURIComponent(sid) : '';
 
     // If event has not been selected yet, route to EventChoices
     if (!req.session.event_id && !req.session.eventId) {
-      return res.redirect('/EventChoices.php' + sidQuery);
+      return res.redirect('/choices');
     }
 
     // Active session event is authoritative throughout booth interface
@@ -309,7 +311,7 @@ export class BoothController {
     const totalScans = await ScanLog.countByBoothAndEvent(boothId, eventId);
 
     res.render('scanner', {
-      currentPage: 'scanner.php',
+      currentPage: 'scanner',
       track,
       eventName,
       boothId,
@@ -344,9 +346,7 @@ export class BoothController {
       delete req.sessionStore.sessions[rawSid];
     }
 
-    const redirectUrl = isAdmin
-      ? '/SuperAdmin.php?logged_out=1&message=' + encodeURIComponent('You have been logged out successfully.')
-      : '/LoginBooth.php?logged_out=1&message=' + encodeURIComponent('You have been logged out successfully.');
+    const redirectUrl = isAdmin ? '/superadmin' : '/login';
 
     const finalizeLogout = () => {
       res.clearCookie('connect.sid', cookieOpts);
@@ -369,11 +369,9 @@ export class BoothController {
    * Display Dashboard view matching Dashboard.php reference design.
    */
   static async showDashboard(req, res) {
-    const sid = req.sessionID || req.query.sid || '';
-    const sidQuery = sid ? '?sid=' + encodeURIComponent(sid) : '';
-
     if (!req.session || !req.session.isLoggedIn) {
-      return res.redirect('/LoginBooth.php' + sidQuery + (sidQuery ? '&' : '?') + 'error=' + encodeURIComponent('Access denied. Please log in first.'));
+      if (req.session) req.session.flashError = 'Access denied. Please log in first.';
+      return res.redirect('/login');
     }
 
     const boothId = req.session.booth_IDs || req.session.booth_id || req.session.boothId || (req.session.isAdmin ? 'BOOTH001' : null);
@@ -464,7 +462,7 @@ export class BoothController {
     };
 
     res.render('Dashboard', {
-      currentPage: 'Dashboard.php',
+      currentPage: 'dashboard',
       admin_name: adminName,
       station_name: stationName,
       station_location: stationLocation,
@@ -491,11 +489,16 @@ export class BoothController {
    * Reflects the actual selected event from database records.
    */
   static async showStationProfile(req, res) {
-    const sid = req.sessionID || req.query.sid || '';
-    const sidQuery = sid ? '?sid=' + encodeURIComponent(sid) : '';
-
     if (!req.session || !req.session.isLoggedIn) {
-      return res.redirect('/LoginBooth.php' + sidQuery + (sidQuery ? '&' : '?') + 'error=' + encodeURIComponent('Access denied. Please log in first.'));
+      if (req.session) req.session.flashError = 'Access denied. Please log in first.';
+      return res.redirect('/login');
+    }
+
+    const flashError = req.session?.flashError;
+    const flashMessage = req.session?.flashMessage;
+    if (req.session) {
+      delete req.session.flashError;
+      delete req.session.flashMessage;
     }
 
     // Retrieve booth associated with the logged-in station account from database
@@ -535,7 +538,7 @@ export class BoothController {
     const boothType = Booth.getBoothType(booth);
 
     res.render('StationProfile', {
-      currentPage: 'StationProfile.php',
+      currentPage: 'stationprofile',
       booth_name: boothName,
       boothName,
       booth_type: boothType,
@@ -550,9 +553,9 @@ export class BoothController {
       eventId: eventId || 1,
       active_context: selectedEventName,
       activeContext: selectedEventName,
-      upload_message: req.query.msg || '',
-      upload_status: req.query.status || 'success',
-      sid,
+      upload_message: flashMessage || flashError || req.query.msg || '',
+      upload_status: flashError ? 'error' : (flashMessage ? 'success' : (req.query.status || 'success')),
+      sid: req.sessionID || '',
       isLoggedIn: true
     });
   }
@@ -561,26 +564,22 @@ export class BoothController {
    * Handle background image upload for Station Profile.
    */
   static async updateStationProfileBg(req, res) {
-    const sid = req.sessionID || req.body?.sid || req.query.sid || '';
-    const sidParam = sid ? '?sid=' + encodeURIComponent(sid) : '';
-
     if (!req.file) {
-      const errTarget = '/StationProfile.php' + sidParam + (sidParam ? '&' : '?') + 'msg=' + encodeURIComponent('Please upload a valid image file (JPG, PNG, WEBP).') + '&status=error';
-      return res.redirect(errTarget);
+      if (req.session) req.session.flashError = 'Please upload a valid image file (JPG, PNG, WEBP).';
+      return res.redirect('/stationprofile');
     }
 
     const bannerPath = '/IMG/' + req.file.filename;
     req.session.booth_bg = bannerPath;
     req.session.booth_image = bannerPath;
+    if (req.session) req.session.flashMessage = 'Background image updated successfully!';
 
     if (req.session.save) {
       req.session.save(() => {
-        const successTarget = '/StationProfile.php' + sidParam + (sidParam ? '&' : '?') + 'msg=' + encodeURIComponent('Background image updated successfully!') + '&status=success';
-        res.redirect(successTarget);
+        res.redirect('/stationprofile');
       });
     } else {
-      const successTarget = '/StationProfile.php' + sidParam + (sidParam ? '&' : '?') + 'msg=' + encodeURIComponent('Background image updated successfully!') + '&status=success';
-      res.redirect(successTarget);
+      res.redirect('/stationprofile');
     }
   }
 }

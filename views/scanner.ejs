@@ -29,7 +29,7 @@
 <div class="page-shell">
 
     <!-- DevFest Topbar -->
-    <%- include('partials/nav', { currentPage: 'scanner.php', sid: sessionSid, isLoggedIn: true }) %>
+    <%- include('partials/nav', { currentPage: 'scanner', isLoggedIn: true }) %>
 
     <main class="scanner-main">
         <div class="ambient ambient-top"></div>
@@ -378,9 +378,9 @@
             <div class="modal-field">
                 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
                     <label for="manualAttendeeId" style="margin-bottom: 0;">Ticket / Attendee ID *</label>
-                    <span id="manualAttendeeCharCount" style="font-size: 11px; font-weight: 700; color: #64748b; font-variant-numeric: tabular-nums;">0/64</span>
+                    <span id="manualAttendeeCharCount" style="font-size: 11px; font-weight: 700; color: #64748b; font-variant-numeric: tabular-nums;">0/255</span>
                 </div>
-                <input type="text" id="manualAttendeeId" maxlength="64" placeholder="e.g. TKT-2026-001 or QR-JUAN-001" required autocomplete="off">
+                <input type="text" id="manualAttendeeId" maxlength="255" placeholder="e.g. TKT-2026-111 or QR-JUAN-001" required autocomplete="off">
             </div>
 
             <div class="modal-field">
