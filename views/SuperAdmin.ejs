@@ -375,6 +375,7 @@
                                     <% } else { %>
                                         <% attendees.forEach(function(att, idx) {
                                             const isOver15 = (att.fullName && att.fullName.trim().length > 15);
+                                            const isEmailOver15 = (att.email && att.email.trim().length > 15);
                                         %>
                                             <div class="table-row-item table-row-attendee" data-id="<%= att.id %>" data-index="<%= idx %>" data-search="<%= ((att.qrId || '') + ' ' + (att.fullName || '') + ' ' + (att.email || '') + ' ' + (att.eventName || '')).toLowerCase() %>">
                                                 <span class="table-cell-id"><%= att.qrId %></span>
@@ -385,7 +386,14 @@
                                                       <% } else { %>
                                                         title="<%= att.fullName %>"
                                                       <% } %>><%= formatAttendeeName(att.fullName) %></span>
-                                                <span class="attendee-email" title="<%= att.email %>" style="font-size: 13px; font-weight: 600; color: #334155;"><%= formatAttendeeEmail(att.email) %></span>
+                                                <span class="attendee-email <%= isEmailOver15 ? 'attendee-email-hoverable' : '' %>"
+                                                      <% if (isEmailOver15) { %>
+                                                        data-full-name="<%= att.fullName %>"
+                                                        data-full-email="<%= att.email %>"
+                                                      <% } else { %>
+                                                        title="<%= att.email %>"
+                                                      <% } %>
+                                                      style="font-size: 13px; font-weight: 600; color: #334155;"><%= formatAttendeeEmail(att.email) %></span>
                                                 <span><%= att.eventName %></span>
                                                 <div class="table-cell-actions">
                                                     <button class="btn-action-edit" type="button"
@@ -844,7 +852,10 @@
                                                  data-search="<%= ((p.attendeeName || '') + ' ' + (p.qrCodeToken || '') + ' ' + (p.attendeeEmail || '') + ' ' + (p.boothName || '') + ' ' + (p.eventName || '')).toLowerCase() %>">
                                                 <!-- Attendee Information (display kay sino na ang points) -->
                                                 <div>
-                                                    <% const pointsIsOver15 = (p.attendeeName && p.attendeeName.trim().length > 15); %>
+                                                    <%
+                                                        const pointsIsOver15 = (p.attendeeName && p.attendeeName.trim().length > 15);
+                                                        const pointsEmailIsOver15 = (p.attendeeEmail && p.attendeeEmail.trim().length > 15);
+                                                    %>
                                                     <div class="points-attendee-name <%= pointsIsOver15 ? 'attendee-name-hoverable' : '' %>"
                                                          style="font-weight: 800; color: #0d1b54; font-size: 14px;"
                                                          <% if (pointsIsOver15) { %>
@@ -855,7 +866,14 @@
                                                          <% } %>><%= formatAttendeeName(p.attendeeName) %></div>
                                                     <div style="display: flex; align-items: center; gap: 8px; margin-top: 3px;">
                                                         <span class="scan-qr-badge"><%= p.qrCodeToken %></span>
-                                                        <span class="points-attendee-email" title="<%= p.attendeeEmail %>" style="font-size: 11.5px; color: #64748b;"><%= formatAttendeeEmail(p.attendeeEmail) %></span>
+                                                        <span class="points-attendee-email <%= pointsEmailIsOver15 ? 'attendee-email-hoverable' : '' %>"
+                                                              <% if (pointsEmailIsOver15) { %>
+                                                                data-full-name="<%= p.attendeeName %>"
+                                                                data-full-email="<%= p.attendeeEmail %>"
+                                                              <% } else { %>
+                                                                title="<%= p.attendeeEmail %>"
+                                                              <% } %>
+                                                              style="font-size: 11.5px; color: #64748b;"><%= formatAttendeeEmail(p.attendeeEmail) %></span>
                                                     </div>
                                                 </div>
 
@@ -2293,17 +2311,19 @@
 
     if (hoverCard && hoverNameEl && hoverEmailEl) {
         document.addEventListener('mouseover', (e) => {
-            const trigger = e.target.closest('.attendee-name-hoverable');
+            const trigger = e.target.closest('.attendee-name-hoverable, .attendee-email-hoverable');
             if (!trigger) return;
 
-            const fullName = trigger.dataset.fullName;
-            const fullEmail = trigger.dataset.fullEmail;
-            // Strictly applicable only to users with names over 15 letters
-            if (!fullName || fullName.trim().length <= 15) return;
+            const fullName = trigger.dataset.fullName || '';
+            const fullEmail = trigger.dataset.fullEmail || '';
+            const isNameOver = fullName.trim().length > 15;
+            const isEmailOver = fullEmail.trim().length > 15;
+            // Strictly applicable only when name or email exceeds 15 characters
+            if (!isNameOver && !isEmailOver) return;
 
             clearTimeout(hoverHideTimeout);
 
-            hoverNameEl.textContent = fullName;
+            hoverNameEl.textContent = fullName || 'Attendee';
             hoverEmailEl.textContent = fullEmail || 'No email registered';
 
             // Show hidden to calculate real layout dimensions
@@ -2342,7 +2362,7 @@
         });
 
         document.addEventListener('mouseout', (e) => {
-            const trigger = e.target.closest('.attendee-name-hoverable');
+            const trigger = e.target.closest('.attendee-name-hoverable, .attendee-email-hoverable');
             if (!trigger) return;
 
             const toEl = e.relatedTarget;

@@ -151,6 +151,7 @@ body {
 .superadmin-bg-mesh {
     position: relative;
     width: 100%;
+    max-width: 100%;
     min-height: calc(100vh - 82px);
     background: #f8fafc;
 }
@@ -212,15 +213,20 @@ body {
 
 .overview-grid {
     display: grid;
-    grid-template-columns: 1.05fr 1.15fr;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
     gap: 28px;
     align-items: stretch;
+    width: 100%;
+    max-width: 100%;
 }
 
 .overview-left-col {
     display: flex;
     flex-direction: column;
     gap: 24px;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
 }
 
 /* =========================================
@@ -246,6 +252,9 @@ body {
     box-shadow: 0 4px 18px rgba(13, 27, 84, 0.05);
     position: relative;
     overflow: visible;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
     animation: cardEntrance 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
     transition: 
         transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
@@ -283,6 +292,8 @@ body {
 .bar-chart-container {
     position: relative;
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     height: 250px;
     display: flex;
     margin-top: 10px;
@@ -306,6 +317,7 @@ body {
 .chart-bars-scroll {
     flex: 1;
     min-width: 0;
+    padding-bottom: 50px;
     overflow-x: auto;
     overflow-y: visible;
     -webkit-overflow-scrolling: touch;
@@ -467,6 +479,9 @@ body {
     overflow: visible !important;
     position: relative;
     z-index: 25;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
 }
 
 .overview-right-card.has-open-dropdown,
@@ -480,6 +495,8 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
     padding-bottom: 14px;
     margin-top: 10px;
     border-bottom: 1.5px solid #f1f5f9;
@@ -860,16 +877,18 @@ body {
     text-overflow: ellipsis;
 }
 
-/* Attendee Name Hoverable Indicator (Only for names > 15 characters) */
-.attendee-name-hoverable {
+/* Attendee Name & Email Hoverable Indicator (Only for values > 15 characters) */
+.attendee-name-hoverable,
+.attendee-email-hoverable {
     cursor: pointer;
     text-decoration: underline dotted #d97706 1.5px;
     text-underline-offset: 3px;
     transition: color 0.15s ease, text-decoration-color 0.15s ease;
 }
 
-.attendee-name-hoverable:hover {
-    color: #b45309;
+.attendee-name-hoverable:hover,
+.attendee-email-hoverable:hover {
+    color: #b45309 !important;
     text-decoration-color: #b45309;
 }
 
@@ -2016,7 +2035,7 @@ h1.login-title {
 
 @media (max-width: 1080px) {
     .overview-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .booth-analytics-grid {
@@ -2489,6 +2508,8 @@ h1.login-title {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    max-width: 100%;
     padding: 14px 18px;
     border-bottom: 1px solid #f1f5f9;
     transition: background 0.15s ease;
@@ -2502,6 +2523,8 @@ h1.login-title {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    flex: 1;
+    min-width: 0;
 }
 
 .scan-user-main {
