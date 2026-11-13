@@ -86,6 +86,47 @@ export class Attendee {
     return null;
   }
 
+  /**
+   * Extract candidate unique ticket suffixes from Bevy QR codes (e.g. "132073:3460498"),
+   * GOOGA26-prefixed ticket numbers (e.g. "GOOGA263460498"), or raw suffix IDs (e.g. "3460498").
+   */
+  static extractBevyTicketCandidates(code) {
+    if (!code || typeof code !== 'string') {
+      return { hasColonFormat: false, suffixes: [] };
+    }
+    const clean = code.trim();
+    const suffixes = [];
+    let hasColonFormat = false;
+
+    if (clean.includes(':')) {
+      const parts = clean.split(':').map(p => p.trim()).filter(Boolean);
+      if (parts.length >= 2) {
+        hasColonFormat = true;
+        const lastPart = parts[parts.length - 1];
+        const secondPart = parts[1];
+        if (lastPart && /^[A-Za-z0-9_-]{3,}$/.test(lastPart)) {
+          suffixes.push(lastPart);
+        }
+        if (secondPart && secondPart !== lastPart && /^[A-Za-z0-9_-]{3,}$/.test(secondPart)) {
+          suffixes.push(secondPart);
+        }
+      }
+    } else {
+      const googaMatch = clean.match(/^GOOGA26([A-Za-z0-9_-]{3,})$/i);
+      if (googaMatch && googaMatch[1]) {
+        suffixes.push(googaMatch[1]);
+      } else if (/^[A-Za-z0-9_-]{4,}$/.test(clean)) {
+        // Allow manual entry of just the unique ID after "GOOGA26" (e.g. "3460498")
+        suffixes.push(clean);
+      }
+    }
+
+    return {
+      hasColonFormat,
+      suffixes: Array.from(new Set(suffixes))
+    };
+  }
+
   static async findByIdentifier(query) {
     if (!query || !isSupabaseConfigured() || !supabase) return null;
     const clean = query.trim();
@@ -101,6 +142,18 @@ export class Attendee {
     // 3. Explicit numeric ID ("1", "Attendee001")
     match = await Attendee.findByExplicitIdPattern(clean);
     if (match) return match;
+
+    // 4. Fallback for Bevy colon QR format (e.g. "132073:3460498") against qr_code_token
+    const { hasColonFormat, suffixes } = Attendee.extractBevyTicketCandidates(clean);
+    if (hasColonFormat) {
+      for (const suffix of suffixes) {
+        match = await Attendee.findByQrToken(`GOOGA26${suffix}`);
+        if (match) return match;
+
+        match = await Attendee.findByQrToken(suffix);
+        if (match) return match;
+      }
+    }
 
     return null;
   }
@@ -130,6 +183,8 @@ export class Attendee {
 
   /**
    * Look up event_attendees by Bevy ticket_number or order_number.
+   * Supports full ticket numbers ("GOOGA263460498"), Bevy QR format ("132073:3460498"),
+   * and raw unique IDs following the "GOOGA26" prefix ("3460498").
    * Returns matching rows (scoped or unscoped) so caller can distinguish wrong_event vs not_found.
    */
   static async findEventRegistrationsByTicket(code) {
@@ -152,6 +207,58 @@ export class Attendee {
 
     if (!orderErr && byOrder && byOrder.length > 0) {
       return byOrder;
+    }
+
+    // Match Bevy QR payload (e.g. "132073:3460498") or unique ID after "GOOGA26" prefix (e.g. "3460498")
+    const { hasColonFormat, suffixes } = Attendee.extractBevyTicketCandidates(clean);
+    for (const suffix of suffixes) {
+      // 1. Direct match with the standard "GOOGA26" ticket prefix
+      const { data: byGoogaTicket, error: googaErr } = await supabase
+        .from('event_attendees')
+        .select('*')
+        .ilike('ticket_number', `GOOGA26${suffix}`);
+
+      if (!googaErr && byGoogaTicket && byGoogaTicket.length > 0) {
+        return byGoogaTicket;
+      }
+
+      // 2. If QR used Bevy colon format ("eventId:ticketSuffix"), also check raw suffix on ticket/order
+      if (hasColonFormat) {
+        const { data: bySuffixTicket, error: suffixTicketErr } = await supabase
+          .from('event_attendees')
+          .select('*')
+          .ilike('ticket_number', suffix);
+
+        if (!suffixTicketErr && bySuffixTicket && bySuffixTicket.length > 0) {
+          return bySuffixTicket;
+        }
+
+        const { data: bySuffixOrder, error: suffixOrderErr } = await supabase
+          .from('event_attendees')
+          .select('*')
+          .ilike('order_number', suffix);
+
+        if (!suffixOrderErr && bySuffixOrder && bySuffixOrder.length > 0) {
+          return bySuffixOrder;
+        }
+      }
+
+      // 3. Fallback suffix match for prefixed ticket numbers (requires >= 5 chars to avoid short ID collisions)
+      if (suffix.length >= 5) {
+        const { data: byTail, error: tailErr } = await supabase
+          .from('event_attendees')
+          .select('*')
+          .ilike('ticket_number', `%${suffix}`);
+
+        if (!tailErr && byTail && byTail.length > 0) {
+          const escapedSuffix = suffix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const prefixBoundaryRegex = new RegExp(`^(?:[A-Za-z]+\\d{2}|.*[^\\dA-Za-z])?${escapedSuffix}$`, 'i');
+          const validMatches = byTail.filter(row => prefixBoundaryRegex.test((row.ticket_number || '').trim()));
+          if (validMatches.length > 0) {
+            return validMatches;
+          }
+        }
+      }
     }
 
     return [];
