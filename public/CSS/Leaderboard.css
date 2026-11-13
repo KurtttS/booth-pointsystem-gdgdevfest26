@@ -6,6 +6,8 @@
     --green: #16823b;
     --green-dark: #08783a;
     --gold: #ffda32;
+    --silver: #c0c7d1;
+    --bronze: #cd7f32;
     --text: #101a70;
     --muted: #aeb8dc;
     --line: #cbd2eb;
@@ -467,12 +469,20 @@ button {
     min-height: 200px;
 }
 
+.second-place {
+    border: 3px solid var(--silver);
+}
+
+.third-place {
+    border: 3px solid var(--bronze);
+}
+
 .first-place {
     min-height: 245px;
     padding-top: 0;
     color: #fff;
     background: var(--navy);
-    border-color: var(--navy);
+    border: 3px solid var(--gold);
     box-shadow: 0 8px 18px #111b7b28;
 }
 
@@ -532,6 +542,25 @@ button {
     line-height: 1;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
     filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+}
+
+.second-place .crown,
+.third-place .crown {
+    position: absolute;
+    top: -82px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    text-align: center;
+    pointer-events: none;
+}
+
+.crown-silver {
+    color: var(--silver);
+}
+
+.crown-bronze {
+    color: var(--bronze);
 }
 
 /* Podium labels */
@@ -852,11 +881,19 @@ footer,
     .third-place:hover {
         transform: translateY(-6px);
         box-shadow: 0 12px 24px rgba(16, 26, 112, 0.14);
-        border-color: #abb6e2;
+    }
+
+    .second-place:hover {
+        border-color: var(--silver);
+    }
+
+    .third-place:hover {
+        border-color: var(--bronze);
     }
 
     .first-place:hover {
         transform: translateY(-8px);
+        border-color: var(--gold);
         box-shadow: 0 16px 32px rgba(17, 27, 123, 0.35);
     }
 }
@@ -950,6 +987,12 @@ footer,
         margin-top: -34px;
         margin-bottom: 4px;
         font-size: 28px;
+    }
+
+    .second-place .crown,
+    .third-place .crown {
+        top: -60px;
+        margin: 0 auto;
     }
 
     .podium-info {
