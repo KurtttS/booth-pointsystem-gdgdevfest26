@@ -482,7 +482,7 @@ button {
     padding-top: 0;
     color: #fff;
     background: var(--navy);
-    border: 3px solid var(--gold);
+    border-color: var(--navy);
     box-shadow: 0 8px 18px #111b7b28;
 }
 
@@ -581,14 +581,30 @@ button {
 }
 
 .rank-label {
-    margin: 3px 0 12px;
-    color: #e9bd16;
+    display: block;
+    width: fit-content;
+    margin: 5px auto 12px;
+    padding: 4px 18px;
+    border-radius: 9999px;
+    color: #111b7b;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 800;
+    letter-spacing: 0.03em;
 }
 
 .first-place .rank-label {
-    color: var(--gold);
+    background: var(--gold);
+    color: var(--navy);
+}
+
+.second-place .rank-label {
+    background: #d8e1f0;
+    color: var(--navy);
+}
+
+.third-place .rank-label {
+    background: #eab085;
+    color: #5a260a;
 }
 
 /* Points badges */
@@ -893,7 +909,6 @@ footer,
 
     .first-place:hover {
         transform: translateY(-8px);
-        border-color: var(--gold);
         box-shadow: 0 16px 32px rgba(17, 27, 123, 0.35);
     }
 }
@@ -1004,7 +1019,8 @@ footer,
     }
 
     .rank-label {
-        margin-bottom: 8px;
+        margin: 4px auto 8px;
+        padding: 3px 12px;
         font-size: 10px;
     }
 
